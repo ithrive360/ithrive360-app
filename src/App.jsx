@@ -56,6 +56,10 @@ function App() {
           <p>
           Welcome, {user.user_metadata?.name?.split(' ')[0] || 'there'}
           </p>
+          <p>
+          SCREW YOU BOLTON !!!
+          </p>
+
           <button onClick={handleLogout}>Sign out</button>
         </>
       )}
