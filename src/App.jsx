@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import { supabase } from './supabaseClient'
-
-import Auth from './Auth'
+import logo from './assets/logo.png'
+import './App.css'
 
 function App() {
   const [user, setUser] = useState(null)
-  console.log('✅ LOG CHECK — App started! User is:', user)
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     const initUserProfile = async () => {
@@ -59,55 +58,191 @@ function App() {
   }
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
-    if (error) console.error('Google login error:', error.message)
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    if (error) alert(error.message)
+  }
+
+  const handleLogin = async () => {
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) alert(error.message)
+    setLoading(false)
+  }
+
+  const handleSignup = async () => {
+    setLoading(true)
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) alert(error.message)
+    setLoading(false)
   }
 
   if (!user) {
     return (
-      <>
-        <button onClick={handleGoogleLogin}>Sign in with Google</button>
-        <Auth />
-      </>
+      <div style={{
+        backgroundColor: '#fff',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '10px',
+          padding: '2rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '400px',
+          textAlign: 'center'
+        }}>
+          <img src={logo} alt="iThrive360 Logo" style={{ width: '180px', marginBottom: '2rem' }} />
+
+          <button
+            onClick={handleGoogleLogin}
+            style={{
+              width: '100%',
+              backgroundColor: '#6366f1',
+              color: '#fff',
+              padding: '0.75rem',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              fontWeight: 500,
+              marginBottom: '2rem',
+              cursor: 'pointer'
+            }}
+          >
+            Sign in with Google
+          </button>
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              width: '100%',
+              marginBottom: '1rem',
+              padding: '0.75rem',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: '#f5f5f5',
+              fontSize: '1rem'
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              marginBottom: '1.5rem',
+              padding: '0.75rem',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: '#f5f5f5',
+              fontSize: '1rem'
+            }}
+          />
+
+          <button
+            onClick={handleLogin}
+            disabled={loading}
+            style={{
+              width: '100%',
+              backgroundColor: '#6366f1',
+              color: '#fff',
+              padding: '0.75rem',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              fontWeight: 500,
+              marginBottom: '0.75rem',
+              cursor: 'pointer'
+            }}
+          >
+            Log In
+          </button>
+
+          <button
+            onClick={handleSignup}
+            disabled={loading}
+            style={{
+              width: '100%',
+              backgroundColor: '#6366f1',
+              color: '#fff',
+              padding: '0.75rem',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              fontWeight: 500,
+              cursor: 'pointer'
+            }}
+          >
+            Sign Up
+          </button>
+        </div>
+      </div>
     )
   }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
+    <div style={{
+      backgroundColor: '#fff',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      padding: '2rem'
+    }}>
+      <img src={logo} alt="iThrive360 logo" style={{ width: '180px', marginBottom: '2rem' }} />
       <h1>iThrive360</h1>
 
       <p>
         Welcome, {user.user_metadata?.name?.split(' ')[0] || user.email || 'there'}!
-        <h1>SCREW YOU BOLTON !!!</h1>
       </p>
-      
+      <h1>SCREW YOU BOLTON !!!</h1>
 
-      <button onClick={handleLogout}>Sign out</button>
+      <button
+        onClick={handleLogout}
+        style={{
+          backgroundColor: '#6366f1',
+          color: '#fff',
+          padding: '0.75rem 1.5rem',
+          border: 'none',
+          borderRadius: '5px',
+          fontSize: '1rem',
+          fontWeight: 500,
+          cursor: 'pointer',
+          marginBottom: '1rem'
+        }}
+      >
+        Sign out
+      </button>
 
-      <div className="card">
-        <button onClick={() => alert('💥 You clicked me')}>
+      <div>
+        <button
+          onClick={() => alert('💥 You clicked me')}
+          style={{
+            backgroundColor: '#6366f1',
+            color: '#fff',
+            padding: '0.75rem 1.5rem',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '1rem',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}
+        >
           Dev button
         </button>
-        <p>
+        <p style={{ marginTop: '1rem' }}>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
       </div>
-
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
 
