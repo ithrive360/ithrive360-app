@@ -126,6 +126,7 @@ function App() {
               border: '1px solid #ddd',
               borderRadius: '8px',
               backgroundColor: '#f5f5f5',
+              color: '#000',
               fontSize: '1rem'
             }}
           />
@@ -141,6 +142,7 @@ function App() {
               border: '1px solid #ddd',
               borderRadius: '8px',
               backgroundColor: '#f5f5f5',
+              color: '#000',
               fontSize: '1rem'
             }}
           />
@@ -195,7 +197,8 @@ function App() {
       alignItems: 'center',
       justifyContent: 'center',
       textAlign: 'center',
-      padding: '2rem'
+      padding: '2rem',
+      color: '#000'
     }}>
       <img src={logo} alt="iThrive360 logo" style={{ width: '180px', marginBottom: '2rem' }} />
       <h1>iThrive360</h1>
@@ -221,27 +224,6 @@ function App() {
       >
         Sign out
       </button>
-
-      <div>
-        <button
-          onClick={() => alert('💥 You clicked me')}
-          style={{
-            backgroundColor: '#6366f1',
-            color: '#fff',
-            padding: '0.75rem 1.5rem',
-            border: 'none',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            fontWeight: 500,
-            cursor: 'pointer'
-          }}
-        >
-          Dev button
-        </button>
-        <p style={{ marginTop: '1rem' }}>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
     </div>
   )
 }
