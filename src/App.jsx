@@ -47,7 +47,7 @@ function App() {
         </a>
       </div>
 
-      <h1>Vite + React</h1>
+      <h1>iTrhive360</h1>
 
       {!user ? (
         <button onClick={handleGoogleLogin}>Sign in with Google</button>
@@ -57,7 +57,7 @@ function App() {
           Welcome, {user.user_metadata?.name?.split(' ')[0] || 'there'}
           </p>
           <p>
-          SCREW YOU BOLTON !!!
+          <h1>SCREW YOU BOLTON !!!</h1>
           </p>
 
           <button onClick={handleLogout}>Sign out</button>
