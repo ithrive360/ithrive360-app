@@ -1,55 +1,93 @@
-#root {
+/* Apply consistent box-sizing across all elements */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Reset & base layout */
+html, body, #root {
+  margin: 0;
+  padding: 0;
   height: 100%;
   width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
+}
+
+/* Center the entire auth page */
+.app-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #ffffff;
+}
+
+/* Login box */
+.auth-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-
-
-html, body {
-  margin: 0;
-  padding: 0;
-  background-color: #ffffff;
-  height: 100%;
-  width: 100%;
-}
-
+/* Logo */
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  width: 180px;
+  margin-bottom: 2rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Input fields */
+.input {
+  width: 100%;
+  display: block;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  color: #000;
+  font-size: 1rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Final input spacing */
+.input:last-of-type {
+  margin-bottom: 1.5rem;
 }
 
-.card {
-  padding: 2em;
+/* Buttons */
+.btn {
+  width: 100%;
+  display: block;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.read-the-docs {
-  color: #888;
+/* Primary button color */
+.btn-primary {
+  background-color: #6366f1;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+}
+
+/* Dashboard view (after login) */
+.dashboard {
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  color: #000000;
 }
