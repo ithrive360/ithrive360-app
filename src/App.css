@@ -1,11 +1,11 @@
-/* Apply consistent box-sizing across all elements */
+/* Global box-sizing reset */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Reset & base layout */
+/* Base layout reset */
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -15,7 +15,7 @@ html, body, #root {
   background-color: #ffffff;
 }
 
-/* Center the entire auth page */
+/* Login container */
 .app-container {
   display: flex;
   justify-content: center;
@@ -25,7 +25,7 @@ html, body, #root {
   background-color: #ffffff;
 }
 
-/* Login box */
+/* Login box styling */
 .auth-box {
   background: #ffffff;
   border-radius: 10px;
@@ -36,7 +36,7 @@ html, body, #root {
   text-align: center;
 }
 
-/* Logo */
+/* Logo shared across views */
 .logo {
   width: 180px;
   margin-bottom: 2rem;
@@ -55,16 +55,15 @@ html, body, #root {
   font-size: 1rem;
 }
 
-/* Final input spacing */
+/* Extra margin for last input */
 .input:last-of-type {
   margin-bottom: 1.5rem;
 }
 
-/* Buttons */
+/* Generic button styling */
 .btn {
-  width: 100%;
   display: block;
-  padding: 0.75rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
@@ -72,17 +71,18 @@ html, body, #root {
   cursor: pointer;
 }
 
-/* Primary button color */
+/* Primary-colored buttons */
 .btn-primary {
   background-color: #6366f1;
   color: #ffffff;
   margin-bottom: 0.75rem;
 }
 
-/* Dashboard view (after login) */
+/* Dashboard layout (full width, responsive) */
 .dashboard {
   background-color: #ffffff;
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,4 +90,21 @@ html, body, #root {
   text-align: center;
   padding: 2rem;
   color: #000000;
+}
+
+/* Responsive button width in dashboard */
+.dashboard .btn {
+  width: auto;
+  min-width: 200px;
+  max-width: 300px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+/* Ensure buttons behave well on small screens */
+@media (max-width: 480px) {
+  .dashboard .btn {
+    width: 100%;
+    max-width: 100%;
+  }
 }
