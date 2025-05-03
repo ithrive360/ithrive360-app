@@ -15,7 +15,7 @@ html, body, #root {
   background-color: #ffffff;
 }
 
-/* Login container */
+/* Login screen wrapper */
 .app-container {
   display: flex;
   justify-content: center;
@@ -25,7 +25,7 @@ html, body, #root {
   background-color: #ffffff;
 }
 
-/* Login box styling */
+/* Login box */
 .auth-box {
   background: #ffffff;
   border-radius: 10px;
@@ -36,7 +36,7 @@ html, body, #root {
   text-align: center;
 }
 
-/* Logo shared across views */
+/* Logo styling */
 .logo {
   width: 180px;
   margin-bottom: 2rem;
@@ -55,12 +55,12 @@ html, body, #root {
   font-size: 1rem;
 }
 
-/* Extra margin for last input */
+/* Extra spacing for last input */
 .input:last-of-type {
   margin-bottom: 1.5rem;
 }
 
-/* Generic button styling */
+/* Base button styling */
 .btn {
   display: block;
   padding: 0.75rem 1.5rem;
@@ -71,14 +71,19 @@ html, body, #root {
   cursor: pointer;
 }
 
-/* Primary-colored buttons */
+/* Button color variant */
 .btn-primary {
   background-color: #6366f1;
   color: #ffffff;
   margin-bottom: 0.75rem;
 }
 
-/* Dashboard layout (full width, responsive) */
+/* LOGIN BUTTONS: full width inside auth box */
+.auth-box .btn {
+  width: 100%;
+}
+
+/* DASHBOARD layout */
 .dashboard {
   background-color: #ffffff;
   min-height: 100vh;
@@ -92,7 +97,7 @@ html, body, #root {
   color: #000000;
 }
 
-/* Responsive button width in dashboard */
+/* DASHBOARD BUTTONS: responsive fixed width */
 .dashboard .btn {
   width: auto;
   min-width: 200px;
@@ -101,7 +106,7 @@ html, body, #root {
   padding-right: 2rem;
 }
 
-/* Ensure buttons behave well on small screens */
+/* Mobile-friendly fix for dashboard button */
 @media (max-width: 480px) {
   .dashboard .btn {
     width: 100%;
