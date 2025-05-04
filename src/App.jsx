@@ -8,6 +8,11 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [view, setView] = useState('login') // login or signup
+  const [message, setMessage] = useState('')
+  const [isPasswordValid, setIsPasswordValid] = useState(true)
 
   useEffect(() => {
     const initUserProfile = async () => {
@@ -67,11 +72,57 @@ function App() {
     setLoading(false)
   }
 
+  const validatePassword = (pwd) => {
+    return (
+      pwd.length >= 8 &&
+      /[a-z]/.test(pwd) &&
+      /[A-Z]/.test(pwd) &&
+      /\d/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd)
+    )
+  }
+
   const handleSignup = async () => {
     setLoading(true)
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) alert(error.message)
+    setMessage('')
+
+    if (password !== confirmPassword) {
+      setMessage("❌ Passwords don't match")
+      setLoading(false)
+      return
+    }
+
+    if (!validatePassword(password)) {
+      setMessage('❌ Password must be 8+ chars with uppercase, lowercase, number, and symbol.')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName }
+      }
+    })
+
+    if (error) {
+      alert(error.message)
+    } else {
+      setMessage('✅ Account created. Please check your email to verify before logging in.')
+      setView('login')
+      setEmail('')
+      setPassword('')
+      setConfirmPassword('')
+      setFullName('')
+    }
+
     setLoading(false)
+  }
+
+  const handlePasswordChange = (pwd) => {
+    setPassword(pwd)
+    setIsPasswordValid(validatePassword(pwd))
   }
 
   if (!user) {
@@ -84,6 +135,18 @@ function App() {
             Sign in with Google
           </button>
 
+          {view === 'signup' && (
+            <>
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="input"
+              />
+            </>
+          )}
+
           <input
             type="email"
             placeholder="Email"
@@ -95,17 +158,52 @@ function App() {
             type="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
             className="input"
           />
 
-          <button onClick={handleLogin} disabled={loading} className="btn btn-primary">
-            Log In
-          </button>
+          {view === 'signup' && (
+            <>
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input"
+              />
+              {!isPasswordValid && (
+                <p style={{ color: 'red', fontSize: '0.9rem' }}>
+                  Password must be 8+ characters with a capital, lowercase, number, and special character.
+                </p>
+              )}
+            </>
+          )}
 
-          <button onClick={handleSignup} disabled={loading} className="btn btn-primary">
-            Sign Up
-          </button>
+          {view === 'login' ? (
+            <>
+              <button onClick={handleLogin} disabled={loading} className="btn btn-primary">
+                Log In
+              </button>
+              <button onClick={() => setView('signup')} className="btn btn-primary">
+                Sign Up
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={handleSignup} disabled={loading} className="btn btn-primary">
+                Sign Up
+              </button>
+              <button onClick={() => setView('login')} className="btn btn-primary">
+                Log In
+              </button>
+            </>
+          )}
+
+          {message && (
+            <p style={{ marginTop: '1rem', fontSize: '0.95rem', color: message.startsWith('✅') ? 'green' : 'red' }}>
+              {message}
+            </p>
+          )}
         </div>
       </div>
     )
