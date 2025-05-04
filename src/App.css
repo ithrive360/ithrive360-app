@@ -71,11 +71,16 @@ html, body, #root {
   cursor: pointer;
 }
 
-/* Button color variant */
+/* Primary button in iThrive360 green */
 .btn-primary {
-  background-color: #6366f1;
+  background-color: #3ab3a1;
   color: #ffffff;
   margin-bottom: 0.75rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #339f90;
 }
 
 /* LOGIN BUTTONS: full width inside auth box */
