@@ -21,11 +21,9 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo,
-        skipBrowserRedirect: true
+        redirectTo
       }
     });
-  
     if (error) setMessage(error.message);
   };
   
