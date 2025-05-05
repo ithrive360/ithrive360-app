@@ -7,10 +7,11 @@ function AuthCallback() {
 
   useEffect(() => {
     const finalizeLogin = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      const user = session?.user;
 
       if (error || !user) {
-        console.error('Error retrieving user after redirect:', error?.message);
+        console.error('Error retrieving session after redirect:', error?.message);
         navigate('/');
         return;
       }
