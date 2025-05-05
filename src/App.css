@@ -69,13 +69,13 @@ html, body, #root {
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
+  margin: 0.5rem auto;
 }
 
 /* Primary button in iThrive360 green */
 .btn-primary {
   background-color: #3ab3a1;
   color: #ffffff;
-  margin-bottom: 0.75rem;
   transition: background-color 0.3s ease;
 }
 
@@ -96,9 +96,9 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
-  padding: 2rem;
+  padding: 2rem 1rem;
   color: #000000;
 }
 
@@ -111,39 +111,33 @@ html, body, #root {
   padding-right: 2rem;
 }
 
-/* Small mobile screen tweaks */
+/* Dashboard card */
+.card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 250px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  margin-bottom: 1rem;
+}
+
+/* Responsive tweaks */
 @media (max-width: 480px) {
   .dashboard .btn {
     width: 100%;
     max-width: 100%;
   }
-}
 
-/* Ultra-small screen fixes */
-@media (max-width: 360px) {
-  .auth-box {
-    padding: 1.5rem 1rem;
-  }
-
-  .input,
-  .auth-box .btn {
-    font-size: 0.95rem;
-    padding: 0.6rem;
-  }
-
-  .logo {
-    width: 140px;
-  }
-}
-
-/* Tablet and up polish */
-@media (min-width: 768px) {
-  .auth-box {
-    border-radius: 16px;
-    padding: 2.5rem;
-  }
-
-  .dashboard h1 {
-    font-size: 2.25rem;
+  .card {
+    width: 100%;
   }
 }

@@ -17,9 +17,16 @@ function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const redirectTo = window.location.origin;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo
+      }
+    });
     if (error) setMessage(error.message);
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
