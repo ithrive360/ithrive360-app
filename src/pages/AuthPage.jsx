@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { supabase } from './supabaseClient'
+import '../App.css'
+import { supabase } from '../supabaseClient'
+import logo from '../assets/logo.png'
 
 function Auth() {
   const [mode, setMode] = useState('login') // or 'signup'
@@ -12,6 +14,11 @@ function Auth() {
     setEmail('')
     setPassword('')
     setName('')
+  }
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    if (error) setMessage(error.message)
   }
 
   const handleSubmit = async (e) => {
@@ -88,52 +95,57 @@ function Auth() {
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
-      <h2>{mode === 'signup' ? 'Create Account' : 'Log In'}</h2>
-      <form onSubmit={handleSubmit}>
-        {mode === 'signup' && (
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{ width: '100%', marginBottom: '0.5rem' }}
-          />
-        )}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: '100%', marginBottom: '0.5rem' }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: '100%', marginBottom: '1rem' }}
-        />
-        <button type="submit" style={{ width: '100%' }}>
-          {mode === 'signup' ? 'Sign Up' : 'Log In'}
-        </button>
-      </form>
+    <div className="app-container">
+      <div className="auth-box">
+        <img src={logo} alt="iThrive360 Logo" className="logo" />
 
-      <p style={{ marginTop: '1rem' }}>
-        {mode === 'signup'
-          ? 'Already have an account?'
-          : 'Need to create an account?'}{' '}
-        <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}>
+        <button onClick={handleGoogleLogin} className="btn btn-primary">
+          Sign in with Google
+        </button>
+
+        <form onSubmit={handleSubmit}>
+          {mode === 'signup' && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="input"
+            />
+          )}
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="input"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="input"
+          />
+
+          <button type="submit" className="btn btn-primary">
+            {mode === 'signup' ? 'Sign Up' : 'Log In'}
+          </button>
+        </form>
+
+        <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="btn btn-primary">
           {mode === 'signup' ? 'Log In' : 'Sign Up'}
         </button>
-      </p>
 
-      {message && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>{message}</p>
-      )}
+        {message && (
+          <p style={{ color: message.startsWith('Signup successful') ? 'green' : 'red', marginTop: '1rem' }}>
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
