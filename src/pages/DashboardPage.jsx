@@ -19,21 +19,23 @@ function DashboardPage() {
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) console.error('Logout error:', error.message);
-    else window.location.href = '/'; // or use React Router navigate if preferred
+    if (error) {
+      console.error('Logout error:', error.message);
+    } else {
+      window.location.href = '/';
+    }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p style={{ textAlign: 'center' }}>Loading...</p>;
+  if (!user) return <p style={{ textAlign: 'center' }}>You must be logged in to view this page.</p>;
 
-  if (!user) return <p>You must be logged in to view this page.</p>;
+  const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there';
 
   return (
     <div className="dashboard">
       <img src={logo} alt="iThrive360 Logo" className="logo" />
       <h1>iThrive360</h1>
-      <p>
-        Welcome, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!
-      </p>
+      <p>Welcome, {firstName}!</p>
       <h1>SCREW YOU BOLTON 1 !!!</h1>
       <button onClick={handleLogout} className="btn btn-primary">
         Sign Out

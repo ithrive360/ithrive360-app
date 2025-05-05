@@ -111,10 +111,39 @@ html, body, #root {
   padding-right: 2rem;
 }
 
-/* Mobile-friendly fix for dashboard button */
+/* Small mobile screen tweaks */
 @media (max-width: 480px) {
   .dashboard .btn {
     width: 100%;
     max-width: 100%;
+  }
+}
+
+/* Ultra-small screen fixes */
+@media (max-width: 360px) {
+  .auth-box {
+    padding: 1.5rem 1rem;
+  }
+
+  .input,
+  .auth-box .btn {
+    font-size: 0.95rem;
+    padding: 0.6rem;
+  }
+
+  .logo {
+    width: 140px;
+  }
+}
+
+/* Tablet and up polish */
+@media (min-width: 768px) {
+  .auth-box {
+    border-radius: 16px;
+    padding: 2.5rem;
+  }
+
+  .dashboard h1 {
+    font-size: 2.25rem;
   }
 }

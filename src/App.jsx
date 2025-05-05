@@ -10,8 +10,9 @@ function App() {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data, error } = await supabase.auth.getUser();
+      if (error) console.error('Error fetching user:', error.message);
+      setUser(data?.user || null);
     };
 
     getSession();
@@ -20,14 +21,16 @@ function App() {
       setUser(session?.user || null);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <AuthPage />} />
-        <Route path="/dashboard" element={user ? <DashboardPage user={user} /> : <Navigate to="/" />} />
+        <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
+        <Route path="/dashboard" element={user ? <DashboardPage user={user} /> : <Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
