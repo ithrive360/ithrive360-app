@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import AuthCallback from './pages/AuthCallback'; // <-- 1. Import this
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
       <Routes>
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
         <Route path="/dashboard" element={user ? <DashboardPage user={user} /> : <Navigate to="/" replace />} />
+        <Route path="/auth/callback" element={<AuthCallback />} /> {/* <-- 2. Add this route */}
       </Routes>
     </Router>
   );

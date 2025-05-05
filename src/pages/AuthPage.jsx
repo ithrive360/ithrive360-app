@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import { supabase } from '../supabaseClient';
 import logo from '../assets/logo.png';
@@ -9,6 +10,7 @@ function AuthPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const resetForm = () => {
     setEmail('');
@@ -17,7 +19,7 @@ function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    const redirectTo = window.location.origin;
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -26,7 +28,6 @@ function AuthPage() {
     });
     if (error) setMessage(error.message);
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,9 +92,10 @@ function AuthPage() {
             blood_uploaded: false
           });
         }
+
+        navigate('/dashboard');
       }
 
-      setMessage('Login successful!');
       resetForm();
     }
   };
