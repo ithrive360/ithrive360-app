@@ -8,7 +8,7 @@ function DashboardPage({ user }) {
       <p>
         Welcome, {user.user_metadata?.name?.split(' ')[0] || user.email || 'there'}!
       </p>
-      <h1>SCREW YOU BOLTON !!!</h1>
+      <h1>SCREW YOU BOLTON 1 !!!</h1>
     </div>
   );
 }
