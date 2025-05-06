@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
+import { initUserProfile } from '../utils/initUserProfile'; // ✅ ADDED
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -17,6 +18,8 @@ function DashboardPage() {
     setUser(userData?.user || null);
 
     if (userData?.user) {
+      await initUserProfile(userData.user); // ✅ ADDED
+
       const { data: profileData, error } = await supabase
         .from('user_profile')
         .select('*')
