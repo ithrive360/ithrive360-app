@@ -79,7 +79,7 @@ function DashboardPage() {
           {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
         </div>
         <div className="card">
-        <h3>Blood Test</h3>
+        <h3>Blood Test1</h3>
         <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
         <input
             type="file"
