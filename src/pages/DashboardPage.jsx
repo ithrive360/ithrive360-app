@@ -85,11 +85,9 @@ function DashboardPage() {
             type="file"
             accept=".xlsx,.xls"
             onChange={handleBloodUpload}
-            className="btn btn-primary"
         />
         {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
-
       </div>
 
       {/* Quick Actions */}
