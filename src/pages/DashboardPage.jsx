@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -7,6 +8,7 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [greeting, setGreeting] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -17,14 +19,13 @@ function DashboardPage() {
         const { data: profileData, error } = await supabase
           .from('user_profile')
           .select('*')
-          .eq('id', userData.user.id)
+          .eq('user_id', userData.user.id)
           .single();
 
         if (error) console.error('Profile fetch error:', error.message);
         setProfile(profileData || null);
       }
 
-      // Set greeting from browser local time
       const hour = new Date().getHours();
       if (hour < 12) setGreeting('Good morning');
       else if (hour < 18) setGreeting('Good afternoon');
@@ -42,6 +43,12 @@ function DashboardPage() {
     else window.location.href = '/';
   };
 
+  const handleDNAUpload = async (e) => {
+    const file = e.target.files[0];
+    const result = await uploadAndParseDNA(file, user.user_id);
+    setMessage(result.message);
+  };
+
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
@@ -56,7 +63,8 @@ function DashboardPage() {
         <div className="card">
           <h3>DNA Data</h3>
           <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <button className="btn btn-primary">Upload DNA</button>
+          <input type="file" accept=".txt" onChange={handleDNAUpload} className="btn btn-primary" />
+          {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
         </div>
         <div className="card">
           <h3>Blood Test</h3>
