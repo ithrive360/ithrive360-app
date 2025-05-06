@@ -22,14 +22,14 @@ export async function uploadAndParseBlood(file, userId) {
     // Fetch reference markers
     const { data: refMarkers, error: refError } = await supabase
       .from('blood_marker_reference')
-      .select('marker_id');
+      .select('blood_marker_id');
 
     if (refError) {
       console.error('Error fetching blood marker reference:', refError.message);
       return { message: 'Error fetching marker reference.' };
     }
 
-    const validMarkerIds = new Set(refMarkers.map(marker => marker.marker_id));
+    const validMarkerIds = new Set(refMarkers.map(marker => marker.blood_marker_id));
 
     const entries = lines.slice(1).map(line => line.split(',')).filter(cols => {
       const markerId = cols[markerIndex]?.trim();
