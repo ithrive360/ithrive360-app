@@ -45,7 +45,7 @@ function DashboardPage() {
 
   const handleDNAUpload = async (e) => {
     const file = e.target.files[0];
-    const result = await uploadAndParseDNA(file, user.user_id);
+    const result = await uploadAndParseDNA(file, user.id);
     setMessage(result.message);
   };
 
