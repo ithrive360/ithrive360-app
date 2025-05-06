@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+  db:
+    image: supabase/postgres:latest
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+
+  auth:
+    image: supabase/gotrue:latest
+    environment:
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_SITE_URL: "http://localhost:3000"
+      GOTRUE_DB_URL: "postgres://postgres:${DB_PASSWORD}@db:5432/postgres"
+    ports:
+      - "9999:9999"
+
+  storage:
+    image: supabase/storage-api:latest
+    environment:
+      STORAGE_DB_URL: "postgres://postgres:${DB_PASSWORD}@db:5432/postgres"
+    ports:
+      - "5000:5000"
+
+  openai:
+    image: node:18-alpine  # Basic Node image to start from; replace with real one when ready
+    environment:
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+    ports:
+      - "8080:8080"
+    command: ["sh", "-c", "while true; do sleep 1000; done"]  # Dummy command until you add code
+
+volumes:
+  supabase_data:
+    driver: local
