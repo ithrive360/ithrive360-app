@@ -75,15 +75,15 @@ function DashboardPage() {
         <div className="card">
           <h3>DNA Data</h3>
           <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <input type="file" accept=".txt" onChange={handleDNAUpload} className="btn btn-primary" />
+          <input type="file" accept=".txt" onChange={handleDNAUpload} />
           {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
         </div>
         <div className="card">
           <h3>Blood Test</h3>
           <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
           <label className="btn btn-primary">
-          Upload Blood
-          <input type="file" accept=".xlsx,.xls" onChange={handleBloodUpload} style={{ display: 'none' }} />
+            Upload Blood
+            <input type="file" accept=".xlsx,.xls" onChange={handleBloodUpload} style={{ display: 'none' }} />
           </label>
           {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
