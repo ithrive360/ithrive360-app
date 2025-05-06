@@ -11,12 +11,12 @@ export async function uploadAndParseBlood(file, userId) {
     const lines = text.split('\n').filter(line => line.trim() !== '');
 
     const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-    const markerIndex = header.indexOf('marker_id');
-    const valueIndex = header.indexOf('value');
-    const unitIndex = header.indexOf('unit');
+    const markerIndex = header.indexOf('Marker Name');
+    const valueIndex = header.indexOf('Result');
+    const unitIndex = header.indexOf('Units');
 
     if (markerIndex === -1 || valueIndex === -1) {
-      return { message: 'CSV must include marker_id and value columns.' };
+      return { message: 'CSV must include Marker Name and Result columns.' };
     }
 
     // Fetch reference markers
