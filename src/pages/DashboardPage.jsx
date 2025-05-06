@@ -12,30 +12,30 @@ function DashboardPage() {
   const [message, setMessage] = useState('');
   const [bloodMessage, setBloodMessage] = useState('');
 
+  const fetchUserData = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    setUser(userData?.user || null);
+
+    if (userData?.user) {
+      const { data: profileData, error } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .single();
+
+      if (error) console.error('Profile fetch error:', error.message);
+      setProfile(profileData || null);
+    }
+
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      setUser(userData?.user || null);
-
-      if (userData?.user) {
-        const { data: profileData, error } = await supabase
-          .from('user_profile')
-          .select('*')
-          .eq('user_id', userData.user.id)
-          .single();
-
-        if (error) console.error('Profile fetch error:', error.message);
-        setProfile(profileData || null);
-      }
-
-      const hour = new Date().getHours();
-      if (hour < 12) setGreeting('Good morning');
-      else if (hour < 18) setGreeting('Good afternoon');
-      else setGreeting('Good evening');
-
-      setLoading(false);
-    };
-
     fetchUserData();
   }, []);
 
@@ -53,8 +53,9 @@ function DashboardPage() {
     }
     const result = await uploadAndParseDNA(file, user.id);
     setMessage(result.message);
+    if (result.success) fetchUserData();
   };
-  
+
   const handleBloodUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !user?.id) {
@@ -63,8 +64,8 @@ function DashboardPage() {
     }
     const result = await uploadAndParseBlood(file, user.id);
     setBloodMessage(result.message);
+    if (result.message?.startsWith('Uploaded')) fetchUserData();
   };
-  
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
@@ -75,27 +76,27 @@ function DashboardPage() {
       <h1>iThrive360</h1>
       <p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p>
 
-{/* Upload Cards */}
-<div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
-  <div className="card">
-    <h3>DNA Data</h3>
-    <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-        <label className="btn btn-primary">
-        Upload DNA
-        <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} />
-        </label>
-    {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
-  </div>
-  <div className="card">
-    <h3>Blood Test</h3>
-    <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-        <label className="btn btn-primary">
-        Upload Blood
-        <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} />
-        </label>
-    {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
-  </div>
-</div>
+      {/* Upload Cards */}
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
+        <div className="card">
+          <h3>DNA Data</h3>
+          <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+          <label className="btn btn-primary">
+            Upload DNA
+            <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} />
+          </label>
+          {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
+        </div>
+        <div className="card">
+          <h3>Blood Test</h3>
+          <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+          <label className="btn btn-primary">
+            Upload Blood
+            <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} />
+          </label>
+          {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
+        </div>
+      </div>
 
       {/* Quick Actions */}
       <div style={{ marginTop: '3rem' }}>
