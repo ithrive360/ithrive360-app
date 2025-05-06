@@ -5,8 +5,13 @@ export async function generateHealthInsight(promptText) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: promptText }),
+        body: JSON.stringify(promptText),
       });
+  
+      const contentType = response.headers.get('Content-Type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server did not return JSON');
+      }
   
       const data = await response.json();
       return { success: true, result: data.result };

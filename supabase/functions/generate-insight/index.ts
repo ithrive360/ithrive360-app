@@ -3,20 +3,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import OpenAI from 'https://esm.sh/openai@4.24.0';
 
 serve(async (req) => {
-  const { user_id, health_area, markers } = await req.json();
+  try {
+    const { user_id, health_area, markers } = await req.json();
 
-  if (!user_id || !health_area || !markers) {
-    return new Response(
-      JSON.stringify({ error: 'Missing required fields' }),
-      { status: 400 }
-    );
-  }
+    if (!user_id || !health_area || !markers) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400 }
+      );
+    }
 
-  const openai = new OpenAI({
-    apiKey: Deno.env.get('OPENAI_API_KEY'),
-  });
+    const openai = new OpenAI({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    });
 
-  const prompt = `
+    const prompt = `
 You are a health assistant. Using the following data, analyze the user's health for the area "${health_area}".
 Provide a summary, interpret relevant markers (DNA or blood), and give clear recommendations.
 
@@ -45,31 +46,23 @@ Output the result in a JSON format like:
 }
 `;
 
-  try {
     const chatResponse = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        {
-          role: 'system',
-          content: 'You are a health and genetics expert.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
+        { role: 'system', content: 'You are a health and genetics expert.' },
+        { role: 'user', content: prompt }
       ],
       temperature: 0.7
     });
 
-    const reply = chatResponse.choices[0]?.message?.content;
+    const reply = chatResponse.choices[0]?.message?.content ?? 'No content returned from GPT.';
 
     return new Response(JSON.stringify({ result: reply }), {
       headers: { 'Content-Type': 'application/json' }
     });
-
   } catch (err) {
-    console.error('OpenAI call failed:', err);
-    return new Response(JSON.stringify({ error: 'OpenAI call failed' }), {
+    console.error('Function error:', err);
+    return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
