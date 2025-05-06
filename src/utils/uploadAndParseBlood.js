@@ -11,9 +11,9 @@ export async function uploadAndParseBlood(file, userId) {
     const lines = text.split('\n').filter(line => line.trim() !== '');
 
     const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-    const markerIndex = header.indexOf('Marker Name');
-    const valueIndex = header.indexOf('Result');
-    const unitIndex = header.indexOf('Units');
+    const markerIndex = header.indexOf('marker name');
+    const valueIndex = header.indexOf('result');
+    const unitIndex = header.indexOf('units');
 
     if (markerIndex === -1 || valueIndex === -1) {
       return { message: 'CSV must include Marker Name and Result columns.' };
