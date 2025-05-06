@@ -15,7 +15,6 @@ serve(async (req) => {
   const openai = new OpenAI({
     apiKey: Deno.env.get('OPENAI_API_KEY'),
   });
-  
 
   const prompt = `
 You are a health assistant. Using the following data, analyze the user's health for the area "${health_area}".
@@ -46,24 +45,33 @@ Output the result in a JSON format like:
 }
 `;
 
-  const chatResponse = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a health and genetics expert.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    temperature: 0.7
-  });
+  try {
+    const chatResponse = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a health and genetics expert.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7
+    });
 
-  const reply = chatResponse.choices[0]?.message?.content;
+    const reply = chatResponse.choices[0]?.message?.content;
 
-  return new Response(JSON.stringify({ result: reply }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+    return new Response(JSON.stringify({ result: reply }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (err) {
+    console.error('OpenAI call failed:', err);
+    return new Response(JSON.stringify({ error: 'OpenAI call failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 });
