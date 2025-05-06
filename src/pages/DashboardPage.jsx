@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
+import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -9,6 +10,7 @@ function DashboardPage() {
   const [profile, setProfile] = useState(null);
   const [greeting, setGreeting] = useState('');
   const [message, setMessage] = useState('');
+  const [bloodMessage, setBloodMessage] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,8 +47,14 @@ function DashboardPage() {
 
   const handleDNAUpload = async (e) => {
     const file = e.target.files[0];
-    const result = await uploadAndParseDNA(file, user.id);
+    const result = await uploadAndParseDNA(file, user.user_id);
     setMessage(result.message);
+  };
+
+  const handleBloodUpload = async (e) => {
+    const file = e.target.files[0];
+    const result = await uploadAndParseBlood(file, user.user_id);
+    setBloodMessage(result.message);
   };
 
   if (loading) return <p>Loading...</p>;
@@ -69,7 +77,8 @@ function DashboardPage() {
         <div className="card">
           <h3>Blood Test</h3>
           <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <button className="btn btn-primary">Upload Blood</button>
+          <input type="file" accept=".xlsx,.xls" onChange={handleBloodUpload} className="btn btn-primary" />
+          {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
       </div>
 
