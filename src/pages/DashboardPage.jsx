@@ -70,25 +70,21 @@ function DashboardPage() {
       <h1>iThrive360</h1>
       <p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p>
 
-      {/* Upload Cards */}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
-        <div className="card">
-          <h3>DNA Data</h3>
-          <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <input type="file" accept=".txt" onChange={handleDNAUpload} />
-          {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
-        </div>
-        <div className="card">
-        <h3>Blood Test1</h3>
-        <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-        <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleBloodUpload}
-        />
-        {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
-        </div>
-      </div>
+{/* Upload Cards */}
+<div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
+  <div className="card">
+    <h3>DNA Data</h3>
+    <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+    <input type="file" accept=".txt" onChange={handleDNAUpload} />
+    {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
+  </div>
+  <div className="card">
+    <h3>Blood Test</h3>
+    <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+    <input type="file" accept=".csv" onChange={handleBloodUpload} />
+    {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
+  </div>
+</div>
 
       {/* Quick Actions */}
       <div style={{ marginTop: '3rem' }}>
