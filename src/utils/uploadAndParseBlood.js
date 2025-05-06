@@ -1,5 +1,4 @@
 // /utils/uploadAndParseBlood.js
-import * as XLSX from 'xlsx';
 import { supabase } from '../supabaseClient';
 
 export async function uploadAndParseBlood(file, userId) {
@@ -8,11 +7,17 @@ export async function uploadAndParseBlood(file, userId) {
   }
 
   try {
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    const text = await file.text();
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const markerIndex = header.indexOf('marker_id');
+    const valueIndex = header.indexOf('value');
+    const unitIndex = header.indexOf('unit');
+
+    if (markerIndex === -1 || valueIndex === -1) {
+      return { message: 'CSV must include marker_id and value columns.' };
+    }
 
     // Fetch reference markers
     const { data: refMarkers, error: refError } = await supabase
@@ -26,22 +31,21 @@ export async function uploadAndParseBlood(file, userId) {
 
     const validMarkerIds = new Set(refMarkers.map(marker => marker.marker_id));
 
-    // Transform rows
-    const entries = jsonData
-      .filter(row => validMarkerIds.has(row.marker_id) && row.value !== undefined)
-      .map(row => ({
-        user_id: userId,
-        marker_id: row.marker_id,
-        value: String(row.value),
-        unit: row.unit || null,
-        upload_date: new Date().toISOString(),
-      }));
+    const entries = lines.slice(1).map(line => line.split(',')).filter(cols => {
+      const markerId = cols[markerIndex]?.trim();
+      return validMarkerIds.has(markerId) && cols[valueIndex]?.trim();
+    }).map(cols => ({
+      user_id: userId,
+      marker_id: cols[markerIndex].trim(),
+      value: cols[valueIndex].trim(),
+      unit: unitIndex !== -1 ? cols[unitIndex]?.trim() || null : null,
+      upload_date: new Date().toISOString()
+    }));
 
     if (entries.length === 0) {
       return { message: 'No valid blood marker entries found.' };
     }
 
-    // Insert into DB
     const { error: insertError } = await supabase
       .from('user_blood_result')
       .insert(entries);
@@ -51,7 +55,6 @@ export async function uploadAndParseBlood(file, userId) {
       return { message: 'Failed to upload blood data.' };
     }
 
-    // Update profile
     await supabase
       .from('user_profile')
       .update({ blood_uploaded: true })
