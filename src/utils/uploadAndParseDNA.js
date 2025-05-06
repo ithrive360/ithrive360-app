@@ -51,8 +51,14 @@ export async function uploadAndParseDNA(file, userId) {
       return { success: false, message: `Insert error: ${insertError.message}` };
     }
 
+    // Update profile to reflect DNA upload
+    await supabase
+      .from('user_profile')
+      .update({ dna_uploaded: true })
+      .eq('user_id', userId);
+
     return { success: true, message: `Uploaded ${entries.length} valid markers.` };
-  } catch (e) {
-    return { success: false, message: `Unexpected error: ${e.message}` };
+  } catch (err) {
+    return { success: false, message: `Unexpected error: ${err.message}` };
   }
 }
