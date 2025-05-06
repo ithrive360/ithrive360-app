@@ -53,6 +53,10 @@ function DashboardPage() {
 
   const handleBloodUpload = async (e) => {
     const file = e.target.files[0];
+    if (!file || !user?.user_id) {
+      setBloodMessage('Missing file or user ID.');
+      return;
+    }
     const result = await uploadAndParseBlood(file, user.user_id);
     setBloodMessage(result.message);
   };
