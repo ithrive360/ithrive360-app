@@ -10,6 +10,7 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
         headers: {
           'Content-Type': 'application/json',
           apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ user_id, health_area, markers }),
       });
