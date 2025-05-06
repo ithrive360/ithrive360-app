@@ -47,19 +47,24 @@ function DashboardPage() {
 
   const handleDNAUpload = async (e) => {
     const file = e.target.files[0];
-    const result = await uploadAndParseDNA(file, user.user_id);
+    if (!file || !user?.id) {
+      setMessage('Missing file or user ID.');
+      return;
+    }
+    const result = await uploadAndParseDNA(file, user.id);
     setMessage(result.message);
   };
-
+  
   const handleBloodUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !user?.user_id) {
+    if (!file || !user?.id) {
       setBloodMessage('Missing file or user ID.');
       return;
     }
     const result = await uploadAndParseBlood(file, user.id);
     setBloodMessage(result.message);
   };
+  
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
