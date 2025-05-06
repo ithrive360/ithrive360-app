@@ -57,7 +57,7 @@ function DashboardPage() {
       setBloodMessage('Missing file or user ID.');
       return;
     }
-    const result = await uploadAndParseBlood(file, user.user_id);
+    const result = await uploadAndParseBlood(file, user.id);
     setBloodMessage(result.message);
   };
 
