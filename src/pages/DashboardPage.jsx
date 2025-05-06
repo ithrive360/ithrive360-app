@@ -81,9 +81,15 @@ function DashboardPage() {
         <div className="card">
         <h3>Blood Test</h3>
         <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-        <input type="file" accept=".xlsx,.xls" onChange={handleBloodUpload} />
+        <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleBloodUpload}
+            className="btn btn-primary"
+        />
         {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
+
       </div>
 
       {/* Quick Actions */}
