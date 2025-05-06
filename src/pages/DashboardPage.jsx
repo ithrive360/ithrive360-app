@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import { initUserProfile } from '../utils/initUserProfile'; // ✅ ADDED
+import { generateHealthInsight } from '../utils/generateHealthInsight'; // ✅ ADDED
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -107,6 +108,16 @@ function DashboardPage() {
         <button className="btn btn-primary">Start New Report</button>
         <button className="btn btn-primary">View Insights</button>
         <button className="btn btn-primary">Recommendations</button>
+        <button
+          className="btn btn-primary"
+          onClick={async () => {
+            const prompt = "List 3 blood-related insights for a healthy adult.";
+            const result = await generateHealthInsight(prompt);
+            alert(result.success ? result.result : `Error: ${result.error}`);
+          }}
+        >
+          Test GPT
+        </button>
       </div>
 
       {/* Progress Teaser */}
