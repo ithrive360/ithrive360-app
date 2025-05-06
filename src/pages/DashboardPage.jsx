@@ -71,6 +71,19 @@ function DashboardPage() {
     if (result.message?.startsWith('Uploaded')) fetchUserData();
   };
 
+  const handleTestGPT = async () => {
+    const result = await generateHealthInsight({
+      user_id: user.id,
+      health_area: 'energy',
+      markers: [
+        { marker: 'vitamin_d', value: 22, type: 'blood' },
+        { marker: 'rs12345', value: 'AA', type: 'dna' }
+      ]
+    });
+
+    alert(result.success ? result.result : `Error: ${result.error}`);
+  };
+
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
@@ -108,16 +121,7 @@ function DashboardPage() {
         <button className="btn btn-primary">Start New Report</button>
         <button className="btn btn-primary">View Insights</button>
         <button className="btn btn-primary">Recommendations</button>
-        <button
-          className="btn btn-primary"
-          onClick={async () => {
-            const prompt = "List 3 blood-related insights for a healthy adult.";
-            const result = await generateHealthInsight(prompt);
-            alert(result.success ? result.result : `Error: ${result.error}`);
-          }}
-        >
-          Test GPT
-        </button>
+        <button className="btn btn-primary" onClick={handleTestGPT}>Test GPT</button>
       </div>
 
       {/* Progress Teaser */}
