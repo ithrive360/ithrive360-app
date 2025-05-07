@@ -1,4 +1,10 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -12,24 +18,61 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { user_id, health_area, markers } = await req.json();
+    const { user_id, health_area } = await req.json();
 
-    const blood_results = markers
-      .filter((m: any) => m.type === "blood")
-      .map((m: any) => ({
-        marker_name: m.marker,
-        value: m.value,
-        status: m.status || "Normal",
-        reference_range: m.reference_range || null,
-      }));
+    // Fetch all blood markers relevant to this health area
+    const { data: blood, error: bloodError } = await supabase
+      .from("user_blood_result")
+      .select(`
+        marker_id,
+        value,
+        blood_marker_reference (
+          marker_name,
+          reference_range
+        )
+      `)
+      .eq("user_id", user_id)
+      .in("marker_id",
+        supabase
+          .from("blood_marker_health_area")
+          .select("blood_marker_id")
+          .eq("health_area_id", health_area)
+      );
 
-    const dna_results = markers
-      .filter((m: any) => m.type === "dna")
-      .map((m: any) => ({
-        trait_name: m.marker,
-        genotype: m.value,
-        effect: m.effect || null,
-      }));
+    if (bloodError) throw new Error("Failed to load blood results.");
+
+    const blood_results = blood.map((b) => ({
+      marker_name: b.blood_marker_reference.marker_name,
+      value: b.value,
+      status: "Normal", // placeholder; add real logic later
+      reference_range: b.blood_marker_reference.reference_range,
+    }));
+
+    // Fetch all DNA markers relevant to this health area
+    const { data: dna, error: dnaError } = await supabase
+      .from("user_dna_result")
+      .select(`
+        value,
+        dna_marker_reference (
+          trait,
+          rsid
+        )
+      `)
+      .eq("user_id", user_id)
+      .in("dna_id",
+        supabase
+          .from("dna_marker_health_area")
+          .select("dna_id")
+          .eq("health_area_id", health_area)
+      );
+
+    if (dnaError) throw new Error("Failed to load DNA results.");
+
+    const dna_results = dna.map((d) => ({
+      trait_name: d.dna_marker_reference.rsid || d.dna_marker_reference.trait,
+      genotype: d.value,
+      effect: null,
+    }));
 
     const input_json = {
       user_id,
@@ -79,11 +122,7 @@ ${JSON.stringify(input_json, null, 2)}
     `.trim();
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        input_json,
-        prompt,
-      }),
+      JSON.stringify({ success: true, input_json, prompt }),
       {
         headers: {
           "Content-Type": "application/json",
