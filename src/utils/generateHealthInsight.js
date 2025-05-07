@@ -64,12 +64,13 @@ export async function generateHealthInsight({ user_id, health_area }) {
       };
     });
 
-    // ✅ Fetch user DNA results with reference data
+    // ✅ Fetch user DNA results with rsid added
     const { data: dnaData, error: dnaError } = await supabase
       .from('user_dna_result')
       .select(`
         value,
         marker:dna_marker_reference (
+          rsid,
           trait,
           interpretation,
           gpt_instruction,
@@ -88,6 +89,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
     );
 
     const parsedDNA = filteredDNA.map(m => ({
+      rsid: m.marker?.rsid,
       marker: m.marker?.trait,
       value: m.value,
       type: 'dna',

@@ -20,7 +20,6 @@ serve(async (req: Request) => {
       .map((m: any) => ({
         marker_name: m.marker,
         value: m.value,
-    // omit         status: m.status || "Normal",
         reference_range: m.reference_range || null,
       }));
 
@@ -28,6 +27,7 @@ serve(async (req: Request) => {
       .filter((m: any) => m.type === "dna")
       .map((m: any) => ({
         trait_name: m.marker,
+        rsid: m.rsid || null,
         genotype: m.value,
         effect: m.effect || null,
       }));
@@ -47,7 +47,7 @@ Below is a JSON object representing one health area. The object contains two sec
 
 blood_results: recent blood marker values and their reference ranges
 
-dna_results: key DNA traits related to the health area
+dna_results: key DNA traits related to the health area, including their rsID identifiers
 
 Analyze the information and produce structured insights.
 
@@ -68,7 +68,12 @@ Return format (strict):
     { "marker_name": "...", "status": "Normal/High/Low", "insight": "..." }
   ],
   "dna_traits": [
-    { "trait_name": "...", "effect": "...", "insight": "..." }
+    { 
+      "trait_name": "...", 
+      "rsid": "...",
+      "effect": "...", 
+      "insight": "..." 
+    }
   ],
   "recommendations": [
     "..."
