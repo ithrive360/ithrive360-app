@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_ANON_KEY")!
-);
-
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
@@ -20,68 +15,55 @@ serve(async (req: Request) => {
   try {
     const { user_id, health_area } = await req.json();
 
-    // Step 1: Get health_area_id for the given health_area name
-    const { data: healthAreaData, error: healthAreaError } = await supabase
-      .from("health_area_reference")
-      .select("health_area_id")
-      .eq("health_area_name", health_area)
-      .single();
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    if (healthAreaError || !healthAreaData) {
-      throw new Error("Invalid health area provided.");
+    // 🔄 Fetch blood markers for this health area
+    const { data: bloodData, error: bloodError } = await supabase
+      .from("user_blood_result")
+      .select(`
+        value,
+        unit,
+        marker:marker_id (
+          blood_marker_id,
+          name,
+          status,
+          reference_range,
+          health_area
+        )
+      `)
+      .eq("user_id", user_id);
+
+    if (bloodError) {
+      console.error("[generateHealthInsight] Error fetching blood markers:", bloodError.message);
+      throw new Error("Failed to load blood results.");
     }
 
-    const health_area_id = healthAreaData.health_area_id;
+    const filteredBlood = bloodData
+      .filter((entry: any) => entry.marker?.health_area === health_area)
+      .map((entry: any) => ({
+        marker_name: entry.marker?.name,
+        value: entry.value,
+        status: entry.marker?.status || "Normal",
+        reference_range: entry.marker?.reference_range || null,
+      }));
 
-    // Step 2: Get relevant blood marker IDs
-    const { data: bloodLinks } = await supabase
-      .from("blood_marker_health_area")
-      .select("blood_marker_id")
-      .eq("health_area_id", health_area_id);
+    // 🧬 Dummy DNA data
+    const dna_results = [
+      {
+        trait_name: "rs12345",
+        genotype: "AA",
+        effect: null,
+      }
+    ];
 
-    const relevantBloodIds = bloodLinks.map((row) => row.blood_marker_id);
-
-    // Step 3: Get relevant DNA marker IDs
-    const { data: dnaLinks } = await supabase
-      .from("dna_marker_health_area")
-      .select("dna_id")
-      .eq("health_area_id", health_area_id);
-
-    const relevantDnaIds = dnaLinks.map((row) => row.dna_id);
-
-    // Step 4: Fetch user blood results
-    const { data: bloodResults } = await supabase
-      .from("user_blood_result")
-      .select("marker_id, value")
-      .eq("user_id", user_id)
-      .in("marker_id", relevantBloodIds);
-
-    const blood_results = bloodResults.map((row) => ({
-      marker_name: row.marker_id,
-      value: row.value,
-      status: "Normal", // Optional: you can replace with real logic
-      reference_range: null,
-    }));
-
-    // Step 5: Fetch user DNA results
-    const { data: dnaResults } = await supabase
-      .from("user_dna_result")
-      .select("dna_id, value")
-      .eq("user_id", user_id)
-      .in("dna_id", relevantDnaIds);
-
-    const dna_results = dnaResults.map((row) => ({
-      trait_name: row.dna_id,
-      genotype: row.value,
-      effect: null,
-    }));
-
-    // Step 6: Format input JSON
     const input_json = {
       user_id,
       health_area,
       timestamp: new Date().toISOString(),
-      blood_results,
+      blood_results: filteredBlood,
       dna_results,
     };
 

@@ -17,19 +17,30 @@ export async function generateHealthInsight({ user_id }) {
 
     const health_area = 'cardiovascular';
 
-    // ✅ Dynamically fetch blood markers
+    // ✅ Corrected blood marker fetch with join on blood_marker_reference
     const { data: bloodData, error: bloodError } = await supabase
       .from('user_blood_result')
-      .select('marker_name, value, status, reference_range')
-      .eq('user_id', user_id)
-      .eq('health_area', health_area);
+      .select(`
+        value,
+        unit,
+        marker:marker_id (
+          name,
+          status,
+          reference_range,
+          health_area
+        )
+      `)
+      .eq('user_id', user_id);
 
     if (bloodError) {
       console.error('[generateHealthInsight] Error fetching blood markers:', bloodError.message);
       throw new Error('Failed to load blood results.');
     }
 
-    // ✅ Dynamically fetch DNA traits
+    // ✅ Filter only markers for this health area
+    const filteredBlood = (bloodData || []).filter(entry => entry.marker?.health_area === health_area);
+
+    // ✅ Dynamically fetch DNA traits (this table schema was already correct)
     const { data: dnaData, error: dnaError } = await supabase
       .from('dna_result')
       .select('trait_name, genotype, effect')
@@ -42,12 +53,12 @@ export async function generateHealthInsight({ user_id }) {
     }
 
     const markers = [
-      ...(bloodData?.map(m => ({
-        marker: m.marker_name,
+      ...(filteredBlood?.map(m => ({
+        marker: m.marker?.name,
         value: m.value,
         type: 'blood',
-        status: m.status,
-        reference_range: m.reference_range,
+        status: m.marker?.status,
+        reference_range: m.marker?.reference_range,
       })) || []),
       ...(dnaData?.map(m => ({
         marker: m.trait_name,
