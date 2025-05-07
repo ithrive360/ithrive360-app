@@ -36,7 +36,7 @@ function DashboardPage() {
     const { data: profileData, error: profileError } = await supabase
       .from('user_profile')
       .select('*')
-      .eq('user_id', userData.user.id)
+      .eq('user_id', userData.user.id) // ✅ FIXED COLUMN NAME
       .single();
 
     if (profileError) console.error('Profile fetch error:', profileError.message);
@@ -53,11 +53,11 @@ function DashboardPage() {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        await fetchUserData();
+        await fetchUserData(); // ✅ ONLY RUN AFTER SESSION EXISTS
       }
     });
 
-    fetchUserData();
+    fetchUserData(); // still run on load
 
     return () => {
       authListener?.subscription?.unsubscribe();
