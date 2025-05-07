@@ -8,12 +8,14 @@ import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ added loading guard
 
   useEffect(() => {
     const getSession = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) console.error('Error fetching user:', error.message);
-      setUser(data?.user || null);
+      const { data, error } = await supabase.auth.getSession(); // ✅ use getSession instead of getUser
+      if (error) console.error('Error fetching session:', error.message);
+      setUser(data?.session?.user || null);
+      setLoading(false); // ✅ set loading to false when done
     };
 
     getSession();
@@ -26,6 +28,8 @@ function App() {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  if (loading) return <div>Loading...</div>; // ✅ prevent premature render
 
   return (
     <Router>
