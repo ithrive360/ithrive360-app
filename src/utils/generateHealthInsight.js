@@ -19,7 +19,7 @@ export async function generateHealthInsight({ user_id }) {
 
     // ✅ Dynamically fetch blood markers
     const { data: bloodData, error: bloodError } = await supabase
-      .from('blood_result')
+      .from('user_blood_result')
       .select('marker_name, value, status, reference_range')
       .eq('user_id', user_id)
       .eq('health_area', health_area);
