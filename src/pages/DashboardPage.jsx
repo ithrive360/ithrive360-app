@@ -117,7 +117,7 @@ function DashboardPage() {
     try {
       const result = await generateHealthInsight({
         user_id: user.id,
-        health_area: 'cardiovascular'
+        health_area: 'Cardiovascular Health'
       });
       
 
