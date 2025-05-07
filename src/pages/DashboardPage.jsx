@@ -35,10 +35,10 @@ function DashboardPage() {
     await initUserProfile(user);
 
     const { data: profileData, error: profileError } = await supabase
-    .from('user_profile')
-    .select('*')
-    .eq('user_id', user.id)
-    .single();  
+      .from('user_profile')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
     if (profileError) console.error('Profile fetch error:', profileError.message);
     setProfile(profileData || null);
@@ -116,12 +116,7 @@ function DashboardPage() {
 
     try {
       const result = await generateHealthInsight({
-        user_id: user.id,
-        health_area: 'energy',
-        markers: [
-          { marker: 'vitamin_d', value: 22, type: 'blood' },
-          { marker: 'rs12345', value: 'AA', type: 'dna' }
-        ]
+        user_id: user.id
       });
 
       console.log("Result from generateHealthInsight:", result);

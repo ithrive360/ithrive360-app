@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient';
 
-export async function generateHealthInsight({ user_id }) {
+export async function generateHealthInsight({ user_id, health_area }) {
   try {
     const { data, error } = await supabase.auth.getSession();
 
@@ -15,16 +15,14 @@ export async function generateHealthInsight({ user_id }) {
         ? 'http://localhost:54321/functions/v1'
         : 'https://oqjblzxhfszvluhvfclv.functions.supabase.co';
 
-    const health_area = 'cardiovascular';
-
-    // ✅ Corrected blood marker fetch with join on blood_marker_reference
+    // ✅ Fetch user blood results with reference data
     const { data: bloodData, error: bloodError } = await supabase
       .from('user_blood_result')
       .select(`
         value,
         unit,
-        marker:marker_id (
-          name,
+        marker:blood_marker_reference (
+          marker_name,
           status,
           reference_range,
           health_area
@@ -37,34 +35,45 @@ export async function generateHealthInsight({ user_id }) {
       throw new Error('Failed to load blood results.');
     }
 
-    // ✅ Filter only markers for this health area
-    const filteredBlood = (bloodData || []).filter(entry => entry.marker?.health_area === health_area);
+    const filteredBlood = (bloodData || []).filter(
+      entry => entry.marker?.health_area === health_area
+    );
 
-    // ✅ Dynamically fetch DNA traits (this table schema was already correct)
+    // ✅ Fetch user DNA results with reference data
     const { data: dnaData, error: dnaError } = await supabase
-      .from('dna_result')
-      .select('trait_name, genotype, effect')
-      .eq('user_id', user_id)
-      .eq('health_area', health_area);
+      .from('user_dna_result')
+      .select(`
+        value,
+        dna_marker_reference (
+          trait,
+          effect,
+          health_area_id
+        )
+      `)
+      .eq('user_id', user_id);
 
     if (dnaError) {
       console.error('[generateHealthInsight] Error fetching DNA traits:', dnaError.message);
       throw new Error('Failed to load DNA results.');
     }
 
+    const filteredDNA = (dnaData || []).filter(
+      entry => entry.dna_marker_reference?.health_area_id === health_area
+    );
+
     const markers = [
-      ...(filteredBlood?.map(m => ({
-        marker: m.marker?.name,
+      ...(filteredBlood.map(m => ({
+        marker: m.marker?.marker_name,
         value: m.value,
         type: 'blood',
         status: m.marker?.status,
         reference_range: m.marker?.reference_range,
       })) || []),
-      ...(dnaData?.map(m => ({
-        marker: m.trait_name,
-        value: m.genotype,
+      ...(filteredDNA.map(m => ({
+        marker: m.dna_marker_reference?.trait,
+        value: m.value,
         type: 'dna',
-        effect: m.effect,
+        effect: m.dna_marker_reference?.effect,
       })) || []),
     ];
 

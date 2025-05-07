@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -13,57 +12,31 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { user_id, health_area } = await req.json();
+    const { user_id, health_area, markers } = await req.json();
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    // 🔄 Fetch blood markers for this health area
-    const { data: bloodData, error: bloodError } = await supabase
-      .from("user_blood_result")
-      .select(`
-        value,
-        unit,
-        marker:marker_id (
-          blood_marker_id,
-          name,
-          status,
-          reference_range,
-          health_area
-        )
-      `)
-      .eq("user_id", user_id);
-
-    if (bloodError) {
-      console.error("[generateHealthInsight] Error fetching blood markers:", bloodError.message);
-      throw new Error("Failed to load blood results.");
-    }
-
-    const filteredBlood = bloodData
-      .filter((entry: any) => entry.marker?.health_area === health_area)
-      .map((entry: any) => ({
-        marker_name: entry.marker?.name,
-        value: entry.value,
-        status: entry.marker?.status || "Normal",
-        reference_range: entry.marker?.reference_range || null,
+    // Separate blood and dna markers
+    const blood_results = markers
+      .filter((m: any) => m.type === "blood")
+      .map((m: any) => ({
+        marker_name: m.marker,
+        value: m.value,
+        status: m.status || "Normal",
+        reference_range: m.reference_range || null,
       }));
 
-    // 🧬 Dummy DNA data
-    const dna_results = [
-      {
-        trait_name: "rs12345",
-        genotype: "AA",
-        effect: null,
-      }
-    ];
+    const dna_results = markers
+      .filter((m: any) => m.type === "dna")
+      .map((m: any) => ({
+        trait_name: m.marker,
+        genotype: m.value,
+        effect: m.effect || null,
+      }));
 
     const input_json = {
       user_id,
       health_area,
       timestamp: new Date().toISOString(),
-      blood_results: filteredBlood,
+      blood_results,
       dna_results,
     };
 
