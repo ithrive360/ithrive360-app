@@ -1,70 +1,35 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import OpenAI from 'https://esm.sh/openai@4.24.0';
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-serve(async (req) => {
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey",
+      },
+    });
+  }
+
   try {
     const { user_id, health_area, markers } = await req.json();
 
-    if (!user_id || !health_area || !markers) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400 }
-      );
-    }
+    // Your GPT logic or placeholder
+    const result = `Generated insights for ${health_area} (${markers.length} markers)`;
 
-    const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    return new Response(JSON.stringify({ result }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
+      },
     });
-
-    const prompt = `
-You are a health assistant. Using the following data, analyze the user's health for the area "${health_area}".
-Provide a summary, interpret relevant markers (DNA or blood), and give clear recommendations.
-
-Markers:
-${JSON.stringify(markers, null, 2)}
-
-Output the result in a JSON format like:
-{
-  "summary": "...",
-  "insights": [
-    {
-      "marker": "...",
-      "type": "blood" or "dna",
-      "effect": "...",
-      "insight": "..."
-    },
-    ...
-  ],
-  "recommendations": [
-    {
-      "category": "diet" | "exercise" | "lifestyle" | "supplementation",
-      "recommendation": "..."
-    },
-    ...
-  ]
-}
-`;
-
-    const chatResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: 'You are a health and genetics expert.' },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.7
-    });
-
-    const reply = chatResponse.choices[0]?.message?.content ?? 'No content returned from GPT.';
-
-    return new Response(JSON.stringify({ result: reply }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (err) {
-    console.error('Function error:', err);
-    return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
+      },
     });
   }
 });
