@@ -17,66 +17,113 @@ function DashboardPage() {
   const [prompt, setPrompt] = useState('');
 
   const fetchUserData = async () => {
-    const { data: userData, error } = await supabase.auth.getUser();
+    try {
+      // First check if we have a valid session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError.message);
+        return;
+      }
+      
+      if (!sessionData?.session) {
+        console.log("No active session found");
+        window.location.href = '/'; // Redirect to login page
+        return;
+      }
+      
+      // Now get the user data with the confirmed session
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("Auth fetch error:", userError.message);
+        return;
+      }
+      
+      if (!userData?.user) {
+        console.log("User not found in session");
+        return;
+      }
 
-    if (error) {
-      console.error("Auth fetch error:", error.message);
-      return;
+      setUser(userData.user);
+
+      // Initialize user profile if needed
+      await initUserProfile(userData.user);
+
+      // Fetch user profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .single();
+
+      if (profileError) console.error('Profile fetch error:', profileError.message);
+      setProfile(profileData || null);
+
+      // Set greeting based on time of day
+      const hour = new Date().getHours();
+      if (hour < 12) setGreeting('Good morning');
+      else if (hour < 18) setGreeting('Good afternoon');
+      else setGreeting('Good evening');
+
+    } catch (error) {
+      console.error("Error in fetchUserData:", error.message);
+    } finally {
+      setLoading(false);
     }
-
-    if (!userData?.user) {
-      console.log("User not logged in yet.");
-      return;
-    }
-
-    setUser(userData.user);
-
-    await initUserProfile(userData.user);
-
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profile')
-      .select('*')
-      .eq('user_id', userData.user.id) // ✅ FIXED COLUMN NAME
-      .single();
-
-    if (profileError) console.error('Profile fetch error:', profileError.message);
-    setProfile(profileData || null);
-
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-
-    setLoading(false);
   };
 
   useEffect(() => {
-    const checkSessionAndFetch = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await fetchUserData();
-      }
-    };
-
-    checkSessionAndFetch();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
+    // Immediately invoke an async function
+    (async () => {
+      try {
+        // Check for an existing session first
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
           await fetchUserData();
+        } else {
+          setLoading(false); // Stop loading if no session
+          // Optional: Redirect to login
+          // window.location.href = '/';
         }
+        
+        // Set up auth state change listener
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log("Auth state changed:", event);
+            if (event === 'SIGNED_IN' && session) {
+              await fetchUserData();
+            } else if (event === 'SIGNED_OUT') {
+              setUser(null);
+              setProfile(null);
+              // Optional: Redirect to login
+              // window.location.href = '/';
+            }
+          }
+        );
+        
+        return () => {
+          authListener?.subscription?.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Auth setup error:", error.message);
+        setLoading(false);
       }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
+    })();
   }, []);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error('Logout error:', error.message);
-    else window.location.href = '/';
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error.message);
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error("Logout exception:", error.message);
+    }
   };
 
   const handleDNAUpload = async (e) => {
@@ -85,9 +132,13 @@ function DashboardPage() {
       setMessage('Missing file or user ID.');
       return;
     }
-    const result = await uploadAndParseDNA(file, user.id);
-    setMessage(result.message);
-    if (result.success) fetchUserData();
+    try {
+      const result = await uploadAndParseDNA(file, user.id);
+      setMessage(result.message);
+      if (result.success) await fetchUserData();
+    } catch (error) {
+      setMessage(`Upload error: ${error.message}`);
+    }
   };
 
   const handleBloodUpload = async (e) => {
@@ -96,9 +147,13 @@ function DashboardPage() {
       setBloodMessage('Missing file or user ID.');
       return;
     }
-    const result = await uploadAndParseBlood(file, user.id);
-    setBloodMessage(result.message);
-    if (result.message?.startsWith('Uploaded')) fetchUserData();
+    try {
+      const result = await uploadAndParseBlood(file, user.id);
+      setBloodMessage(result.message);
+      if (result.message?.startsWith('Uploaded')) await fetchUserData();
+    } catch (error) {
+      setBloodMessage(`Upload error: ${error.message}`);
+    }
   };
 
   const handleTestGPT = async () => {
@@ -107,27 +162,40 @@ function DashboardPage() {
       return;
     }
 
-    const result = await generateHealthInsight({
-      user_id: user.id,
-      health_area: 'energy',
-      markers: [
-        { marker: 'vitamin_d', value: 22, type: 'blood' },
-        { marker: 'rs12345', value: 'AA', type: 'dna' }
-      ]
-    });
+    try {
+      const result = await generateHealthInsight({
+        user_id: user.id,
+        health_area: 'energy',
+        markers: [
+          { marker: 'vitamin_d', value: 22, type: 'blood' },
+          { marker: 'rs12345', value: 'AA', type: 'dna' }
+        ]
+      });
 
-    console.log("Result from generateHealthInsight:", result);
+      console.log("Result from generateHealthInsight:", result);
 
-    if (result.success) {
-      setInputJson(result.input_json);
-      setPrompt(result.prompt);
-    } else {
-      alert(`Error: ${result.error}`);
+      if (result.success) {
+        setInputJson(result.input_json);
+        setPrompt(result.prompt);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("GPT test error:", error.message);
+      alert(`Error: ${error.message}`);
     }
   };
 
   if (loading) return <p>Loading...</p>;
-  if (!user) return <p>You must be logged in to view this page.</p>;
+  if (!user) return (
+    <div className="auth-redirect">
+      <img src={logo} alt="iThrive360 Logo" className="logo" />
+      <h2>Please log in to access your dashboard</h2>
+      <button onClick={() => window.location.href = '/'} className="btn btn-primary">
+        Go to Login
+      </button>
+    </div>
+  );
 
   return (
     <div className="dashboard">
