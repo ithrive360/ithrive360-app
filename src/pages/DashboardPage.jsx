@@ -83,6 +83,11 @@ function DashboardPage() {
   };
 
   const handleTestGPT = async () => {
+    if (!user?.id) {
+      alert('User not authenticated. Please log in again.');
+      return;
+    }
+
     const result = await generateHealthInsight({
       user_id: user.id,
       health_area: 'energy',
@@ -91,9 +96,9 @@ function DashboardPage() {
         { marker: 'rs12345', value: 'AA', type: 'dna' }
       ]
     });
-  
+
     console.log("Result from generateHealthInsight:", result);
-  
+
     if (result.success) {
       setInputJson(result.input_json);
       setPrompt(result.prompt);
