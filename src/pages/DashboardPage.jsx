@@ -105,27 +105,36 @@ function DashboardPage() {
   };
 
   const handleTestGPT = async () => {
+    console.log("Test GPT clicked");
+
     if (!user?.id) {
       alert('User not authenticated. Please log in again.');
       return;
     }
 
-    const result = await generateHealthInsight({
-      user_id: user.id,
-      health_area: 'energy',
-      markers: [
-        { marker: 'vitamin_d', value: 22, type: 'blood' },
-        { marker: 'rs12345', value: 'AA', type: 'dna' }
-      ]
-    });
+    console.log("Calling generateHealthInsight with:", user.id);
 
-    console.log("Result from generateHealthInsight:", result);
+    try {
+      const result = await generateHealthInsight({
+        user_id: user.id,
+        health_area: 'energy',
+        markers: [
+          { marker: 'vitamin_d', value: 22, type: 'blood' },
+          { marker: 'rs12345', value: 'AA', type: 'dna' }
+        ]
+      });
 
-    if (result.success) {
-      setInputJson(result.input_json);
-      setPrompt(result.prompt);
-    } else {
-      alert(`Error: ${result.error}`);
+      console.log("Result from generateHealthInsight:", result);
+
+      if (result.success) {
+        setInputJson(result.input_json);
+        setPrompt(result.prompt);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (e) {
+      console.error("Unhandled error in handleTestGPT:", e);
+      alert("Unexpected error. See console.");
     }
   };
 
