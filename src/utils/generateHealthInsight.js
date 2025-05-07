@@ -7,7 +7,6 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
     } = await supabase.auth.getSession();
 
     const accessToken = session?.access_token;
-
     if (!accessToken) throw new Error('User is not authenticated');
 
     const baseUrl =
@@ -30,7 +29,13 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
     }
 
     const data = await response.json();
-    return { success: true, result: data.result };
+
+    // Temporary preview structure for development
+    return {
+      success: true,
+      input_json: data.input_json,
+      prompt: data.prompt,
+    };
   } catch (err) {
     console.error('GPT call failed:', err);
     return { success: false, error: err.message };

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
-import { initUserProfile } from '../utils/initUserProfile'; // ✅ ADDED
-import { generateHealthInsight } from '../utils/generateHealthInsight'; // ✅ ADDED
+import { initUserProfile } from '../utils/initUserProfile';
+import { generateHealthInsight } from '../utils/generateHealthInsight';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -13,13 +13,15 @@ function DashboardPage() {
   const [greeting, setGreeting] = useState('');
   const [message, setMessage] = useState('');
   const [bloodMessage, setBloodMessage] = useState('');
+  const [inputJson, setInputJson] = useState(null);
+  const [prompt, setPrompt] = useState('');
 
   const fetchUserData = async () => {
     const { data: userData } = await supabase.auth.getUser();
     setUser(userData?.user || null);
 
     if (userData?.user) {
-      await initUserProfile(userData.user); // ✅ ADDED
+      await initUserProfile(userData.user);
 
       const { data: profileData, error } = await supabase
         .from('user_profile')
@@ -81,7 +83,12 @@ function DashboardPage() {
       ]
     });
 
-    alert(result.success ? result.result : `Error: ${result.error}`);
+    if (result.success) {
+      setInputJson(result.input_json);
+      setPrompt(result.prompt);
+    } else {
+      alert(`Error: ${result.error}`);
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -132,6 +139,17 @@ function DashboardPage() {
           <div style={{ height: '10px', width: '80%', background: '#eee', margin: '0 auto', borderRadius: '5px' }}>
             <div style={{ width: '37%', height: '100%', background: '#3ab3a1', borderRadius: '5px' }}></div>
           </div>
+        </div>
+      )}
+
+      {/* Prompt Preview Output */}
+      {inputJson && prompt && (
+        <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#f0f0f0' }}>
+          <h3>Preview: Input JSON</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{JSON.stringify(inputJson, null, 2)}</pre>
+
+          <h3 style={{ marginTop: '2rem' }}>Preview: Prompt Sent to GPT</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{prompt}</pre>
         </div>
       )}
 
