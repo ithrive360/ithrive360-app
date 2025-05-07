@@ -14,6 +14,12 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
         ? 'http://localhost:54321/functions/v1'
         : 'https://oqjblzxhfszvluhvfclv.functions.supabase.co';
 
+    console.log('[generateHealthInsight] Input payload:', {
+      user_id,
+      health_area,
+      markers,
+    });
+
     const response = await fetch(`${baseUrl}/generate-insight`, {
       method: 'POST',
       headers: {
@@ -29,7 +35,7 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
     }
 
     const data = await response.json();
-    console.log('Raw response data:', data);
+    console.log('[generateHealthInsight] Raw response data:', data);
 
     return {
       success: true,
@@ -37,7 +43,7 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
       prompt: data.prompt,
     };
   } catch (err) {
-    console.error('GPT call failed:', err);
+    console.error('[generateHealthInsight] GPT call failed:', err);
     return { success: false, error: err.message };
   }
 }
