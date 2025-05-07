@@ -20,7 +20,7 @@ function AuthCallback() {
       const { data: profile, error: profileError } = await supabase
         .from('user_profile')
         .select('id')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (!profile && !profileError) {
