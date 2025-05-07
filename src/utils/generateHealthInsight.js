@@ -29,6 +29,7 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
     }
 
     const data = await response.json();
+    console.log('Raw response data:', data);
 
     return {
       success: true,
