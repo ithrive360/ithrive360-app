@@ -17,21 +17,30 @@ function DashboardPage() {
   const [prompt, setPrompt] = useState('');
 
   const fetchUserData = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    setUser(userData?.user || null);
+    const { data: userData, error } = await supabase.auth.getUser();
 
-    if (userData?.user) {
-      await initUserProfile(userData.user);
-
-      const { data: profileData, error } = await supabase
-        .from('user_profile')
-        .select('*')
-        .eq('user_id', userData.user.id)
-        .single();
-
-      if (error) console.error('Profile fetch error:', error.message);
-      setProfile(profileData || null);
+    if (error) {
+      console.error("Auth fetch error:", error.message);
+      return;
     }
+
+    if (!userData?.user) {
+      console.log("User not logged in yet.");
+      return;
+    }
+
+    setUser(userData.user);
+
+    await initUserProfile(userData.user);
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('user_profile')
+      .select('*')
+      .eq('user_id', userData.user.id)
+      .single();
+
+    if (profileError) console.error('Profile fetch error:', profileError.message);
+    setProfile(profileData || null);
 
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
@@ -92,7 +101,6 @@ function DashboardPage() {
       alert(`Error: ${result.error}`);
     }
   };
-  
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
