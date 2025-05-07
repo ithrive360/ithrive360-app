@@ -73,7 +73,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
           trait,
           interpretation,
           gpt_instruction,
-          health_area_id
+          health_area
         )
       `)
       .eq('user_id', user_id);
@@ -84,7 +84,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
     }
 
     const filteredDNA = (dnaData || []).filter(
-      entry => entry.dna_marker_reference?.health_area_id === health_area
+      entry => entry.dna_marker_reference?.health_area === health_area
     );
 
     const parsedDNA = filteredDNA.map(m => ({
