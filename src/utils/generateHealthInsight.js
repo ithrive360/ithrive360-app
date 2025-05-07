@@ -21,7 +21,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .select(`
         value,
         unit,
-        marker:marker_id (
+        marker:blood_marker_reference (
           marker_name,
           reference_range,
           health_area
@@ -69,7 +69,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .from('user_dna_result')
       .select(`
         value,
-        marker:dna_id (
+        marker:dna_marker_reference (
           trait,
           interpretation,
           gpt_instruction,
