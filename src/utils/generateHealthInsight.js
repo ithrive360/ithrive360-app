@@ -71,7 +71,8 @@ export async function generateHealthInsight({ user_id, health_area }) {
         value,
         dna_marker_reference (
           trait,
-          effect,
+          interpretation,
+          gpt_instruction,
           health_area_id
         )
       `)
@@ -90,7 +91,8 @@ export async function generateHealthInsight({ user_id, health_area }) {
       marker: m.dna_marker_reference?.trait,
       value: m.value,
       type: 'dna',
-      effect: m.dna_marker_reference?.effect,
+      effect: m.dna_marker_reference?.interpretation,
+      gpt_instruction: m.dna_marker_reference?.gpt_instruction,
     }));
 
     const markers = [...parsedBlood, ...parsedDNA];
