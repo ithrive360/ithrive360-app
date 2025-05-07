@@ -82,7 +82,9 @@ function DashboardPage() {
         { marker: 'rs12345', value: 'AA', type: 'dna' }
       ]
     });
-
+  
+    console.log("Result from generateHealthInsight:", result);
+  
     if (result.success) {
       setInputJson(result.input_json);
       setPrompt(result.prompt);
@@ -90,6 +92,7 @@ function DashboardPage() {
       alert(`Error: ${result.error}`);
     }
   };
+  
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
