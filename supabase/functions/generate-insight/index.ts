@@ -19,7 +19,7 @@ serve(async (req: Request) => {
       .map((m: any) => ({
         marker_name: m.marker,
         value: m.value,
-        status: m.status || "Normal", // optional default
+        status: m.status || "Normal",
         reference_range: m.reference_range || null,
       }));
 
@@ -80,7 +80,7 @@ ${JSON.stringify(input_json, null, 2)}
 
     return new Response(
       JSON.stringify({
-        status: "preview",
+        success: true,
         input_json,
         prompt,
       }),
