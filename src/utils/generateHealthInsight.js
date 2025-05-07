@@ -21,7 +21,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .select(`
         value,
         unit,
-        marker:blood_marker_reference (
+        marker:marker_id (
           marker_name,
           reference_range,
           health_area
@@ -69,7 +69,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .from('user_dna_result')
       .select(`
         value,
-        dna_marker_reference (
+        marker:dna_id (
           trait,
           interpretation,
           gpt_instruction,
@@ -84,15 +84,15 @@ export async function generateHealthInsight({ user_id, health_area }) {
     }
 
     const filteredDNA = (dnaData || []).filter(
-      entry => entry.dna_marker_reference?.health_area === health_area
+      entry => entry.marker?.health_area === health_area
     );
 
     const parsedDNA = filteredDNA.map(m => ({
-      marker: m.dna_marker_reference?.trait,
+      marker: m.marker?.trait,
       value: m.value,
       type: 'dna',
-      effect: m.dna_marker_reference?.interpretation,
-      gpt_instruction: m.dna_marker_reference?.gpt_instruction,
+      effect: m.marker?.interpretation,
+      gpt_instruction: m.marker?.gpt_instruction,
     }));
 
     const markers = [...parsedBlood, ...parsedDNA];
