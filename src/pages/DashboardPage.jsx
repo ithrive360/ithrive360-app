@@ -51,7 +51,17 @@ function DashboardPage() {
   };
 
   useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        await fetchUserData();
+      }
+    });
+
     fetchUserData();
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
