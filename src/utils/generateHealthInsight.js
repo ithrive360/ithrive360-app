@@ -30,7 +30,6 @@ export async function generateHealthInsight({ user_id, health_area, markers }) {
 
     const data = await response.json();
 
-    // Temporary preview structure for development
     return {
       success: true,
       input_json: data.input_json,
