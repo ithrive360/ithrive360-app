@@ -20,7 +20,7 @@ serve(async (req: Request) => {
       .map((m: any) => ({
         marker_name: m.marker,
         value: m.value,
-        status: m.status || "Normal",
+    // omit         status: m.status || "Normal",
         reference_range: m.reference_range || null,
       }));
 

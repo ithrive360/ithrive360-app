@@ -23,7 +23,6 @@ export async function generateHealthInsight({ user_id, health_area }) {
         unit,
         marker:blood_marker_reference (
           marker_name,
-          status,
           reference_range,
           health_area
         )
@@ -38,6 +37,32 @@ export async function generateHealthInsight({ user_id, health_area }) {
     const filteredBlood = (bloodData || []).filter(
       entry => entry.marker?.health_area === health_area
     );
+
+    // ✅ Compute status from value and reference_range
+    const parsedBlood = filteredBlood.map(entry => {
+      const rawValue = parseFloat(entry.value);
+      const range = entry.marker?.reference_range;
+      let status = 'Normal';
+
+      if (range && rawValue !== undefined && !isNaN(rawValue)) {
+        const [minStr, maxStr] = range.split('-').map(s => s.trim());
+        const min = parseFloat(minStr);
+        const max = parseFloat(maxStr);
+
+        if (!isNaN(min) && !isNaN(max)) {
+          if (rawValue < min) status = 'Low';
+          else if (rawValue > max) status = 'High';
+        }
+      }
+
+      return {
+        marker: entry.marker?.marker_name,
+        value: entry.value,
+        type: 'blood',
+        status,
+        reference_range: entry.marker?.reference_range,
+      };
+    });
 
     // ✅ Fetch user DNA results with reference data
     const { data: dnaData, error: dnaError } = await supabase
@@ -61,21 +86,14 @@ export async function generateHealthInsight({ user_id, health_area }) {
       entry => entry.dna_marker_reference?.health_area_id === health_area
     );
 
-    const markers = [
-      ...(filteredBlood.map(m => ({
-        marker: m.marker?.marker_name,
-        value: m.value,
-        type: 'blood',
-        status: m.marker?.status,
-        reference_range: m.marker?.reference_range,
-      })) || []),
-      ...(filteredDNA.map(m => ({
-        marker: m.dna_marker_reference?.trait,
-        value: m.value,
-        type: 'dna',
-        effect: m.dna_marker_reference?.effect,
-      })) || []),
-    ];
+    const parsedDNA = filteredDNA.map(m => ({
+      marker: m.dna_marker_reference?.trait,
+      value: m.value,
+      type: 'dna',
+      effect: m.dna_marker_reference?.effect,
+    }));
+
+    const markers = [...parsedBlood, ...parsedDNA];
 
     console.log('[generateHealthInsight] Input payload:', {
       user_id,
