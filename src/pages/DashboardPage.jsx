@@ -51,13 +51,22 @@ function DashboardPage() {
   };
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        await fetchUserData(); // ✅ ONLY RUN AFTER SESSION EXISTS
+    const checkSessionAndFetch = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await fetchUserData();
       }
-    });
+    };
 
-    fetchUserData(); // still run on load
+    checkSessionAndFetch();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          await fetchUserData();
+        }
+      }
+    );
 
     return () => {
       authListener?.subscription?.unsubscribe();
