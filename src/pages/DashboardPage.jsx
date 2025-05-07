@@ -37,9 +37,8 @@ function DashboardPage() {
     const { data: profileData, error: profileError } = await supabase
     .from('user_profile')
     .select('*')
-    .eq('id', user.id)
-    .single();
-  
+    .eq('user_id', user.id)
+    .single();  
 
     if (profileError) console.error('Profile fetch error:', profileError.message);
     setProfile(profileData || null);
