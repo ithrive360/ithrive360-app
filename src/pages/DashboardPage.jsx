@@ -173,7 +173,13 @@ function DashboardPage() {
         <button className="btn btn-primary">Start New Report</button>
         <button className="btn btn-primary">View Insights</button>
         <button className="btn btn-primary">Recommendations</button>
-        <button className="btn btn-primary" onClick={handleTestGPT}>Test GPT</button>
+        <button
+        className="btn"
+        onClick={handleTestGPT}
+        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
+        >
+        Test GPT
+        </button>
       </div>
 
       {/* Progress Teaser */}
