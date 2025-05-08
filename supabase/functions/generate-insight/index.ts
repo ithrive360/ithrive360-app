@@ -59,7 +59,14 @@ Rules:
   - "warning" = borderline, mild elevation, or requires monitoring
   - "risk" = clearly suboptimal value or trait with significant health impact
 - Add a new field called "category" to each insight object with one of these three values.
-- Suggest specific lifestyle or supplement actions where relevant.
+- Provide 1–3 specific, practical recommendations for each of the following categories:
+  - Diet
+  - Supplementation
+  - Exercise
+  - Lifestyle
+  - Monitoring (if applicable)
+- Keep recommendations short and actionable.
+- If a category has no relevant advice, omit it from the output.
 - Only respond with the JSON output. No explanation or text outside the JSON block.
 
 Return format (strict):
@@ -79,9 +86,13 @@ Return format (strict):
       "insight": "..." 
     }
   ],
-  "recommendations": [
-    "..."
-  ]
+  "recommendations": {
+    "Diet": ["..."],
+    "Supplementation": ["..."],
+    "Exercise": ["..."],
+    "Lifestyle": ["..."],
+    "Monitoring": ["..."]
+  }
 }
 
 JSON to analyze:
