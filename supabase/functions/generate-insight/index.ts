@@ -54,11 +54,13 @@ Analyze the information and produce structured insights.
 Rules:
 - Only reason based on the provided data. Do not invent any markers, traits, or effects.
 - Keep each insight short and to the point (2–3 sentences max).
-- Focus on identifying risks, strengths, or areas to monitor.
+- For each blood marker or DNA trait, assign it a category: "strength", "warning", or "risk".
+  - "strength" = clearly beneficial or optimal result/genetic trait
+  - "warning" = borderline, mild elevation, or requires monitoring
+  - "risk" = clearly suboptimal value or trait with significant health impact
+- Add a new field called "category" to each insight object with one of these three values.
 - Suggest specific lifestyle or supplement actions where relevant.
-- If a blood result is "High" or "Low", it must be mentioned explicitly.
-- If a DNA trait increases risk for a condition, mention it, but don't overstate.
-- Only respond with the json output. No other text before or after
+- Only respond with the JSON output. No explanation or text outside the JSON block.
 
 Return format (strict):
 
@@ -66,13 +68,14 @@ Return format (strict):
   "health_area": "{Health Area Name}",
   "summary": "{Short overview}",
   "blood_markers": [
-    { "marker_name": "...", "status": "Normal/High/Low", "insight": "..." }
+    { "marker_name": "...", "status": "Normal/High/Low", "category": "strength/warning/risk", "insight": "..." }
   ],
   "dna_traits": [
     { 
       "trait_name": "...", 
       "rsid": "...",
       "effect": "...", 
+      "category": "strength/warning/risk",
       "insight": "..." 
     }
   ],
