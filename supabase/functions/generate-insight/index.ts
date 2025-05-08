@@ -99,11 +99,37 @@ JSON to analyze:
 ${JSON.stringify(input_json, null, 2)}
     `.trim();
 
+    // 🔥 Call GPT-4o with the prompt
+    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: "You are a helpful health assistant." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+
+    if (!openaiResponse.ok) {
+      const errText = await openaiResponse.text();
+      throw new Error(`OpenAI API error: ${errText}`);
+    }
+
+    const gptData = await openaiResponse.json();
+    const gpt_response = gptData.choices?.[0]?.message?.content || "";
+
     return new Response(
       JSON.stringify({
         success: true,
         input_json,
         prompt,
+        gpt_response,
       }),
       {
         headers: {

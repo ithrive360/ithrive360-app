@@ -15,6 +15,7 @@ function DashboardPage() {
   const [bloodMessage, setBloodMessage] = useState('');
   const [inputJson, setInputJson] = useState(null);
   const [prompt, setPrompt] = useState('');
+  const [gptResponse, setGptResponse] = useState(''); // ✅ added
 
   const fetchUserData = async () => {
     const { data: sessionData, error } = await supabase.auth.getSession();
@@ -119,13 +120,13 @@ function DashboardPage() {
         user_id: user.id,
         health_area: 'Cardiovascular Health'
       });
-      
 
       console.log("Result from generateHealthInsight:", result);
 
       if (result.success) {
         setInputJson(result.input_json);
         setPrompt(result.prompt);
+        setGptResponse(result.gpt_response); // ✅ capture GPT response
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -194,6 +195,16 @@ function DashboardPage() {
 
           <h3 style={{ marginTop: '2rem' }}>Preview: Prompt Sent to GPT</h3>
           <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{prompt}</pre>
+        </div>
+      )}
+
+      {/* ✅ New: GPT Response Output */}
+      {gptResponse && (
+        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#e8f5e9' }}>
+          <h3>Preview: GPT Response</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+            {gptResponse}
+          </pre>
         </div>
       )}
 
