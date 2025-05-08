@@ -141,3 +141,13 @@ html, body, #root {
     width: 100%;
   }
 }
+
+/* ✅ Disable text selection inside dashboard except for inputs/textareas */
+.dashboard {
+  user-select: none;
+}
+
+.dashboard input,
+.dashboard textarea {
+  user-select: text;
+}
