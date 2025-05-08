@@ -122,7 +122,10 @@ ${JSON.stringify(input_json, null, 2)}
     }
 
     const gptData = await openaiResponse.json();
+    console.log("GPT raw response:", JSON.stringify(gptData, null, 2)); // ✅ log raw response
+
     const gpt_response = gptData.choices?.[0]?.message?.content || "";
+    console.log("Parsed GPT content:", gpt_response); // ✅ log parsed content
 
     return new Response(
       JSON.stringify({
@@ -139,6 +142,7 @@ ${JSON.stringify(input_json, null, 2)}
       }
     );
   } catch (error) {
+    console.error("Handler error:", error); // ✅ log full error if caught
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
