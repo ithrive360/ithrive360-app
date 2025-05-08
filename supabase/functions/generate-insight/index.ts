@@ -124,8 +124,11 @@ ${JSON.stringify(input_json, null, 2)}
     const gptData = await openaiResponse.json();
     console.log("GPT raw response:", JSON.stringify(gptData, null, 2)); // ✅ log raw response
 
-    const gpt_response = gptData.choices?.[0]?.message?.content || "";
-    console.log("Parsed GPT content:", gpt_response); // ✅ log parsed content
+    let gpt_response = gptData.choices?.[0]?.message?.content || "";
+
+    // ✅ Strip markdown code block if present
+    gpt_response = gpt_response.trim().replace(/^```json\s*/, '').replace(/```$/, '');
+    console.log("Sanitized GPT content:", gpt_response); // ✅ log parsed content
 
     return new Response(
       JSON.stringify({
