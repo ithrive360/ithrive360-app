@@ -69,7 +69,9 @@ export async function uploadAndParseBlood(file, userId) {
       const rawValue = cols[valueIndex]?.trim();
 
       if (!markerMap.has(normName)) {
-        skipped.push(rawName);
+        // strip quotes for popup display
+        const cleaned = rawName.replace(/^["']|["']$/g, '').trim();
+        skipped.push(cleaned);
         continue;
       }
 
