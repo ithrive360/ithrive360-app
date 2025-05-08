@@ -87,6 +87,8 @@ export async function uploadAndParseBlood(file, userId) {
       return { message: 'No valid blood marker entries found.' };
     }
 
+    console.log("🧪 Prepared entries:", entries);
+
     const { error: insertError } = await supabase
       .from('user_blood_result')
       .insert(entries);
