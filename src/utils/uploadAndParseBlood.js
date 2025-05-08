@@ -37,9 +37,13 @@ export async function uploadAndParseBlood(file, userId) {
       return { message: 'Error fetching reference data.' };
     }
 
-    const markerMap = new Map(
-      refMarkers.map(m => [normalizeName(m.marker_name), m.blood_marker_id])
-    );
+    // 🔄 Map of normalized name → array of marker objects
+    const markerMap = new Map();
+    for (const m of refMarkers) {
+      const norm = normalizeName(m.marker_name);
+      if (!markerMap.has(norm)) markerMap.set(norm, []);
+      markerMap.get(norm).push(m);
+    }
 
     const areaMap = new Map(); // blood_marker_id => [health_area_id]
     for (const link of areaLinks) {
@@ -63,23 +67,26 @@ export async function uploadAndParseBlood(file, userId) {
         continue;
       }
 
-      const markerId = markerMap.get(normName);
-      const healthAreas = areaMap.get(markerId) || [];
+      const markerRecords = markerMap.get(normName);
+      for (const marker of markerRecords) {
+        const markerId = marker.blood_marker_id;
+        const healthAreas = areaMap.get(markerId) || [];
 
-      if (healthAreas.length === 0) {
-        console.warn(`Marker ${rawName} has no health area links`);
-        continue;
-      }
+        if (healthAreas.length === 0) {
+          console.warn(`Marker ${rawName} (${markerId}) has no health area links`);
+          continue;
+        }
 
-      for (const health_area_id of healthAreas) {
-        entries.push({
-          user_id: userId,
-          marker_id: markerId,
-          health_area_id,
-          value: rawValue,
-          unit: unitIndex !== -1 ? cols[unitIndex]?.trim() || null : null,
-          upload_date: new Date().toISOString()
-        });
+        for (const health_area_id of healthAreas) {
+          entries.push({
+            user_id: userId,
+            marker_id: markerId,
+            health_area_id,
+            value: rawValue,
+            unit: unitIndex !== -1 ? cols[unitIndex]?.trim() || null : null,
+            upload_date: new Date().toISOString()
+          });
+        }
       }
     }
 
