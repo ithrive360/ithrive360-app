@@ -38,7 +38,6 @@ export async function generateHealthInsight({ user_id, health_area }) {
       entry => entry.marker?.health_area === health_area
     );
 
-    // ✅ Compute status from value and reference_range
     const parsedBlood = filteredBlood.map(entry => {
       const rawValue = parseFloat(entry.value);
       const range = entry.marker?.reference_range;
@@ -126,6 +125,8 @@ export async function generateHealthInsight({ user_id, health_area }) {
       success: true,
       input_json: result.input_json,
       prompt: result.prompt,
+      gpt_response: result.gpt_response,
+      gpt_response_raw: result.gpt_response_raw, // ✅ included
     };
   } catch (err) {
     console.error('[generateHealthInsight] GPT call failed:', err);
