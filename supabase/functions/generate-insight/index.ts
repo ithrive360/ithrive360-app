@@ -58,6 +58,7 @@ Rules:
 - Suggest specific lifestyle or supplement actions where relevant.
 - If a blood result is "High" or "Low", it must be mentioned explicitly.
 - If a DNA trait increases risk for a condition, mention it, but don't overstate.
+- Only respond with the json output. No other text before or after
 
 Return format (strict):
 
