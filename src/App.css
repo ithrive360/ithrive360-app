@@ -151,3 +151,11 @@ html, body, #root {
 .dashboard textarea {
   user-select: text;
 }
+
+/* ✅ Prevent all button text selection everywhere */
+button,
+.btn,
+a.btn,
+.auth-box .btn {
+  user-select: none;
+}
