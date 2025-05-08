@@ -125,8 +125,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       success: true,
       input_json: result.input_json,
       prompt: result.prompt,
-      gpt_response: result.gpt_response,
-      gpt_response_raw: result.gpt_response_raw, // ✅ included
+      gpt_response: result.gpt_response, // ✅ clean response only
     };
   } catch (err) {
     console.error('[generateHealthInsight] GPT call failed:', err);

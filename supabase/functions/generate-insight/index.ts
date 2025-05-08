@@ -125,7 +125,6 @@ ${JSON.stringify(input_json, null, 2)}
     console.log("GPT raw response:", JSON.stringify(gptData, null, 2));
 
     let gpt_response = gptData.choices?.[0]?.message?.content || "";
-    const gpt_response_raw = gpt_response; // ✅ capture before sanitizing
 
     // ✅ More robust Markdown cleanup for GPT response
     gpt_response = gpt_response
@@ -142,7 +141,6 @@ ${JSON.stringify(input_json, null, 2)}
         input_json,
         prompt,
         gpt_response,
-        gpt_response_raw
       }),
       {
         headers: {
