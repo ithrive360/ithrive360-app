@@ -68,15 +68,21 @@ export async function uploadAndParseBlood(file, userId) {
       const normName = normalizeName(rawName);
       const rawValue = cols[valueIndex]?.trim();
 
-      if (!markerMap.has(normName)) {
-        // strip quotes for popup display
+      let matched = markerMap.get(normName);
+
+      // Try secondary match if brackets are present and exact match failed
+      if (!matched && /\(.*\)/.test(rawName)) {
+        const stripped = normalizeName(rawName.replace(/\(.*?\)/g, ''));
+        matched = markerMap.get(stripped);
+      }
+
+      if (!matched) {
         const cleaned = rawName.replace(/^["']|["']$/g, '').trim();
         skipped.push(cleaned);
         continue;
       }
 
-      const markerRecords = markerMap.get(normName);
-      for (const marker of markerRecords) {
+      for (const marker of matched) {
         const markerId = marker.blood_marker_id;
         const healthAreas = areaMap.get(markerId) || [];
 
