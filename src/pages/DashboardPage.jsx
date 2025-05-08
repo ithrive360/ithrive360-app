@@ -15,7 +15,8 @@ function DashboardPage() {
   const [bloodMessage, setBloodMessage] = useState('');
   const [inputJson, setInputJson] = useState(null);
   const [prompt, setPrompt] = useState('');
-  const [gptResponse, setGptResponse] = useState(''); // ✅ added
+  const [gptResponse, setGptResponse] = useState('');
+  const [gptResponseRaw, setGptResponseRaw] = useState(''); // ✅ added
 
   const fetchUserData = async () => {
     const { data: sessionData, error } = await supabase.auth.getSession();
@@ -126,7 +127,8 @@ function DashboardPage() {
       if (result.success) {
         setInputJson(result.input_json);
         setPrompt(result.prompt);
-        setGptResponse(result.gpt_response); // ✅ capture GPT response
+        setGptResponse(result.gpt_response);         // ✅ sanitized display version
+        setGptResponseRaw(result.gpt_response_raw);  // ✅ raw version
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -198,7 +200,7 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* ✅ New: GPT Response Output */}
+      {/* ✅ Clean GPT Response */}
       {gptResponse && (
         <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#e8f5e9' }}>
           <h3>Preview: GPT Response</h3>
@@ -208,7 +210,17 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* Settings / Sign out */}
+      {/* ✅ Raw GPT Response */}
+      {gptResponseRaw && (
+        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#fff3e0' }}>
+          <h3>Preview: Raw GPT Response (Unprocessed)</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+            {gptResponseRaw}
+          </pre>
+        </div>
+      )}
+
+      {/* Sign out */}
       <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop: '2rem' }}>
         Sign Out
       </button>

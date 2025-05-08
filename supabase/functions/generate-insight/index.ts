@@ -122,13 +122,19 @@ ${JSON.stringify(input_json, null, 2)}
     }
 
     const gptData = await openaiResponse.json();
-    console.log("GPT raw response:", JSON.stringify(gptData, null, 2)); // ✅ log raw response
+    console.log("GPT raw response:", JSON.stringify(gptData, null, 2));
 
     let gpt_response = gptData.choices?.[0]?.message?.content || "";
+    const gpt_response_raw = gpt_response; // ✅ capture before sanitizing
 
-    // ✅ Strip markdown code block if present
-    gpt_response = gpt_response.trim().replace(/^```json\s*/, '').replace(/```$/, '');
-    console.log("Sanitized GPT content:", gpt_response); // ✅ log parsed content
+    // ✅ More robust Markdown cleanup for GPT response
+    gpt_response = gpt_response
+      .trim()
+      .replace(/^```json\s*\n?/, '')
+      .replace(/^```\n?/, '')
+      .replace(/```$/, '');
+
+    console.log("Sanitized GPT content:", gpt_response);
 
     return new Response(
       JSON.stringify({
@@ -136,6 +142,7 @@ ${JSON.stringify(input_json, null, 2)}
         input_json,
         prompt,
         gpt_response,
+        gpt_response_raw
       }),
       {
         headers: {
@@ -145,7 +152,7 @@ ${JSON.stringify(input_json, null, 2)}
       }
     );
   } catch (error) {
-    console.error("Handler error:", error); // ✅ log full error if caught
+    console.error("Handler error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
