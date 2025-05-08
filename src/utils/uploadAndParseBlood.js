@@ -23,7 +23,6 @@ export async function uploadAndParseBlood(file, userId) {
       return { message: 'CSV must include Marker Name and Result columns.' };
     }
 
-    // Fetch reference markers and their health areas
     const { data: refMarkers, error: refError } = await supabase
       .from('blood_marker_reference')
       .select('blood_marker_id, marker_name');
@@ -37,7 +36,6 @@ export async function uploadAndParseBlood(file, userId) {
       return { message: 'Error fetching reference data.' };
     }
 
-    // 🔄 Map of normalized name → array of marker objects
     const markerMap = new Map();
     for (const m of refMarkers) {
       const norm = normalizeName(m.marker_name);
@@ -45,7 +43,7 @@ export async function uploadAndParseBlood(file, userId) {
       markerMap.get(norm).push(m);
     }
 
-    const areaMap = new Map(); // blood_marker_id => [health_area_id]
+    const areaMap = new Map();
     for (const link of areaLinks) {
       if (!areaMap.has(link.blood_marker_id)) {
         areaMap.set(link.blood_marker_id, []);
@@ -90,7 +88,6 @@ export async function uploadAndParseBlood(file, userId) {
       }
     }
 
-    // ✅ Add popup summary of marker-to-area counts
     const summary = new Map();
     for (const entry of entries) {
       const key = `${entry.marker_id}`;
@@ -102,7 +99,11 @@ export async function uploadAndParseBlood(file, userId) {
       linesSummary.push(`Marker ID ${markerId} → ${count} health area(s)`);
     }
 
-    alert(`🧪 Prepared BM/HA permutations:\n\n${linesSummary.join('\n')}`);
+    let alertMessage = `🧪 Prepared BM/HA permutations:\n\n${linesSummary.join('\n')}`;
+    if (skipped.length > 0) {
+      alertMessage += `\n\n⚠️ Skipped ${skipped.length} unmatched markers:\n- ${skipped.join('\n- ')}`;
+    }
+    alert(alertMessage);
 
     if (entries.length === 0) {
       return { message: 'No valid blood marker entries found.' };
