@@ -83,6 +83,20 @@ export async function uploadAndParseBlood(file, userId) {
       }
     }
 
+    // ✅ Add popup summary of marker-to-area counts
+    const summary = new Map();
+    for (const entry of entries) {
+      const key = `${entry.marker_id}`;
+      summary.set(key, (summary.get(key) || 0) + 1);
+    }
+
+    const linesSummary = [];
+    for (const [markerId, count] of summary.entries()) {
+      linesSummary.push(`Marker ID ${markerId} → ${count} health area(s)`);
+    }
+
+    alert(`🧪 Prepared BM/HA permutations:\n\n${linesSummary.join('\n')}`);
+
     if (entries.length === 0) {
       return { message: 'No valid blood marker entries found.' };
     }
