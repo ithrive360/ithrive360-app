@@ -2,7 +2,15 @@
 import { supabase } from '../supabaseClient';
 
 function normalizeName(name) {
-  return name?.trim().toLowerCase().replace(/[–—]/g, '-'); // replace typographic dashes
+  return name
+    ?.toLowerCase()
+    .replace(/\s+/g, ' ')                  // collapse multiple spaces
+    .replace(/[–—]/g, '-')                 // normalize dashes
+    .replace(/["'’”“]/g, '')               // remove quotes/apostrophes
+    .replace(/[(),]/g, '')                 // remove parentheses and commas
+    .replace(/\s*-\s*/g, '-')              // normalize dash spacing
+    .replace(/\s+/g, ' ')                  // re-collapse after replacements
+    .trim();
 }
 
 export async function uploadAndParseBlood(file, userId) {
