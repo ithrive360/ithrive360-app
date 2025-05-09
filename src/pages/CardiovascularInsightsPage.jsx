@@ -561,7 +561,7 @@ export default function CardiovascularInsightsPage() {
           {Object.entries(data.recommendations).map(([title, items]) => (
             <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden' }}>
               <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
+              <h3 style={{display: 'flex',alignItems: 'center',fontWeight: 500,color: '#1F2937'}} >
                   {getRecIcon(title)} {title}
                 </h3>
                 {expandedSection === title ? <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} /> : <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />}
