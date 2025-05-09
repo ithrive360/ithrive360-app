@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile } from 'lucide-react';
+import {
+  Heart, AlertCircle, CheckCircle, AlertTriangle,
+  ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile
+} from 'lucide-react';
 
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
@@ -427,8 +430,6 @@ export default function CardiovascularInsightsPage() {
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
-      
-      {/* Header */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
           <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 12 }} />
@@ -450,7 +451,6 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-      {/* Score Card */}
       <div style={{
         marginBottom: 24,
         padding: 16,
@@ -483,13 +483,91 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-      {/* Summary */}
       <div style={{ backgroundColor: '#EFF6FF', padding: 16, borderRadius: 8, border: '1px solid #DBEAFE', marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: '#1E40AF', marginBottom: 8 }}>Health Summary</h2>
         <p style={{ color: '#1E3A8A' }}>{data.summary}</p>
       </div>
 
-      {/* Leave all other logic and content the same in your file... */}
+      <div style={{ display: 'flex', marginBottom: 24 }}>
+        {['blood', 'dna', 'recommendations'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '10px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              border: 'none',
+              borderRadius: '8px 8px 0 0',
+              backgroundColor: activeTab === tab ? '#2563EB' : '#F3F4F6',
+              color: activeTab === tab ? '#FFFFFF' : '#4B5563',
+              marginRight: 8
+            }}
+          >
+            {tab === 'blood' && `Blood Markers (${bloodStats.total})`}
+            {tab === 'dna' && `DNA Traits (${dnaStats.total})`}
+            {tab === 'recommendations' && 'Recommendations'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'blood' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+          {sorted(data.blood_markers).map((marker, idx) => (
+            <div key={idx} style={{ ...getCategoryStyle(marker.category), padding: 16, borderRadius: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {getCategoryIcon(marker.category)}
+                  <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{marker.marker_name}</h3>
+                </div>
+                <span style={{ fontWeight: 600, ...getStatusStyle(marker.status) }}>{marker.status}</span>
+              </div>
+              <p style={{ fontSize: 14, marginTop: 8 }}>{marker.insight}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'dna' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {sorted(data.dna_traits).map((trait, idx) => (
+            <div key={idx} style={{ ...getCategoryStyle(trait.category), padding: 16, borderRadius: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                {getCategoryIcon(trait.category)}
+                <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{trait.trait_name}</h3>
+              </div>
+              <p style={{ fontSize: 12, color: '#6B7280' }}>RSID: {trait.rsid}</p>
+              <p style={{ fontSize: 14, marginTop: 8 }}>{trait.insight}</p>
+              <p style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>{trait.effect}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'recommendations' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {Object.entries(data.recommendations).map(([title, items]) => (
+            <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden' }}>
+              <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
+                  {getRecIcon(title)} {title}
+                </h3>
+                {expandedSection === title ? <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} /> : <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />}
+              </div>
+              {expandedSection === title && (
+                <div style={{ padding: 16, backgroundColor: '#FFFFFF' }}>
+                  <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+                    {items.map((item, i) => (
+                      <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
