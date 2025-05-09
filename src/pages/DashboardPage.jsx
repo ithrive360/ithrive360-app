@@ -174,7 +174,7 @@ function DashboardPage() {
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
-        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Insights</button>
+        <button className="btn btn-primary" onClick={() => navigate('/pages/CardiovascularInsightsPage')}>View Insights</button>
         <button className="btn btn-primary">Recommendations</button>
         <button
           className="btn"
