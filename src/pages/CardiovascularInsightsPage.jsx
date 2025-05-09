@@ -405,10 +405,11 @@ export default function CardiovascularInsightsPage() {
     return { backgroundColor: '#F3F4F6', color: '#1F2937', border: '1px solid #E5E7EB' };
   };
 
-  const getStatusStyle = (s) => {
-    if (s === 'Normal') return { color: '#059669' };
-    if (s === 'High') return { color: '#DC2626' };
-    if (s === 'Low') return { color: '#2563EB' };
+  // ✅ Updated to reflect category instead of raw status
+  const getStatusStyle = (status, category) => {
+    if (category === 'strength') return { color: '#059669' }; // green
+    if (category === 'warning') return { color: '#F59E0B' };  // amber
+    if (category === 'risk') return { color: '#DC2626' };     // red
     return { color: '#4B5563' };
   };
 
@@ -430,6 +431,7 @@ export default function CardiovascularInsightsPage() {
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
+      {/* HEADER */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
           <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 12 }} />
@@ -451,6 +453,7 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
+      {/* SCORE */}
       <div style={{
         marginBottom: 24,
         padding: 16,
@@ -483,11 +486,13 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
+      {/* SUMMARY */}
       <div style={{ backgroundColor: '#EFF6FF', padding: 16, borderRadius: 8, border: '1px solid #DBEAFE', marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: '#1E40AF', marginBottom: 8 }}>Health Summary</h2>
         <p style={{ color: '#1E3A8A' }}>{data.summary}</p>
       </div>
 
+      {/* TABS */}
       <div style={{ display: 'flex', marginBottom: 24 }}>
         {['blood', 'dna', 'recommendations'].map(tab => (
           <button
@@ -512,6 +517,7 @@ export default function CardiovascularInsightsPage() {
         ))}
       </div>
 
+      {/* BLOOD MARKERS */}
       {activeTab === 'blood' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {sorted(data.blood_markers).map((marker, idx) => (
@@ -521,7 +527,10 @@ export default function CardiovascularInsightsPage() {
                   {getCategoryIcon(marker.category)}
                   <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{marker.marker_name}</h3>
                 </div>
-                <span style={{ fontWeight: 600, ...getStatusStyle(marker.status) }}>{marker.status}</span>
+                {/* ✅ status style based on category */}
+                <span style={{ fontWeight: 600, ...getStatusStyle(marker.status, marker.category) }}>
+                  {marker.status}
+                </span>
               </div>
               <p style={{ fontSize: 14, marginTop: 8 }}>{marker.insight}</p>
             </div>
@@ -529,6 +538,7 @@ export default function CardiovascularInsightsPage() {
         </div>
       )}
 
+      {/* DNA TRAITS */}
       {activeTab === 'dna' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {sorted(data.dna_traits).map((trait, idx) => (
@@ -545,6 +555,7 @@ export default function CardiovascularInsightsPage() {
         </div>
       )}
 
+      {/* RECOMMENDATIONS */}
       {activeTab === 'recommendations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {Object.entries(data.recommendations).map(([title, items]) => (
