@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ ADD THIS LINE
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
@@ -16,6 +17,8 @@ function DashboardPage() {
   const [inputJson, setInputJson] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [gptResponse, setGptResponse] = useState('');
+
+  const navigate = useNavigate(); // ✅ INITIALIZE HERE
 
   const fetchUserData = async () => {
     const { data: sessionData, error } = await supabase.auth.getSession();
@@ -171,14 +174,14 @@ function DashboardPage() {
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
-        <button className="btn btn-primary">View Insights</button>
+        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Insights</button>
         <button className="btn btn-primary">Recommendations</button>
         <button
-        className="btn"
-        onClick={handleTestGPT}
-        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
+          className="btn"
+          onClick={handleTestGPT}
+          style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
         >
-        Test GPT
+          Test GPT
         </button>
       </div>
 
