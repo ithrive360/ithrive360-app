@@ -38,7 +38,7 @@ function App() {
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
         <Route path="/dashboard" element={user ? <DashboardPage user={user} /> : <Navigate to="/" replace />} />
         <Route path="/auth/callback" element={<AuthCallback />} /> {/* <-- 2. Add this route */}
-        <Route path="/pages/cardiovascular" element={<CardiovascularInsightsPage />} />
+        <Route path="/insights/cardiovascular" element={<CardiovascularInsightsPage />} />
       </Routes>
     </Router>
   );
