@@ -432,26 +432,27 @@ export default function CardiovascularInsightsPage() {
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
       {/* HEADER */}
-      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  <div style={{ display: 'flex', alignItems: 'center' }}>
-    <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 12 }} />
-    <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#1F2937' }}>Cardiovascular Health</h1>
-  </div>
-  <div style={{ display: 'flex', gap: 8 }}>
-    <span style={{ backgroundColor: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
-      <CheckCircle style={{ width: 18, height: 18, marginRight: 6 }} />
-      {bloodStats.strength + dnaStats.strength}
-    </span>
-    <span style={{ backgroundColor: '#FEF3C7', color: '#92400E', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
-      <AlertTriangle style={{ width: 18, height: 18, marginRight: 6 }} />
-      {bloodStats.warning + dnaStats.warning}
-    </span>
-    <span style={{ backgroundColor: '#FEE2E2', color: '#991B1B', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
-      <AlertCircle style={{ width: 18, height: 18, marginRight: 6 }} />
-      {bloodStats.risk + dnaStats.risk}
-    </span>
-  </div>
-</div>
+    <div style={{ marginBottom: 12, textAlign: 'center' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 6 }}>
+        <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 8 }} />
+        <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#1F2937', margin: 0 }}>Cardiovascular Health</h1>
+    </div>
+    <div style={{ display: 'inline-flex', gap: 8 }}>
+        <span style={{ backgroundColor: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
+        <CheckCircle style={{ width: 18, height: 18, marginRight: 6 }} />
+        {bloodStats.strength + dnaStats.strength}
+        </span>
+        <span style={{ backgroundColor: '#FEF3C7', color: '#92400E', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
+        <AlertTriangle style={{ width: 18, height: 18, marginRight: 6 }} />
+        {bloodStats.warning + dnaStats.warning}
+        </span>
+        <span style={{ backgroundColor: '#FEE2E2', color: '#991B1B', display: 'flex', alignItems: 'center', borderRadius: '9999px', padding: '6px 12px', fontWeight: 600, fontSize: 14 }}>
+        <AlertCircle style={{ width: 18, height: 18, marginRight: 6 }} />
+        {bloodStats.risk + dnaStats.risk}
+        </span>
+    </div>
+    </div>
+
 
       {/* SCORE */}
       <div style={{
