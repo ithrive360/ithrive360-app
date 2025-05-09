@@ -7,11 +7,8 @@ import {
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
   const [expandedSection, setExpandedSection] = useState('');
-  const [bloodGroupOpen, setBloodGroupOpen] = useState({
-    strength: false,
-    warning: false,
-    risk: true
-  });
+  const [bloodGroupOpen, setBloodGroupOpen] = useState({ strength: false, warning: false, risk: true });
+  const [dnaGroupOpen, setDnaGroupOpen] = useState({ strength: false, warning: false, risk: true });
 
     // Parse the data from the JSON
     const data = {
@@ -389,11 +386,6 @@ export default function CardiovascularInsightsPage() {
     total: data.dna_traits.length
   };
 
-  const sorted = (arr) => [...arr].sort((a, b) =>
-    ['risk', 'warning', 'strength'].indexOf(a.category) -
-    ['risk', 'warning', 'strength'].indexOf(b.category)
-  );
-
   const getCategoryIcon = (cat) => {
     const size = 24;
     const style = { width: size, height: size };
@@ -435,11 +427,14 @@ export default function CardiovascularInsightsPage() {
     setBloodGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
   };
 
+  const toggleDnaGroup = (cat) => {
+    setDnaGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
   const healthScore = Math.round((bloodStats.strength + dnaStats.strength) / (bloodStats.total + dnaStats.total) * 100);
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
-      {/* Header */}
       <div style={{ marginBottom: 12, textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 6 }}>
           <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 8 }} />
@@ -461,7 +456,6 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-      {/* Score */}
       <div style={{
         marginBottom: 24,
         padding: 16,
@@ -494,63 +488,45 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-      {/* Summary */}
-      <div style={{ backgroundColor: '#EFF6FF', padding: 16, borderRadius: 8, border: '1px solid #DBEAFE', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 600, color: '#1E40AF', marginBottom: 8 }}>Health Summary</h2>
-        <p style={{ color: '#1E3A8A' }}>{data.summary}</p>
-      </div>
+      {['blood', 'dna', 'recommendations'].map(tab => (
+        <button
+          key={tab}
+          onClick={() => setActiveTab(tab)}
+          style={{
+            padding: '10px 16px',
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: 'pointer',
+            border: 'none',
+            borderRadius: '8px 8px 0 0',
+            backgroundColor: activeTab === tab ? '#2563EB' : '#F3F4F6',
+            color: activeTab === tab ? '#FFFFFF' : '#4B5563',
+            marginRight: 8
+          }}
+        >
+          {tab === 'blood' && `Blood Markers (${bloodStats.total})`}
+          {tab === 'dna' && `DNA Traits (${dnaStats.total})`}
+          {tab === 'recommendations' && 'Recommendations'}
+        </button>
+      ))}
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', marginBottom: 24 }}>
-        {['blood', 'dna', 'recommendations'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: '10px 16px',
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: 'pointer',
-              border: 'none',
-              borderRadius: '8px 8px 0 0',
-              backgroundColor: activeTab === tab ? '#2563EB' : '#F3F4F6',
-              color: activeTab === tab ? '#FFFFFF' : '#4B5563',
-              marginRight: 8
-            }}
-          >
-            {tab === 'blood' && `Blood Markers (${bloodStats.total})`}
-            {tab === 'dna' && `DNA Traits (${dnaStats.total})`}
-            {tab === 'recommendations' && 'Recommendations'}
-          </button>
-        ))}
-      </div>
-
-      {/* Blood Markers (Grouped) */}
       {activeTab === 'blood' && ['strength', 'warning', 'risk'].map(cat => {
         const markers = data.blood_markers.filter(m => m.category === cat);
         if (!markers.length) return null;
         return (
           <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16 }}>
-            <div onClick={() => toggleBloodGroup(cat)} style={{
-              padding: 16,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}>
+            <div onClick={() => toggleBloodGroup(cat)} style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
                 {getCategoryIcon(cat)} <span style={{ marginLeft: 8, textTransform: 'capitalize' }}>{cat}s ({markers.length})</span>
               </h3>
-              {bloodGroupOpen[cat]
-                ? <ChevronUp style={{ width: 20, height: 20 }} />
-                : <ChevronDown style={{ width: 20, height: 20 }} />}
+              {bloodGroupOpen[cat] ? <ChevronUp style={{ width: 20, height: 20 }} /> : <ChevronDown style={{ width: 20, height: 20 }} />}
             </div>
             {bloodGroupOpen[cat] && (
               <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {markers.map((marker, idx) => (
                   <div key={idx}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h4 style={{ fontWeight: 600 }}>{marker.marker_name}</h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ fontWeight: 600, margin: 0 }}>{marker.marker_name}</h4>
                       <span style={{ fontWeight: 600, ...getStatusStyle(marker.status, marker.category) }}>{marker.status}</span>
                     </div>
                     <p style={{ fontSize: 14, marginTop: 4 }}>{marker.insight}</p>
@@ -562,24 +538,36 @@ export default function CardiovascularInsightsPage() {
         );
       })}
 
-      {/* DNA Traits */}
-      {activeTab === 'dna' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {sorted(data.dna_traits).map((trait, idx) => (
-            <div key={idx} style={{ ...getCategoryStyle(trait.category), padding: 16, borderRadius: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                {getCategoryIcon(trait.category)}
-                <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{trait.trait_name}</h3>
-              </div>
-              <p style={{ fontSize: 12, color: '#6B7280' }}>RSID: {trait.rsid}</p>
-              <p style={{ fontSize: 14, marginTop: 8 }}>{trait.insight}</p>
-              <p style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>{trait.effect}</p>
+      {activeTab === 'dna' && ['strength', 'warning', 'risk'].map(cat => {
+        const traits = data.dna_traits.filter(t => t.category === cat);
+        if (!traits.length) return null;
+        return (
+          <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16 }}>
+            <div onClick={() => toggleDnaGroup(cat)} style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+                {getCategoryIcon(cat)} <span style={{ marginLeft: 8, textTransform: 'capitalize' }}>{cat}s ({traits.length})</span>
+              </h3>
+              {dnaGroupOpen[cat] ? <ChevronUp style={{ width: 20, height: 20 }} /> : <ChevronDown style={{ width: 20, height: 20 }} />}
             </div>
-          ))}
-        </div>
-      )}
+            {dnaGroupOpen[cat] && (
+              <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {traits.map((trait, idx) => (
+                  <div key={idx}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ fontWeight: 600, margin: 0 }}>{trait.trait_name}</h4>
+                      <span style={{ fontWeight: 600, ...getStatusStyle(trait.effect, trait.category) }}>{trait.category.charAt(0).toUpperCase() + trait.category.slice(1)}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: '#6B7280', margin: '4px 0' }}>RSID: {trait.rsid}</p>
+                    <p style={{ fontSize: 14 }}>{trait.insight}</p>
+                    <p style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>{trait.effect}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
 
-      {/* Recommendations */}
       {activeTab === 'recommendations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {Object.entries(data.recommendations).map(([title, items]) => (
