@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Capsule, Dumbbell, Smile } from 'lucide-react';
 
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
   const [expandedSection, setExpandedSection] = useState('');
-  
+
+  // Paste your JSON data here
   // Parse the data from the JSON
   const data = {
     "health_area": "Cardiovascular Health",
@@ -367,410 +368,206 @@ export default function CardiovascularInsightsPage() {
     }
   };
 
-  // Count items by category
   const bloodStats = {
-    strength: data.blood_markers.filter(item => item.category === 'strength').length,
-    warning: data.blood_markers.filter(item => item.category === 'warning').length,
-    risk: data.blood_markers.filter(item => item.category === 'risk').length,
+    strength: data.blood_markers.filter(m => m.category === 'strength').length,
+    warning: data.blood_markers.filter(m => m.category === 'warning').length,
+    risk: data.blood_markers.filter(m => m.category === 'risk').length,
     total: data.blood_markers.length
   };
 
   const dnaStats = {
-    strength: data.dna_traits.filter(item => item.category === 'strength').length,
-    warning: data.dna_traits.filter(item => item.category === 'warning').length,
-    risk: data.dna_traits.filter(item => item.category === 'risk').length,
+    strength: data.dna_traits.filter(m => m.category === 'strength').length,
+    warning: data.dna_traits.filter(m => m.category === 'warning').length,
+    risk: data.dna_traits.filter(m => m.category === 'risk').length,
     total: data.dna_traits.length
   };
 
-  const getCategoryIcon = (category) => {
-    switch(category) {
-      case 'strength': 
-        return <CheckCircle style={{ width: '20px', height: '20px', color: '#10B981' }} />;
-      case 'warning': 
-        return <AlertTriangle style={{ width: '20px', height: '20px', color: '#F59E0B' }} />;
-      case 'risk': 
-        return <AlertCircle style={{ width: '20px', height: '20px', color: '#EF4444' }} />;
-      default: 
-        return null;
-    }
-  };
-  
-  const getCategoryStyle = (category) => {
-    switch(category) {
-      case 'strength': 
-        return { 
-          backgroundColor: '#DCFCE7', 
-          color: '#166534', 
-          border: '1px solid #BBF7D0' 
-        };
-      case 'warning': 
-        return { 
-          backgroundColor: '#FEF3C7', 
-          color: '#92400E', 
-          border: '1px solid #FDE68A' 
-        };
-      case 'risk': 
-        return { 
-          backgroundColor: '#FEE2E2', 
-          color: '#991B1B', 
-          border: '1px solid #FECACA' 
-        };
-      default: 
-        return { 
-          backgroundColor: '#F3F4F6', 
-          color: '#1F2937', 
-          border: '1px solid #E5E7EB' 
-        };
-    }
+  const sorted = (arr) => [...arr].sort((a, b) =>
+    ['risk', 'warning', 'strength'].indexOf(a.category) -
+    ['risk', 'warning', 'strength'].indexOf(b.category)
+  );
+
+  const getCategoryIcon = (cat) => {
+    const size = 24;
+    const style = { width: size, height: size };
+    if (cat === 'strength') return <CheckCircle style={{ ...style, color: '#10B981' }} />;
+    if (cat === 'warning') return <AlertTriangle style={{ ...style, color: '#F59E0B' }} />;
+    if (cat === 'risk') return <AlertCircle style={{ ...style, color: '#EF4444' }} />;
+    return null;
   };
 
-  const getStatusStyle = (status) => {
-    switch(status) {
-      case 'Normal': return { color: '#059669' };
-      case 'High': return { color: '#DC2626' };
-      case 'Low': return { color: '#2563EB' };
-      default: return { color: '#4B5563' };
-    }
+  const getCategoryStyle = (cat) => {
+    if (cat === 'strength') return { backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' };
+    if (cat === 'warning') return { backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' };
+    if (cat === 'risk') return { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA' };
+    return { backgroundColor: '#F3F4F6', color: '#1F2937', border: '1px solid #E5E7EB' };
+  };
+
+  const getStatusStyle = (s) => {
+    if (s === 'Normal') return { color: '#059669' };
+    if (s === 'High') return { color: '#DC2626' };
+    if (s === 'Low') return { color: '#2563EB' };
+    return { color: '#4B5563' };
+  };
+
+  const getRecIcon = (title) => {
+    const icons = {
+      Diet: <Utensils style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+      Supplementation: <Capsule style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+      Exercise: <Dumbbell style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+      Lifestyle: <Smile style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />
+    };
+    return icons[title] || null;
   };
 
   const toggleSection = (section) => {
-    if (expandedSection === section) {
-      setExpandedSection('');
-    } else {
-      setExpandedSection(section);
-    }
+    setExpandedSection(expandedSection === section ? '' : section);
   };
 
-  const styles = {
-    container: {
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-      padding: '24px',
-      maxWidth: '900px',
-      margin: '0 auto'
-    },
-    header: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '24px'
-    },
-    titleContainer: {
-      display: 'flex',
-      alignItems: 'center'
-    },
-    heartIcon: {
-      width: '32px',
-      height: '32px',
-      color: '#EF4444',
-      marginRight: '12px'
-    },
-    title: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#1F2937'
-    },
-    statsContainer: {
-      display: 'flex',
-      gap: '8px'
-    },
-    statBadge: {
-      display: 'flex',
-      alignItems: 'center',
-      padding: '4px 12px',
-      borderRadius: '9999px',
-      fontSize: '14px',
-      fontWeight: '500'
-    },
-    statIcon: {
-      width: '16px',
-      height: '16px',
-      marginRight: '4px'
-    },
-    summary: {
-      backgroundColor: '#EFF6FF',
-      padding: '16px',
-      borderRadius: '8px',
-      marginBottom: '24px',
-      border: '1px solid #DBEAFE'
-    },
-    summaryTitle: {
-      fontSize: '18px',
-      fontWeight: '600',
-      color: '#1E40AF',
-      marginBottom: '8px'
-    },
-    summaryText: {
-      color: '#1E3A8A'
-    },
-    tabs: {
-      display: 'flex',
-      borderBottom: '1px solid #E5E7EB',
-      marginBottom: '24px'
-    },
-    tab: {
-      padding: '8px 16px',
-      fontSize: '14px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      color: '#6B7280'
-    },
-    activeTab: {
-      color: '#2563EB',
-      borderBottom: '2px solid #2563EB'
-    },
-    grid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-      gap: '16px'
-    },
-    card: {
-      padding: '16px',
-      borderRadius: '8px'
-    },
-    cardHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start'
-    },
-    markerTitle: {
-      display: 'flex',
-      alignItems: 'center'
-    },
-    markerName: {
-      fontWeight: '500',
-      marginLeft: '8px'
-    },
-    insight: {
-      marginTop: '8px',
-      fontSize: '14px'
-    },
-    rsid: {
-      fontSize: '12px',
-      color: '#6B7280',
-      marginTop: '4px'
-    },
-    effect: {
-      fontSize: '12px',
-      color: '#4B5563',
-      marginTop: '4px'
-    },
-    recommendationSection: {
-      border: '1px solid #E5E7EB',
-      borderRadius: '8px',
-      overflow: 'hidden',
-      marginBottom: '16px'
-    },
-    recommendationHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '16px',
-      backgroundColor: '#F9FAFB',
-      cursor: 'pointer'
-    },
-    recommendationTitle: {
-      fontWeight: '500',
-      color: '#1F2937'
-    },
-    recommendationContent: {
-      padding: '16px',
-      backgroundColor: 'white'
-    },
-    list: {
-      paddingLeft: '20px',
-      marginTop: '8px'
-    },
-    listItem: {
-      margin: '8px 0',
-      color: '#4B5563'
-    },
-    scoreCard: {
-      marginTop: '32px',
-      padding: '16px',
-      background: 'linear-gradient(to right, #3B82F6, #1D4ED8)',
-      borderRadius: '8px',
-      color: 'white',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    scoreInfo: {
-      fontSize: '14px',
-      color: '#BFDBFE'
-    },
-    scoreDisplay: {
-      textAlign: 'center'
-    },
-    scoreNumber: {
-      fontSize: '36px',
-      fontWeight: 'bold'
-    },
-    scoreLabel: {
-      fontSize: '14px',
-      color: '#BFDBFE'
-    }
-  };
-
-  // Calculate the correct health score
   const healthScore = Math.round((bloodStats.strength + dnaStats.strength) / (bloodStats.total + dnaStats.total) * 100);
 
   return (
-    <div style={styles.container}>
+    <div style={{
+      fontFamily: "'Segoe UI', Tahoma, sans-serif",
+      WebkitFontSmoothing: 'antialiased',
+      MozOsxFontSmoothing: 'grayscale',
+      padding: '32px 24px',
+      maxWidth: '1100px',
+      margin: '0 auto',
+      backgroundColor: 'white'
+    }}>
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.titleContainer}>
-          <Heart style={styles.heartIcon} />
-          <h1 style={styles.title}>{data.health_area}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Heart style={{ color: '#EF4444', width: 32, height: 32, marginRight: 12 }} />
+          <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#1F2937' }}>{data.health_area}</h1>
         </div>
-        <div style={styles.statsContainer}>
-          <span style={{
-            ...styles.statBadge,
-            backgroundColor: '#DCFCE7',
-            color: '#166534'
-          }}>
-            <CheckCircle style={styles.statIcon} />
-            {bloodStats.strength + dnaStats.strength} Strengths
-          </span>
-          <span style={{
-            ...styles.statBadge,
-            backgroundColor: '#FEF3C7',
-            color: '#92400E'
-          }}>
-            <AlertTriangle style={styles.statIcon} />
-            {bloodStats.warning + dnaStats.warning} Warnings
-          </span>
-          <span style={{
-            ...styles.statBadge,
-            backgroundColor: '#FEE2E2',
-            color: '#991B1B'
-          }}>
-            <AlertCircle style={styles.statIcon} />
-            {bloodStats.risk + dnaStats.risk} Risks
-          </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['strength', 'warning', 'risk'].map(cat => {
+            const bg = cat === 'strength' ? '#DCFCE7' : cat === 'warning' ? '#FEF3C7' : '#FEE2E2';
+            const color = cat === 'strength' ? '#166534' : cat === 'warning' ? '#92400E' : '#991B1B';
+            const Icon = getCategoryIcon(cat);
+            return (
+              <span key={cat} style={{
+                backgroundColor: bg,
+                color,
+                display: 'flex',
+                alignItems: 'center',
+                borderRadius: '9999px',
+                padding: '4px 12px',
+                fontSize: 14,
+                fontWeight: 500
+              }}>
+                {Icon}
+                <span style={{ marginLeft: 6 }}>
+                  {(bloodStats[cat] + dnaStats[cat])} {cat.charAt(0).toUpperCase() + cat.slice(1)}{(bloodStats[cat] + dnaStats[cat]) !== 1 ? 's' : ''}
+                </span>
+              </span>
+            );
+          })}
         </div>
       </div>
 
       {/* Summary */}
-      <div style={styles.summary}>
-        <h2 style={styles.summaryTitle}>Health Summary</h2>
-        <p style={styles.summaryText}>{data.summary}</p>
+      <div style={{ backgroundColor: '#EFF6FF', padding: 16, borderRadius: 8, border: '1px solid #DBEAFE', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, color: '#1E40AF', marginBottom: 8 }}>Health Summary</h2>
+        <p style={{ color: '#1E3A8A' }}>{data.summary}</p>
       </div>
 
       {/* Tabs */}
-      <div style={styles.tabs}>
-        <button 
-          style={{
-            ...styles.tab,
-            ...(activeTab === 'blood' ? styles.activeTab : {})
-          }}
-          onClick={() => setActiveTab('blood')}
-        >
-          Blood Markers ({bloodStats.total})
-        </button>
-        <button 
-          style={{
-            ...styles.tab,
-            ...(activeTab === 'dna' ? styles.activeTab : {})
-          }}
-          onClick={() => setActiveTab('dna')}
-        >
-          DNA Traits ({dnaStats.total})
-        </button>
-        <button 
-          style={{
-            ...styles.tab,
-            ...(activeTab === 'recommendations' ? styles.activeTab : {})
-          }}
-          onClick={() => setActiveTab('recommendations')}
-        >
-          Recommendations
-        </button>
+      <div style={{ display: 'flex', marginBottom: 24 }}>
+        {['blood', 'dna', 'recommendations'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '10px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              border: 'none',
+              borderRadius: '8px 8px 0 0',
+              backgroundColor: activeTab === tab ? '#2563EB' : '#F3F4F6',
+              color: activeTab === tab ? '#FFFFFF' : '#4B5563',
+              marginRight: 8
+            }}
+          >
+            {tab === 'blood' && `Blood Markers (${bloodStats.total})`}
+            {tab === 'dna' && `DNA Traits (${dnaStats.total})`}
+            {tab === 'recommendations' && 'Recommendations'}
+          </button>
+        ))}
       </div>
 
-      {/* Blood Markers Content */}
+      {/* Blood Markers */}
       {activeTab === 'blood' && (
-        <div style={styles.grid}>
-          {data.blood_markers.map((marker, index) => (
-            <div key={index} style={{
-              ...styles.card,
-              ...getCategoryStyle(marker.category)
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+          {sorted(data.blood_markers).map((marker, idx) => (
+            <div key={idx} style={{
+              ...getCategoryStyle(marker.category),
+              padding: 16,
+              borderRadius: 8,
+              transition: 'box-shadow 0.2s ease',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
             }}>
-              <div style={styles.cardHeader}>
-                <div style={styles.markerTitle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   {getCategoryIcon(marker.category)}
-                  <h3 style={styles.markerName}>{marker.marker_name}</h3>
+                  <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{marker.marker_name}</h3>
                 </div>
-                <span style={{
-                  fontWeight: '600',
-                  ...getStatusStyle(marker.status)
-                }}>
-                  {marker.status}
-                </span>
+                <span style={{ fontWeight: 600, ...getStatusStyle(marker.status) }}>{marker.status}</span>
               </div>
-              <p style={styles.insight}>{marker.insight}</p>
+              <p style={{ fontSize: 14, marginTop: 8 }}>{marker.insight}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* DNA Traits Content */}
+      {/* DNA Traits */}
       {activeTab === 'dna' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {data.dna_traits.map((trait, index) => (
-            <div key={index} style={{
-              ...styles.card,
-              ...getCategoryStyle(trait.category)
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {sorted(data.dna_traits).map((trait, idx) => (
+            <div key={idx} style={{
+              ...getCategoryStyle(trait.category),
+              padding: 16,
+              borderRadius: 8,
+              transition: 'box-shadow 0.2s ease',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
             }}>
-              <div style={styles.cardHeader}>
-                <div>
-                  <div style={styles.markerTitle}>
-                    {getCategoryIcon(trait.category)}
-                    <h3 style={styles.markerName}>{trait.trait_name}</h3>
-                  </div>
-                  <p style={styles.rsid}>RSID: {trait.rsid}</p>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                {getCategoryIcon(trait.category)}
+                <h3 style={{ fontWeight: 600, fontSize: 16, marginLeft: 8 }}>{trait.trait_name}</h3>
               </div>
-              <p style={styles.insight}>{trait.insight}</p>
-              <p style={styles.effect}>{trait.effect}</p>
+              <p style={{ fontSize: 12, color: '#6B7280' }}>RSID: {trait.rsid}</p>
+              <p style={{ fontSize: 14, marginTop: 8 }}>{trait.insight}</p>
+              <p style={{ fontSize: 12, color: '#4B5563', marginTop: 4 }}>{trait.effect}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Recommendations Content */}
+      {/* Recommendations */}
       {activeTab === 'recommendations' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {Object.entries(data.recommendations).map(([category, items]) => (
-            <div key={category} style={styles.recommendationSection}>
-              <div 
-                style={styles.recommendationHeader}
-                onClick={() => toggleSection(category)}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {Object.entries(data.recommendations).map(([title, items]) => (
+            <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden' }}>
+              <div
+                onClick={() => toggleSection(title)}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}
               >
-                <h3 style={styles.recommendationTitle}>{category}</h3>
-                {expandedSection === category ? 
-                  <ChevronUp style={{ width: '20px', height: '20px', color: '#6B7280' }} /> : 
-                  <ChevronDown style={{ width: '20px', height: '20px', color: '#6B7280' }} />
-                }
+                <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
+                  {getRecIcon(title)} {title}
+                </h3>
+                {expandedSection === title ?
+                  <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} /> :
+                  <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />}
               </div>
-              {expandedSection === category && (
-                <div style={styles.recommendationContent}>
-                  <ul style={styles.list}>
-                    {Array.isArray(items) ? items.map((item, i) => (
-                      <li key={i} style={styles.listItem}>{item}</li>
-                    )) : (
-                      Object.entries(items).map(([subCategory, subItems], i) => (
-                        <div key={i}>
-                          <h4 style={{ fontWeight: '500' }}>{subCategory}</h4>
-                          <ul style={styles.list}>
-                            {subItems.map((item, j) => (
-                              <li key={j} style={styles.listItem}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))
-                    )}
+              {expandedSection === title && (
+                <div style={{ padding: 16, backgroundColor: '#FFFFFF' }}>
+                  <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+                    {items.map((item, i) => (
+                      <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>{item}</li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -779,17 +576,35 @@ export default function CardiovascularInsightsPage() {
         </div>
       )}
 
-      {/* Health Score Card with correct calculation */}
-      <div style={styles.scoreCard}>
+      {/* Health Score */}
+      <div style={{
+        marginTop: 32,
+        padding: 16,
+        background: 'linear-gradient(to right, #3B82F6, #1D4ED8)',
+        borderRadius: 8,
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
         <div>
-          <h3 style={{ fontWeight: 'bold', fontSize: '18px' }}>Cardiovascular Health Score</h3>
-          <p style={styles.scoreInfo}>Based on {bloodStats.total} blood markers and {dnaStats.total} genetic traits</p>
+          <h3 style={{ fontSize: 18, fontWeight: 'bold' }}>Cardiovascular Health Score</h3>
+          <p style={{ fontSize: 14, color: '#BFDBFE' }}>Based on {bloodStats.total} blood markers and {dnaStats.total} genetic traits</p>
         </div>
-        <div style={styles.scoreDisplay}>
-          <div style={styles.scoreNumber}>
-            {healthScore}%
-          </div>
-          <div style={styles.scoreLabel}>Health Score</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: `conic-gradient(#93C5FD ${healthScore}%, #1E3A8A ${healthScore}%)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: '#1E3A8A',
+          backgroundColor: 'white'
+        }}>
+          {healthScore}%
         </div>
       </div>
     </div>
