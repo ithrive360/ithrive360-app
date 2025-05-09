@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Capsule, Dumbbell, Smile } from 'lucide-react';
+import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile } from 'lucide-react';
 
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
@@ -366,6 +366,7 @@ export default function CardiovascularInsightsPage() {
       ]
     }
   };
+
   const healthScore = Math.round((
     data.blood_markers.filter(m => m.category === 'strength').length +
     data.dna_traits.filter(t => t.category === 'strength').length
@@ -415,7 +416,7 @@ export default function CardiovascularInsightsPage() {
 
   const recIcons = {
     Diet: <Utensils style={{ width: 16, height: 16, marginRight: 6 }} />,
-    Supplementation: <Capsule style={{ width: 16, height: 16, marginRight: 6 }} />,
+    Supplementation: <Pill style={{ width: 16, height: 16, marginRight: 6 }} />,
     Exercise: <Dumbbell style={{ width: 16, height: 16, marginRight: 6 }} />,
     Lifestyle: <Smile style={{ width: 16, height: 16, marginRight: 6 }} />
   };
