@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Capsule, Dumbbell, Smile } from 'lucide-react';
+import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
-  const [expandedSection, setExpandedSection] = useState('risk');
-
-   // Parse the data from the JSON
-   const data = {
+  const [expandedSection, setExpandedSection] = useState('');
+  
+  // Parse the data from the JSON
+  const data = {
     "health_area": "Cardiovascular Health",
     "summary": "The user's cardiovascular health profile indicates some areas of risk, particularly in cholesterol and inflammation markers, with certain genetic predispositions also contributing to cardiovascular risk.",
     "blood_markers": [
@@ -366,121 +366,432 @@ export default function CardiovascularInsightsPage() {
       ]
     }
   };
-  
-  const healthScore = Math.round((
-    data.blood_markers.filter(m => m.category === 'strength').length +
-    data.dna_traits.filter(t => t.category === 'strength').length
-  ) / (
-    data.blood_markers.length + data.dna_traits.length
-  ) * 100);
 
-  const allMarkers = [...data.blood_markers, ...data.dna_traits.map(trait => ({
-    marker_name: trait.trait_name,
-    status: '',
-    category: trait.category,
-    insight: trait.insight,
-    rsid: trait.rsid,
-    effect: trait.effect
-  }))];
-
-  const grouped = {
-    strength: allMarkers.filter(m => m.category === 'strength'),
-    warning: allMarkers.filter(m => m.category === 'warning'),
-    risk: allMarkers.filter(m => m.category === 'risk')
+  // Count items by category
+  const bloodStats = {
+    strength: data.blood_markers.filter(item => item.category === 'strength').length,
+    warning: data.blood_markers.filter(item => item.category === 'warning').length,
+    risk: data.blood_markers.filter(item => item.category === 'risk').length,
+    total: data.blood_markers.length
   };
 
-  const getColor = (category) => {
-    switch (category) {
-      case 'strength': return '#DCFCE7';
-      case 'warning': return '#FEF3C7';
-      case 'risk': return '#FEE2E2';
+  const dnaStats = {
+    strength: data.dna_traits.filter(item => item.category === 'strength').length,
+    warning: data.dna_traits.filter(item => item.category === 'warning').length,
+    risk: data.dna_traits.filter(item => item.category === 'risk').length,
+    total: data.dna_traits.length
+  };
+
+  const getCategoryIcon = (category) => {
+    switch(category) {
+      case 'strength': 
+        return <CheckCircle style={{ width: '20px', height: '20px', color: '#10B981' }} />;
+      case 'warning': 
+        return <AlertTriangle style={{ width: '20px', height: '20px', color: '#F59E0B' }} />;
+      case 'risk': 
+        return <AlertCircle style={{ width: '20px', height: '20px', color: '#EF4444' }} />;
+      default: 
+        return null;
+    }
+  };
+  
+  const getCategoryStyle = (category) => {
+    switch(category) {
+      case 'strength': 
+        return { 
+          backgroundColor: '#DCFCE7', 
+          color: '#166534', 
+          border: '1px solid #BBF7D0' 
+        };
+      case 'warning': 
+        return { 
+          backgroundColor: '#FEF3C7', 
+          color: '#92400E', 
+          border: '1px solid #FDE68A' 
+        };
+      case 'risk': 
+        return { 
+          backgroundColor: '#FEE2E2', 
+          color: '#991B1B', 
+          border: '1px solid #FECACA' 
+        };
+      default: 
+        return { 
+          backgroundColor: '#F3F4F6', 
+          color: '#1F2937', 
+          border: '1px solid #E5E7EB' 
+        };
     }
   };
 
   const getStatusStyle = (status) => {
-    switch (status) {
+    switch(status) {
       case 'Normal': return { color: '#059669' };
       case 'High': return { color: '#DC2626' };
       case 'Low': return { color: '#2563EB' };
-      default: return { color: '#1F2937' };
+      default: return { color: '#4B5563' };
     }
   };
 
-  const getIcon = (category) => {
-    switch (category) {
-      case 'strength': return <CheckCircle style={{ color: '#16A34A', width: 16, height: 16, marginRight: 6 }} />;
-      case 'warning': return <AlertTriangle style={{ color: '#D97706', width: 16, height: 16, marginRight: 6 }} />;
-      case 'risk': return <AlertCircle style={{ color: '#DC2626', width: 16, height: 16, marginRight: 6 }} />;
+  const toggleSection = (section) => {
+    if (expandedSection === section) {
+      setExpandedSection('');
+    } else {
+      setExpandedSection(section);
     }
   };
 
-  const recIcons = {
-    Diet: <Utensils style={{ width: 16, height: 16, marginRight: 6 }} />,
-    Supplementation: <Capsule style={{ width: 16, height: 16, marginRight: 6 }} />,
-    Exercise: <Dumbbell style={{ width: 16, height: 16, marginRight: 6 }} />,
-    Lifestyle: <Smile style={{ width: 16, height: 16, marginRight: 6 }} />
+  const styles = {
+    container: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+      padding: '24px',
+      maxWidth: '900px',
+      margin: '0 auto'
+    },
+    header: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: '24px'
+    },
+    titleContainer: {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    heartIcon: {
+      width: '32px',
+      height: '32px',
+      color: '#EF4444',
+      marginRight: '12px'
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#1F2937'
+    },
+    statsContainer: {
+      display: 'flex',
+      gap: '8px'
+    },
+    statBadge: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '4px 12px',
+      borderRadius: '9999px',
+      fontSize: '14px',
+      fontWeight: '500'
+    },
+    statIcon: {
+      width: '16px',
+      height: '16px',
+      marginRight: '4px'
+    },
+    summary: {
+      backgroundColor: '#EFF6FF',
+      padding: '16px',
+      borderRadius: '8px',
+      marginBottom: '24px',
+      border: '1px solid #DBEAFE'
+    },
+    summaryTitle: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#1E40AF',
+      marginBottom: '8px'
+    },
+    summaryText: {
+      color: '#1E3A8A'
+    },
+    tabs: {
+      display: 'flex',
+      borderBottom: '1px solid #E5E7EB',
+      marginBottom: '24px'
+    },
+    tab: {
+      padding: '8px 16px',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      color: '#6B7280'
+    },
+    activeTab: {
+      color: '#2563EB',
+      borderBottom: '2px solid #2563EB'
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+      gap: '16px'
+    },
+    card: {
+      padding: '16px',
+      borderRadius: '8px'
+    },
+    cardHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start'
+    },
+    markerTitle: {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    markerName: {
+      fontWeight: '500',
+      marginLeft: '8px'
+    },
+    insight: {
+      marginTop: '8px',
+      fontSize: '14px'
+    },
+    rsid: {
+      fontSize: '12px',
+      color: '#6B7280',
+      marginTop: '4px'
+    },
+    effect: {
+      fontSize: '12px',
+      color: '#4B5563',
+      marginTop: '4px'
+    },
+    recommendationSection: {
+      border: '1px solid #E5E7EB',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      marginBottom: '16px'
+    },
+    recommendationHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '16px',
+      backgroundColor: '#F9FAFB',
+      cursor: 'pointer'
+    },
+    recommendationTitle: {
+      fontWeight: '500',
+      color: '#1F2937'
+    },
+    recommendationContent: {
+      padding: '16px',
+      backgroundColor: 'white'
+    },
+    list: {
+      paddingLeft: '20px',
+      marginTop: '8px'
+    },
+    listItem: {
+      margin: '8px 0',
+      color: '#4B5563'
+    },
+    scoreCard: {
+      marginTop: '32px',
+      padding: '16px',
+      background: 'linear-gradient(to right, #3B82F6, #1D4ED8)',
+      borderRadius: '8px',
+      color: 'white',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    },
+    scoreInfo: {
+      fontSize: '14px',
+      color: '#BFDBFE'
+    },
+    scoreDisplay: {
+      textAlign: 'center'
+    },
+    scoreNumber: {
+      fontSize: '36px',
+      fontWeight: 'bold'
+    },
+    scoreLabel: {
+      fontSize: '14px',
+      color: '#BFDBFE'
+    }
   };
+
+  // Calculate the correct health score
+  const healthScore = Math.round((bloodStats.strength + dnaStats.strength) / (bloodStats.total + dnaStats.total) * 100);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '1rem', background: '#fff', borderRadius: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Heart style={{ color: '#EF4444', width: 28, height: 28, marginRight: 8 }} />
-          <h2 style={{ fontSize: 22, fontWeight: 600 }}>Cardiovascular Health</h2>
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.titleContainer}>
+          <Heart style={styles.heartIcon} />
+          <h1 style={styles.title}>{data.health_area}</h1>
         </div>
-        <div style={{ background: '#3B82F6', color: 'white', padding: '8px 12px', borderRadius: 16, fontWeight: 'bold' }}>{healthScore}%</div>
+        <div style={styles.statsContainer}>
+          <span style={{
+            ...styles.statBadge,
+            backgroundColor: '#DCFCE7',
+            color: '#166534'
+          }}>
+            <CheckCircle style={styles.statIcon} />
+            {bloodStats.strength + dnaStats.strength} Strengths
+          </span>
+          <span style={{
+            ...styles.statBadge,
+            backgroundColor: '#FEF3C7',
+            color: '#92400E'
+          }}>
+            <AlertTriangle style={styles.statIcon} />
+            {bloodStats.warning + dnaStats.warning} Warnings
+          </span>
+          <span style={{
+            ...styles.statBadge,
+            backgroundColor: '#FEE2E2',
+            color: '#991B1B'
+          }}>
+            <AlertCircle style={styles.statIcon} />
+            {bloodStats.risk + dnaStats.risk} Risks
+          </span>
+        </div>
       </div>
 
-      <div style={{ background: '#EFF6FF', padding: '12px', borderRadius: 6, marginBottom: 16, border: '1px solid #DBEAFE' }}>
-        <strong style={{ color: '#1E40AF' }}>Health Summary:</strong>
-        <p style={{ color: '#1E3A8A', margin: 0 }}>{data.summary}</p>
+      {/* Summary */}
+      <div style={styles.summary}>
+        <h2 style={styles.summaryTitle}>Health Summary</h2>
+        <p style={styles.summaryText}>{data.summary}</p>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <button onClick={() => setActiveTab('blood')} style={{ padding: '6px 12px', borderRadius: 6, border: activeTab === 'blood' ? '2px solid #2563EB' : '1px solid #D1D5DB', background: activeTab === 'blood' ? '#E0F2FE' : '#F9FAFB' }}>Blood Markers</button>
-        <button onClick={() => setActiveTab('dna')} style={{ padding: '6px 12px', borderRadius: 6, border: activeTab === 'dna' ? '2px solid #2563EB' : '1px solid #D1D5DB', background: activeTab === 'dna' ? '#E0F2FE' : '#F9FAFB' }}>DNA Traits</button>
-        <button onClick={() => setActiveTab('recommendations')} style={{ padding: '6px 12px', borderRadius: 6, border: activeTab === 'recommendations' ? '2px solid #2563EB' : '1px solid #D1D5DB', background: activeTab === 'recommendations' ? '#E0F2FE' : '#F9FAFB' }}>Recommendations</button>
+      {/* Tabs */}
+      <div style={styles.tabs}>
+        <button 
+          style={{
+            ...styles.tab,
+            ...(activeTab === 'blood' ? styles.activeTab : {})
+          }}
+          onClick={() => setActiveTab('blood')}
+        >
+          Blood Markers ({bloodStats.total})
+        </button>
+        <button 
+          style={{
+            ...styles.tab,
+            ...(activeTab === 'dna' ? styles.activeTab : {})
+          }}
+          onClick={() => setActiveTab('dna')}
+        >
+          DNA Traits ({dnaStats.total})
+        </button>
+        <button 
+          style={{
+            ...styles.tab,
+            ...(activeTab === 'recommendations' ? styles.activeTab : {})
+          }}
+          onClick={() => setActiveTab('recommendations')}
+        >
+          Recommendations
+        </button>
       </div>
 
-      {(activeTab === 'blood' || activeTab === 'dna') && (
-        ['risk', 'warning', 'strength'].map((cat) => (
-          <div key={cat} style={{ marginBottom: 16, background: getColor(cat), borderRadius: 6, border: '1px solid #E5E7EB' }}>
-            <div onClick={() => setExpandedSection(expandedSection === cat ? '' : cat)} style={{ padding: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>{getIcon(cat)} {cat.charAt(0).toUpperCase() + cat.slice(1)} Markers ({grouped[cat].length})</div>
-              {expandedSection === cat ? <ChevronUp /> : <ChevronDown />}
-            </div>
-            {expandedSection === cat && (
-              <div style={{ padding: '0 16px 12px' }}>
-                {grouped[cat].map((m, idx) => (
-                  <div key={idx} style={{ marginBottom: 12 }}>
-                    <div style={{ fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-                      <div>{m.marker_name}</div>
-                      <div style={{ ...getStatusStyle(m.status) }}>{m.status}</div>
-                    </div>
-                    <div style={{ fontSize: 14 }}>{m.insight}</div>
-                    {m.rsid && <div style={{ fontSize: 12, color: '#6B7280' }}>RSID: {m.rsid}</div>}
-                    {m.effect && <div style={{ fontSize: 12, color: '#4B5563' }}>{m.effect}</div>}
-                  </div>
-                ))}
+      {/* Blood Markers Content */}
+      {activeTab === 'blood' && (
+        <div style={styles.grid}>
+          {data.blood_markers.map((marker, index) => (
+            <div key={index} style={{
+              ...styles.card,
+              ...getCategoryStyle(marker.category)
+            }}>
+              <div style={styles.cardHeader}>
+                <div style={styles.markerTitle}>
+                  {getCategoryIcon(marker.category)}
+                  <h3 style={styles.markerName}>{marker.marker_name}</h3>
+                </div>
+                <span style={{
+                  fontWeight: '600',
+                  ...getStatusStyle(marker.status)
+                }}>
+                  {marker.status}
+                </span>
               </div>
-            )}
-          </div>
-        ))
+              <p style={styles.insight}>{marker.insight}</p>
+            </div>
+          ))}
+        </div>
       )}
 
-      {activeTab === 'recommendations' && Object.entries(data.recommendations).map(([section, list], i) => (
-        <div key={i} style={{ border: '1px solid #E5E7EB', borderRadius: 6, marginBottom: 12 }}>
-          <div onClick={() => setExpandedSection(expandedSection === section ? '' : section)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: '#F9FAFB', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>{recIcons[section] || null}<strong>{section}</strong></div>
-            {expandedSection === section ? <ChevronUp /> : <ChevronDown />}
-          </div>
-          {expandedSection === section && (
-            <ul style={{ padding: '0 16px 12px 32px', margin: 0 }}>
-              {list.map((item, idx) => <li key={idx} style={{ marginBottom: 6 }}>{item}</li>)}
-            </ul>
-          )}
+      {/* DNA Traits Content */}
+      {activeTab === 'dna' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {data.dna_traits.map((trait, index) => (
+            <div key={index} style={{
+              ...styles.card,
+              ...getCategoryStyle(trait.category)
+            }}>
+              <div style={styles.cardHeader}>
+                <div>
+                  <div style={styles.markerTitle}>
+                    {getCategoryIcon(trait.category)}
+                    <h3 style={styles.markerName}>{trait.trait_name}</h3>
+                  </div>
+                  <p style={styles.rsid}>RSID: {trait.rsid}</p>
+                </div>
+              </div>
+              <p style={styles.insight}>{trait.insight}</p>
+              <p style={styles.effect}>{trait.effect}</p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* Recommendations Content */}
+      {activeTab === 'recommendations' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {Object.entries(data.recommendations).map(([category, items]) => (
+            <div key={category} style={styles.recommendationSection}>
+              <div 
+                style={styles.recommendationHeader}
+                onClick={() => toggleSection(category)}
+              >
+                <h3 style={styles.recommendationTitle}>{category}</h3>
+                {expandedSection === category ? 
+                  <ChevronUp style={{ width: '20px', height: '20px', color: '#6B7280' }} /> : 
+                  <ChevronDown style={{ width: '20px', height: '20px', color: '#6B7280' }} />
+                }
+              </div>
+              {expandedSection === category && (
+                <div style={styles.recommendationContent}>
+                  <ul style={styles.list}>
+                    {Array.isArray(items) ? items.map((item, i) => (
+                      <li key={i} style={styles.listItem}>{item}</li>
+                    )) : (
+                      Object.entries(items).map(([subCategory, subItems], i) => (
+                        <div key={i}>
+                          <h4 style={{ fontWeight: '500' }}>{subCategory}</h4>
+                          <ul style={styles.list}>
+                            {subItems.map((item, j) => (
+                              <li key={j} style={styles.listItem}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Health Score Card with correct calculation */}
+      <div style={styles.scoreCard}>
+        <div>
+          <h3 style={{ fontWeight: 'bold', fontSize: '18px' }}>Cardiovascular Health Score</h3>
+          <p style={styles.scoreInfo}>Based on {bloodStats.total} blood markers and {dnaStats.total} genetic traits</p>
+        </div>
+        <div style={styles.scoreDisplay}>
+          <div style={styles.scoreNumber}>
+            {healthScore}%
+          </div>
+          <div style={styles.scoreLabel}>Health Score</div>
+        </div>
+      </div>
     </div>
   );
 }
