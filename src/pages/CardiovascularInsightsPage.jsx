@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Capsule, Dumbbell, Smile } from 'lucide-react';
+import { Heart, AlertCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile } from 'lucide-react';
 
 export default function CardiovascularInsightsPage() {
   const [activeTab, setActiveTab] = useState('blood');
@@ -413,7 +413,7 @@ export default function CardiovascularInsightsPage() {
   const getRecIcon = (title) => {
     const icons = {
       Diet: <Utensils style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
-      Supplementation: <Capsule style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+      Supplementation: <Pill style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
       Exercise: <Dumbbell style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
       Lifestyle: <Smile style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />
     };
