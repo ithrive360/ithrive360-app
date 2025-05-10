@@ -21,27 +21,35 @@ export default function SidebarMenu({ isOpen, onClose }) {
 
   return (
     <>
-      {isOpen && (
-        <div
-          onClick={onClose}
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 999
-          }}
-        />
-      )}
+      {/* Overlay */}
+      <div
+        style={{
+          display: isOpen ? 'block' : 'none',
+          position: 'fixed', top: 0, left: 0,
+          width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          zIndex: 998
+        }}
+        onClick={onClose}
+      />
 
+      {/* Sidebar */}
       <div
         style={{
           position: 'fixed', top: 0, left: 0,
-          width: 260, height: '100%', backgroundColor: 'white',
+          width: 260, height: '100%',
+          backgroundColor: 'white',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease-in-out', zIndex: 1000,
+          transition: 'transform 0.3s ease-in-out',
+          zIndex: 999,
           boxShadow: '4px 0 12px rgba(0,0,0,0.1)',
-          display: 'flex', flexDirection: 'column', padding: 16
+          display: 'flex', flexDirection: 'column',
+          padding: 16
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24
+        }}>
           <h2 style={{ fontSize: 18, fontWeight: 600 }}>Menu</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
             <X size={24} />
@@ -53,9 +61,11 @@ export default function SidebarMenu({ isOpen, onClose }) {
             key={idx}
             onClick={action}
             style={{
-              display: 'flex', alignItems: 'center', padding: '10px 8px',
-              gap: 12, fontSize: 15, fontWeight: 500,
-              background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
+              padding: '10px 8px', gap: 12,
+              fontSize: 15, fontWeight: 500,
+              background: 'none', border: 'none',
+              textAlign: 'left', cursor: 'pointer',
               color: '#1F2937', width: '100%'
             }}
           >
@@ -65,11 +75,13 @@ export default function SidebarMenu({ isOpen, onClose }) {
 
         <div style={{ marginTop: 'auto' }}>
           <button
-            onClick={() => {/* replace with logout logic */}}
+            onClick={() => {}}
             style={{
-              display: 'flex', alignItems: 'center', padding: '10px 8px',
-              gap: 12, fontSize: 15, fontWeight: 500,
-              background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
+              padding: '10px 8px', gap: 12,
+              fontSize: 15, fontWeight: 500,
+              background: 'none', border: 'none',
+              textAlign: 'left', cursor: 'pointer',
               color: '#DC2626', width: '100%'
             }}
           >
