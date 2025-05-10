@@ -46,8 +46,10 @@ export default function SidebarMenu({ isOpen, onClose }) {
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out',
           boxShadow: '4px 0 12px rgba(0,0,0,0.1)',
-          display: 'flex', flexDirection: 'column',
-          padding: 16
+          display: isOpen ? 'flex' : 'none',
+          flexDirection: 'column',
+          padding: 16,
+          zIndex: 1000
         }}
       >
         <div style={{
