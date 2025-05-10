@@ -152,12 +152,15 @@ function DashboardPage() {
           top: 16,
           right: 16,
           zIndex: 10000,
-          background: 'none',
+          background: '#3ab3a1', // Add visible background
           border: 'none',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          padding: '8px',
+          color: 'white',
+          borderRadius: '4px'
         }}
       >
-        <Menu size={28} />
+        MENU
       </button>
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
