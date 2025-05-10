@@ -142,6 +142,8 @@ function DashboardPage() {
     }
   };
 
+  console.log('Menu open?', menuOpen);
+
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
