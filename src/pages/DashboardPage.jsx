@@ -25,7 +25,6 @@ function DashboardPage() {
 
   const fetchUserData = async () => {
     const { data: sessionData, error } = await supabase.auth.getSession();
-
     if (error) {
       console.error("Session fetch error:", error.message);
       return;
@@ -112,22 +111,16 @@ function DashboardPage() {
   };
 
   const handleTestGPT = async () => {
-    console.log("Test GPT clicked");
-
     if (!user?.id) {
       alert('User not authenticated. Please log in again.');
       return;
     }
-
-    console.log("Calling generateHealthInsight with:", user.id);
 
     try {
       const result = await generateHealthInsight({
         user_id: user.id,
         health_area: 'Cardiovascular Health'
       });
-
-      console.log("Result from generateHealthInsight:", result);
 
       if (result.success) {
         setInputJson(result.input_json);
@@ -149,15 +142,23 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999 }}>
-      <button onClick={() => {
-        setMenuOpen(true);
-        console.log('Burger clicked, opening menu');
-      }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+      <button
+        onClick={() => {
+          setMenuOpen(true);
+          console.log('Burger clicked, opening menu');
+        }}
+        style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          zIndex: 10000,
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+      >
         <Menu size={28} />
       </button>
-
-      </div>
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
