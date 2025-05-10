@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // ✅ ADD THIS LINE
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
+import SidebarMenu from './SidebarMenu';
+import { Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -17,8 +19,9 @@ function DashboardPage() {
   const [inputJson, setInputJson] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [gptResponse, setGptResponse] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const navigate = useNavigate(); // ✅ INITIALIZE HERE
+  const navigate = useNavigate();
 
   const fetchUserData = async () => {
     const { data: sessionData, error } = await supabase.auth.getSession();
@@ -144,11 +147,14 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
+      <button onClick={() => setMenuOpen(true)} style={{ position: 'absolute', top: 24, right: 24, zIndex: 1001, background: 'none', border: 'none', cursor: 'pointer' }}>
+        <Menu size={28} />
+      </button>
+      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+
       <img src={logo} alt="iThrive360 Logo" className="logo" />
-      {/* <h1>iThrive360</h1> */}
       <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
 
-      {/* Upload Cards */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
           <h3>DNA Data</h3>
@@ -170,7 +176,6 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
@@ -185,7 +190,6 @@ function DashboardPage() {
         </button>
       </div>
 
-      {/* Progress Teaser */}
       {profile?.dna_uploaded && profile?.blood_uploaded && (
         <div style={{ marginTop: '3rem' }}>
           <h3>Progress Tracker</h3>
@@ -196,7 +200,6 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* Prompt Preview Output */}
       {inputJson && prompt && (
         <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#f0f0f0' }}>
           <h3>Preview: Input JSON</h3>
@@ -207,17 +210,13 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* ✅ Clean GPT Response */}
       {gptResponse && (
         <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#e8f5e9' }}>
           <h3>Preview: GPT Response</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
-            {gptResponse}
-          </pre>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{gptResponse}</pre>
         </div>
       )}
 
-      {/* Sign out */}
       <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop: '2rem' }}>
         Sign Out
       </button>
