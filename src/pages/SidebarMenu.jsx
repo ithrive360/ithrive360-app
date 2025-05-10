@@ -5,6 +5,7 @@ import {
 
 export default function SidebarMenu({ isOpen, onClose }) {
   console.log('SidebarMenu component mounted');
+
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -25,36 +26,48 @@ export default function SidebarMenu({ isOpen, onClose }) {
   return (
     <>
       {/* Overlay */}
-      <div
-        style={{
-          display: isOpen ? 'block' : 'none',
-          position: 'fixed', top: 0, left: 0,
-          width: '100%', height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.4)',
-          zIndex: 998
-        }}
-        onClick={onClose}
-      />
+      {isOpen && (
+        <div
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            zIndex: 998,
+          }}
+        />
+      )}
 
       {/* Sidebar */}
       <div
         className="sidebar-menu"
         style={{
-          position: 'fixed', top: 0, left: 0,
-          width: 260, height: '100%',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: 260,
+          height: '100%',
           backgroundColor: 'white',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out',
           boxShadow: '4px 0 12px rgba(0,0,0,0.1)',
-          display: isOpen ? 'flex' : 'none',
+          display: 'flex',
           flexDirection: 'column',
           padding: 16,
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 24,
+          }}
+        >
           <h2 style={{ fontSize: 18, fontWeight: 600 }}>Menu</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
             <X size={24} />
@@ -66,12 +79,18 @@ export default function SidebarMenu({ isOpen, onClose }) {
             key={idx}
             onClick={action}
             style={{
-              display: 'flex', alignItems: 'center',
-              padding: '10px 8px', gap: 12,
-              fontSize: 15, fontWeight: 500,
-              background: 'none', border: 'none',
-              textAlign: 'left', cursor: 'pointer',
-              color: '#1F2937', width: '100%'
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px 8px',
+              gap: 12,
+              fontSize: 15,
+              fontWeight: 500,
+              background: 'none',
+              border: 'none',
+              textAlign: 'left',
+              cursor: 'pointer',
+              color: '#1F2937',
+              width: '100%',
             }}
           >
             {icon} {label}
@@ -82,12 +101,18 @@ export default function SidebarMenu({ isOpen, onClose }) {
           <button
             onClick={() => {}}
             style={{
-              display: 'flex', alignItems: 'center',
-              padding: '10px 8px', gap: 12,
-              fontSize: 15, fontWeight: 500,
-              background: 'none', border: 'none',
-              textAlign: 'left', cursor: 'pointer',
-              color: '#DC2626', width: '100%'
+              display: 'flex',
+              alignItems: 'center',
+              padding: '10px 8px',
+              gap: 12,
+              fontSize: 15,
+              fontWeight: 500,
+              background: 'none',
+              border: 'none',
+              textAlign: 'left',
+              cursor: 'pointer',
+              color: '#DC2626',
+              width: '100%',
             }}
           >
             <LogOut size={20} /> Log out
