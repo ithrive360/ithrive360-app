@@ -142,26 +142,26 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-      <button
-        onClick={() => {
-          setMenuOpen(true);
-          console.log('Burger clicked, opening menu');
-        }}
-        style={{
-          position: 'fixed',
-          top: 16,
-          right: 16,
-          zIndex: 10000,
-          background: '#3ab3a1',
-          border: 'none',
-          padding: '8px',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        <Menu size={28} color="white" />
-      </button>
 
+    <button
+      onClick={() => {
+        setMenuOpen(prev => !prev);
+        console.log('Burger clicked, toggling menu');
+      }}
+      style={{
+        position: 'fixed',
+        top: 16,
+        left: 16, // <-- moved to left
+        zIndex: 10000,
+        background: '#ffffff', // <-- white background
+        border: '1px solid #3ab3a1',
+        padding: '8px',
+        borderRadius: '4px',
+        cursor: 'pointer'
+      }}
+    >
+      <Menu size={28} color="#3ab3a1" />
+    </button>
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
