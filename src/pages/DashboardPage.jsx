@@ -145,7 +145,7 @@ function DashboardPage() {
   return (
     <div className="dashboard">
       <img src={logo} alt="iThrive360 Logo" className="logo" />
-      <h1>iThrive360</h1>
+      {/* <h1>iThrive360</h1> */}
       <h1><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h1>
 
       {/* Upload Cards */}
