@@ -163,3 +163,8 @@ a.btn,
   position: fixed;
   z-index: 1000;
 }
+
+.dashboard {
+  position: relative; /* This enables z-index control */
+  z-index: 0; /* Ensure the dashboard content stays under floating buttons */
+}
