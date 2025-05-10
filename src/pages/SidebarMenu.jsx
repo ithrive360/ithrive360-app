@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 
 export default function SidebarMenu({ isOpen, onClose }) {
+  console.log('SidebarMenu component mounted');
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -18,6 +19,8 @@ export default function SidebarMenu({ isOpen, onClose }) {
     { icon: <User size={20} />, label: 'My Profile', action: () => {} },
     { icon: <HelpCircle size={20} />, label: 'Help Center', action: () => {} },
   ];
+
+  console.log('Sidebar rendering. isOpen:', isOpen);
 
   return (
     <>
