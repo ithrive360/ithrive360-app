@@ -35,13 +35,13 @@ export default function SidebarMenu({ isOpen, onClose }) {
 
       {/* Sidebar */}
       <div
+        className="sidebar-menu"
         style={{
           position: 'fixed', top: 0, left: 0,
           width: 260, height: '100%',
           backgroundColor: 'white',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out',
-          zIndex: 999,
           boxShadow: '4px 0 12px rgba(0,0,0,0.1)',
           display: 'flex', flexDirection: 'column',
           padding: 16
