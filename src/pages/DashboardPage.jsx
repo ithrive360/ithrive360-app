@@ -147,9 +147,12 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-      <button onClick={() => setMenuOpen(true)} style={{ position: 'absolute', top: 24, right: 24, zIndex: 1001, background: 'none', border: 'none', cursor: 'pointer' }}>
-        <Menu size={28} />
-      </button>
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999 }}>
+        <button onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <Menu size={28} />
+        </button>
+      </div>
+
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <img src={logo} alt="iThrive360 Logo" className="logo" />
