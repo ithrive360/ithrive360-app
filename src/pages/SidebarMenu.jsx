@@ -64,7 +64,7 @@ export default function SidebarMenu({ isOpen, onClose }) {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             marginBottom: 24,
           }}
         >
