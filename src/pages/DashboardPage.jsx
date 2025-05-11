@@ -165,7 +165,7 @@ function DashboardPage() {
         {menuOpen ? <X size={28} color="#000000" /> : <Menu size={28} color="#3ab3a1" />}
       </button>
 
-      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onLogout={handleLogout}/>
+      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onLogout={handleLogout} user={user} />
 
       <img src={logo} alt="iThrive360 Logo" className="logo" />
       <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>

@@ -64,12 +64,13 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, user }) {
             marginBottom: 24
           }}
         >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div
             style={{
               width: 36,
               height: 36,
               borderRadius: '50%',
-              backgroundColor: '#e2e8f0', // light gray
+              backgroundColor: '#e2e8f0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -79,9 +80,18 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, user }) {
               textTransform: 'uppercase'
             }}
           >
-            {user?.user_metadata?.full_name?.[0] || 'U'}
+            {user?.user_metadata?.full_name?.charAt(0) || 'U'}
           </div>
-
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>
+              {user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
+            </div>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              {user?.email || ''}
+            </div>
+          </div>
+        </div>
+        
         </div>
 
         {menuItems.map(({ icon, label, action }, idx) => (
