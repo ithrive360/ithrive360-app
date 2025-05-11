@@ -142,7 +142,7 @@ function DashboardPage() {
 
       const insertPayload = {
         user_id: user.id,
-        health_area_id: parsed.health_area || 'Cardiovascular Health',
+        health_area_id: 'HA002',
         summary: parsed.summary || '',
         findings_json: {
           blood_markers: parsed.blood_markers || [],
