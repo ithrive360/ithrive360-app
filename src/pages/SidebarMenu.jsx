@@ -83,7 +83,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
               {profile?.full_name?.charAt(0) || 'U'}
             </div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>
                 {profile?.full_name || 'User'}
               </div>
             </div>
