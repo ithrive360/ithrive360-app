@@ -13,7 +13,9 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
   }, [isOpen]);
 
   const menuItems = [
+    { icon: <User size={20} />, label: 'My Profile', action: () => {} },    
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/insights/cardiovascular') },
+    { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => {} },
     { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => {} },
     { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
     { icon: <Settings size={20} />, label: 'Settings', action: () => {} },
