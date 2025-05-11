@@ -37,7 +37,6 @@ function DashboardPage() {
     }
 
     setUser(user);
-
     await initUserProfile(user);
 
     const { data: profileData, error: profileError } = await supabase
@@ -140,8 +139,7 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-
-      {/* Fixed top bar */}
+      {/* Fixed Top Bar */}
       <div
         style={{
           position: 'fixed',
@@ -151,18 +149,21 @@ function DashboardPage() {
           backgroundColor: '#fff',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           padding: '12px 16px',
           zIndex: 1000,
-          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)'
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
+          position: 'relative'
         }}
       >
+        {/* Burger Menu Button */}
         <button
-          onClick={() => {
-            setMenuOpen(prev => !prev);
-            console.log('Burger clicked, toggling menu');
-          }}
+          onClick={() => setMenuOpen(prev => !prev)}
           style={{
+            position: 'absolute',
+            left: 16,
+            top: '50%',
+            transform: 'translateY(-50%)',
             background: 'none',
             border: 'none',
             padding: 0,
@@ -178,7 +179,6 @@ function DashboardPage() {
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
-      {/* Side menu */}
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -186,7 +186,7 @@ function DashboardPage() {
         profile={profile}
       />
 
-      {/* Spacer for fixed header */}
+      {/* Spacer */}
       <div style={{ height: 60 }} />
 
       <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
