@@ -122,13 +122,49 @@ function DashboardPage() {
         health_area: 'Cardiovascular Health'
       });
 
-      if (result.success) {
-        setInputJson(result.input_json);
-        setPrompt(result.prompt);
-        setGptResponse(result.gpt_response);
-      } else {
+      if (!result.success) {
         alert(`Error: ${result.error}`);
+        return;
       }
+
+      setInputJson(result.input_json);
+      setPrompt(result.prompt);
+      setGptResponse(result.gpt_response);
+
+      let parsed;
+      try {
+        parsed = JSON.parse(result.gpt_response);
+      } catch (parseErr) {
+        console.error('Failed to parse GPT response:', parseErr);
+        alert('GPT response was not valid JSON.');
+        return;
+      }
+
+      const insertPayload = {
+        user_id: user.id,
+        health_area_id: parsed.health_area || 'Cardiovascular Health',
+        summary: parsed.summary || '',
+        findings_json: {
+          blood_markers: parsed.blood_markers || [],
+          dna_traits: parsed.dna_traits || []
+        },
+        recommendations_json: parsed.recommendations || {},
+        gpt_model: 'gpt-4o',
+        prompt_version: 'v1',
+        created_at: new Date().toISOString()
+      };
+
+      const { error: insertError } = await supabase.from('user_health_insight').upsert(insertPayload, {
+        onConflict: ['user_id', 'health_area_id']
+      });
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        alert('Failed to save insight to DB.');
+      } else {
+        console.log('Insight saved to DB.');
+      }
+
     } catch (e) {
       console.error("Unhandled error in handleTestGPT:", e);
       alert("Unexpected error. See console.");
@@ -157,7 +193,6 @@ function DashboardPage() {
           boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
         }}
       >
-        {/* Burger menu absolute on left */}
         <button
           onClick={() => {
             setMenuOpen(prev => !prev);
@@ -178,12 +213,9 @@ function DashboardPage() {
           {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
         </button>
 
-        {/* Centered logo */}
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
-
-      {/* Side menu */}
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -191,7 +223,6 @@ function DashboardPage() {
         profile={profile}
       />
 
-      {/* Spacer for fixed header */}
       <div style={{ height: 60 }} />
 
       <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
