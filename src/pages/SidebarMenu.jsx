@@ -64,13 +64,13 @@ export default function SidebarMenu({ isOpen, onClose }) {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             marginBottom: 24,
           }}
         >
-          <h2 style={{ fontSize: 18, fontWeight: 600, paddingTop: 4 }}>Menu</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 600, paddingTop: 24 }}>Menu</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={24} color="#3ab3a1" />
+            <X size={24} />
           </button>
         </div>
 
