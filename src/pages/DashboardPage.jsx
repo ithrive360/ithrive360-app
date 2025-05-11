@@ -7,7 +7,6 @@ import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
-import { Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
