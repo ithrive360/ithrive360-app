@@ -3,7 +3,7 @@ import {
   X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut
 } from 'lucide-react';
 
-export default function SidebarMenu({ isOpen, onClose, onLogout }) {
+export default function SidebarMenu({ isOpen, onClose, onLogout, user }) {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -64,7 +64,24 @@ export default function SidebarMenu({ isOpen, onClose, onLogout }) {
             marginBottom: 24
           }}
         >
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0, marginLeft: 8 }}>Menu</h2>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              backgroundColor: '#e2e8f0', // light gray
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 600,
+              fontSize: 16,
+              color: '#3ab3a1',
+              textTransform: 'uppercase'
+            }}
+          >
+            {user?.user_metadata?.full_name?.[0] || 'U'}
+          </div>
+
         </div>
 
         {menuItems.map(({ icon, label, action }, idx) => (
