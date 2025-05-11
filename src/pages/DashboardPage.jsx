@@ -6,6 +6,7 @@ import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import SidebarMenu from './SidebarMenu';
+import { Menu, X } from 'lucide-react';
 import { Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -143,25 +144,26 @@ function DashboardPage() {
   return (
     <div className="dashboard">
 
-    <button
-      onClick={() => {
-        setMenuOpen(prev => !prev);
-        console.log('Burger clicked, toggling menu');
-      }}
-      style={{
-        position: 'fixed',
-        top: 16,
-        left: 16, // <-- moved to left
-        zIndex: 10000,
-        background: '#ffffff', // <-- white background
-        border: 'none',
-        padding: '8px',
-        borderRadius: '4px',
-        cursor: 'pointer'
-      }}
-    >
-      <Menu size={28} color="#3ab3a1" />
-    </button>
+<button
+  onClick={() => {
+    setMenuOpen(prev => !prev);
+    console.log('Burger clicked, toggling menu');
+  }}
+  style={{
+    position: 'fixed',
+    top: 16,
+    left: 16,
+    zIndex: 10000,
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    lineHeight: 0
+  }}
+  aria-label="Toggle menu"
+>
+  {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
+</button>
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
