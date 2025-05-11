@@ -151,32 +151,37 @@ function DashboardPage() {
           backgroundColor: '#fff',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           padding: '12px 16px',
           zIndex: 1000,
-          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)'
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
         }}
       >
+        {/* Burger menu absolute on left */}
         <button
           onClick={() => {
             setMenuOpen(prev => !prev);
             console.log('Burger clicked, toggling menu');
           }}
           style={{
+            position: 'absolute',
+            left: 16,
             background: 'none',
             border: 'none',
             padding: 0,
             cursor: 'pointer',
             lineHeight: 0,
-            outline: 'none'
+            outline: 'none',
           }}
           aria-label="Toggle menu"
         >
           {menuOpen ? <X size={28} color="#000000" /> : <Menu size={28} color="#3ab3a1" />}
         </button>
 
+        {/* Centered logo */}
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
+
 
       {/* Side menu */}
       <SidebarMenu
