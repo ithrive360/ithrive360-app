@@ -3,7 +3,7 @@ import {
   X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut
 } from 'lucide-react';
 
-export default function SidebarMenu({ isOpen, onClose, onLogout, user }) {
+export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -64,34 +64,33 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, user }) {
             marginBottom: 24
           }}
         >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              backgroundColor: '#e2e8f0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 600,
-              fontSize: 16,
-              color: '#3ab3a1',
-              textTransform: 'uppercase'
-            }}
-          >
-            {user?.user_metadata?.full_name?.charAt(0) || 'U'}
-          </div>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>
-              {user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                backgroundColor: '#e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                fontSize: 16,
+                color: '#3ab3a1',
+                textTransform: 'uppercase'
+              }}
+            >
+              {profile?.full_name?.charAt(0) || 'U'}
             </div>
-            <div style={{ fontSize: 12, color: '#666' }}>
-              {user?.email || ''}
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>
+                {profile?.full_name?.split(' ')[0] || 'User'}
+              </div>
+              <div style={{ fontSize: 12, color: '#666' }}>
+                {profile?.email || ''}
+              </div>
             </div>
           </div>
-        </div>
-        
         </div>
 
         {menuItems.map(({ icon, label, action }, idx) => (
