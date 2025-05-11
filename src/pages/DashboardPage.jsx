@@ -135,44 +135,60 @@ function DashboardPage() {
     }
   };
 
-  console.log('Menu open?', menuOpen);
-
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
   return (
     <div className="dashboard">
 
-      <button
-        onClick={() => {
-          setMenuOpen(prev => !prev);
-          console.log('Burger clicked, toggling menu');
-        }}
+      {/* Fixed top bar */}
+      <div
         style={{
           position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 10000,
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
-          lineHeight: 0,
-          outline: 'none'
+          top: 0,
+          left: 0,
+          width: '100%',
+          backgroundColor: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          zIndex: 1000,
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)'
         }}
-        aria-label="Toggle menu"
       >
-        {menuOpen ? <X size={28} color="#000000" /> : <Menu size={28} color="#3ab3a1" />}
-      </button>
+        <button
+          onClick={() => {
+            setMenuOpen(prev => !prev);
+            console.log('Burger clicked, toggling menu');
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            lineHeight: 0,
+            outline: 'none'
+          }}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? <X size={28} color="#000000" /> : <Menu size={28} color="#3ab3a1" />}
+        </button>
 
+        <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
+      </div>
+
+      {/* Side menu */}
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
         onLogout={handleLogout}
-        profile={profile} // ✅ use profile here
+        profile={profile}
       />
 
-      <img src={logo} alt="iThrive360 Logo" className="logo" />
+      {/* Spacer for fixed header */}
+      <div style={{ height: 60 }} />
+
       <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
