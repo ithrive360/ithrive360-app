@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 
 export default function SidebarMenu({ isOpen, onClose }) {
+  console.log('SidebarMenu component mounted');
+
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -19,6 +21,8 @@ export default function SidebarMenu({ isOpen, onClose }) {
     { icon: <HelpCircle size={20} />, label: 'Help Center', action: () => {} },
   ];
 
+  console.log('Sidebar rendering. isOpen:', isOpen);
+
   return (
     <>
       {/* Overlay */}
@@ -31,100 +35,92 @@ export default function SidebarMenu({ isOpen, onClose }) {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(2px)',
             zIndex: 998,
           }}
         />
       )}
 
-      {/* Floating Menu Card */}
-      <div
-        className="sidebar-menu"
-        style={{
-          position: 'fixed',
-          top: '50px',
-          left: '20px',
-          width: '240px',
-          backgroundColor: 'white',
-          borderRadius: '20px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-          transform: isOpen ? 'translateX(0)' : 'translateX(-150%)',
-          transition: 'transform 0.3s ease-in-out',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '24px 16px'
-        }}
-      >
+      {/* Floating menu card */}
+      {isOpen && (
         <div
           style={{
+            position: 'fixed',
+            top: '10%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90%',
+            maxWidth: '320px',
+            background: '#fff',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            zIndex: 999,
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.1)',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 24
+            flexDirection: 'column',
+            gap: '1rem'
           }}
         >
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              marginRight: 'auto'
-            }}
-            aria-label="Close menu"
-          >
-            <X size={24} color="#3ab3a1" />
-          </button>
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0, marginLeft: 8 }}>Menu</h2>
-        </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600 }}>Menu</h2>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0
+              }}
+            >
+              <X size={24} color="#3ab3a1" />
+            </button>
+          </div>
 
-        {menuItems.map(({ icon, label, action }, idx) => (
-          <button
-            key={idx}
-            onClick={action}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px 8px',
-              gap: 12,
-              fontSize: 15,
-              fontWeight: 500,
-              background: 'none',
-              border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#1F2937',
-              width: '100%'
-            }}
-          >
-            {icon} {label}
-          </button>
-        ))}
+          {menuItems.map(({ icon, label, action }, idx) => (
+            <button
+              key={idx}
+              onClick={action}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 15,
+                fontWeight: 500,
+                background: 'none',
+                border: 'none',
+                color: '#1F2937',
+                textAlign: 'left',
+                cursor: 'pointer',
+                padding: '0.5rem 0'
+              }}
+            >
+              {icon} {label}
+            </button>
+          ))}
 
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
           <button
             onClick={() => {}}
             style={{
-              width: '100%',
-              backgroundColor: '#3ab3a1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '12px 0',
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: 'pointer',
+              marginTop: '1rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 8
+              gap: 8,
+              fontSize: 15,
+              fontWeight: 600,
+              backgroundColor: '#3ab3a1',
+              color: '#fff',
+              border: 'none',
+              padding: '0.75rem',
+              borderRadius: '12px',
+              cursor: 'pointer'
             }}
           >
-            <LogOut size={18} /> Log out
+            <LogOut size={20} /> Log out
           </button>
         </div>
-      </div>
+      )}
     </>
   );
 }
