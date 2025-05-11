@@ -3,7 +3,7 @@ import {
   X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut
 } from 'lucide-react';
 
-export default function SidebarMenu({ isOpen, onClose }) {
+export default function SidebarMenu({ isOpen, onClose, onLogout }) {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
@@ -92,7 +92,7 @@ export default function SidebarMenu({ isOpen, onClose }) {
 
         <div style={{ marginTop: 'auto', paddingTop: 16 }}>
           <button
-            onClick={() => {}}
+            onClick={onLogout}
             style={{
               width: '100%',
               backgroundColor: '#3ab3a1',
