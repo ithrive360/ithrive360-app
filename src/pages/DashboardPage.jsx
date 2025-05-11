@@ -157,7 +157,8 @@ function DashboardPage() {
     border: 'none',
     padding: 0,
     cursor: 'pointer',
-    lineHeight: 0
+    lineHeight: 0,
+    outline: 'none' // ✅ prevents black border
   }}
   aria-label="Toggle menu"
 >
