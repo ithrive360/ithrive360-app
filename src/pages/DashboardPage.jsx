@@ -162,7 +162,7 @@ function DashboardPage() {
         }}
         aria-label="Toggle menu"
       >
-        {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
+        {menuOpen ? <X size={28} color="#000000" /> : <Menu size={28} color="#3ab3a1" />}
       </button>
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
