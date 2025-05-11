@@ -154,7 +154,7 @@ function DashboardPage() {
         left: 16, // <-- moved to left
         zIndex: 10000,
         background: '#ffffff', // <-- white background
-        border: '1px solid #3ab3a1',
+        border: 'none',
         padding: '8px',
         borderRadius: '4px',
         cursor: 'pointer'
