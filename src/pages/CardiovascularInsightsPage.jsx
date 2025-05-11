@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Add useNavigate for navigation
+import { useNavigate } from 'react-router-dom';
 import {
   Heart, AlertCircle, CheckCircle, AlertTriangle,
   ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile,
-  ArrowLeft // Replace Menu/X with ArrowLeft
+  ArrowLeft
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -13,9 +13,8 @@ export default function CardiovascularInsightsPage() {
   const [bloodGroupOpen, setBloodGroupOpen] = useState({ strength: false, warning: false, risk: true });
   const [dnaGroupOpen, setDnaGroupOpen] = useState({ strength: false, warning: false, risk: true });
 
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
-  // Parse the data from the JSON
     const data = {
         "health_area": "Cardiovascular Health",
         "summary": "The user's cardiovascular health profile indicates some areas of risk, particularly in cholesterol and inflammation markers, with certain genetic predispositions also contributing to cardiovascular risk.",
@@ -456,9 +455,8 @@ export default function CardiovascularInsightsPage() {
           boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
         }}
       >
-        {/* Back arrow button on the left */}
         <button
-          onClick={() => navigate('/dashboard')} // Navigate to dashboard
+          onClick={() => navigate('/dashboard')}
           style={{
             position: 'absolute',
             left: 16,
@@ -473,8 +471,6 @@ export default function CardiovascularInsightsPage() {
         >
           <ArrowLeft size={28} color="#3ab3a1" />
         </button>
-
-        {/* Centered logo */}
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
@@ -560,7 +556,7 @@ export default function CardiovascularInsightsPage() {
         const markers = data.blood_markers.filter(m => m.category === cat);
         if (!markers.length) return null;
         return (
-          <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16 }}>
+          <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16, width: '100%', minWidth: '400px' }}>
             <div onClick={() => toggleBloodGroup(cat)} style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
                 {getCategoryIcon(cat)} <span style={{ marginLeft: 8, textTransform: 'capitalize' }}>{cat}s ({markers.length})</span>
@@ -588,7 +584,7 @@ export default function CardiovascularInsightsPage() {
         const traits = data.dna_traits.filter(t => t.category === cat);
         if (!traits.length) return null;
         return (
-          <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16 }}>
+          <div key={cat} style={{ ...getCategoryStyle(cat), borderRadius: 8, marginBottom: 16, width: '100%', minWidth: '400px' }}>
             <div onClick={() => toggleDnaGroup(cat)} style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
                 {getCategoryIcon(cat)} <span style={{ marginLeft: 8, textTransform: 'capitalize' }}>{cat}s ({traits.length})</span>
@@ -617,7 +613,7 @@ export default function CardiovascularInsightsPage() {
       {activeTab === 'recommendations' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {Object.entries(data.recommendations).map(([title, items]) => (
-            <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden' }}>
+            <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', width: '100%', minWidth: '400px' }}>
               <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500, color: '#1F2937' }}>
                   {getRecIcon(title)} {title}
