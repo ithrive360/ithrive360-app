@@ -44,7 +44,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
         className="sidebar-menu"
         style={{
           position: 'fixed',
-          top: '50px',
+          top: '100px',
           left: '20px',
           width: '300px',
           backgroundColor: 'white',
