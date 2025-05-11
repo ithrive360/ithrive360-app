@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const navigate = useNavigate();
-
 export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
+
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
