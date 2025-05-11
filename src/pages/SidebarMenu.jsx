@@ -84,12 +84,10 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>
-                {profile?.full_name?.split(' ')[0] || 'User'}
-              </div>
-              <div style={{ fontSize: 12, color: '#666' }}>
-                {profile?.email || ''}
+                {profile?.full_name || 'User'}
               </div>
             </div>
+
           </div>
         </div>
 
