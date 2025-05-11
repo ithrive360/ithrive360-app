@@ -143,27 +143,13 @@ function DashboardPage() {
   return (
     <div className="dashboard">
 
-<button
-  onClick={() => {
-    setMenuOpen(prev => !prev);
-    console.log('Burger clicked, toggling menu');
-  }}
-  style={{
-    position: 'fixed',
-    top: 16,
-    left: 16,
-    zIndex: 10000,
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    cursor: 'pointer',
-    lineHeight: 0,
-    outline: 'none' // ✅ prevents black border
-  }}
-  aria-label="Toggle menu"
->
-  {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
-</button>
+  <div
+    onClick={() => setMenuOpen(prev => !prev)}
+    className={`burger ${menuOpen ? 'open' : ''}`}
+    role="button"
+    aria-label="Toggle menu"
+  ></div>
+
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
