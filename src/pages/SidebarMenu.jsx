@@ -114,7 +114,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
           </button>
         ))}
 
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+        <div style={{ marginTop: 'auto', paddingTop: 48 }}>
           <button
             onClick={onLogout}
             style={{
