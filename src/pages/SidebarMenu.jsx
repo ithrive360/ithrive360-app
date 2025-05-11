@@ -35,90 +35,92 @@ export default function SidebarMenu({ isOpen, onClose }) {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(2px)',
             zIndex: 998,
           }}
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className="sidebar-menu"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 260,
-          height: '100%',
-          backgroundColor: 'white',
-          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease-in-out',
-          boxShadow: '4px 0 12px rgba(0,0,0,0.1)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 16,
-          zIndex: 1000,
-        }}
-      >
+      {/* Floating menu card */}
+      {isOpen && (
         <div
           style={{
+            position: 'fixed',
+            top: '10%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90%',
+            maxWidth: '320px',
+            background: '#fff',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            zIndex: 999,
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.1)',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 24,
+            flexDirection: 'column',
+            gap: '1rem'
           }}
         >
-          <h2 style={{ fontSize: 18, fontWeight: 600, paddingTop: 24 }}>Menu</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={24} />
-          </button>
-        </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600 }}>Menu</h2>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0
+              }}
+            >
+              <X size={24} color="#3ab3a1" />
+            </button>
+          </div>
 
-        {menuItems.map(({ icon, label, action }, idx) => (
-          <button
-            key={idx}
-            onClick={action}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '10px 8px',
-              gap: 12,
-              fontSize: 15,
-              fontWeight: 500,
-              background: 'none',
-              border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#1F2937',
-              width: '100%',
-            }}
-          >
-            {icon} {label}
-          </button>
-        ))}
+          {menuItems.map(({ icon, label, action }, idx) => (
+            <button
+              key={idx}
+              onClick={action}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 15,
+                fontWeight: 500,
+                background: 'none',
+                border: 'none',
+                color: '#1F2937',
+                textAlign: 'left',
+                cursor: 'pointer',
+                padding: '0.5rem 0'
+              }}
+            >
+              {icon} {label}
+            </button>
+          ))}
 
-        <div style={{ marginTop: 'auto' }}>
           <button
             onClick={() => {}}
             style={{
+              marginTop: '1rem',
               display: 'flex',
               alignItems: 'center',
-              padding: '10px 8px',
-              gap: 12,
+              justifyContent: 'center',
+              gap: 8,
               fontSize: 15,
-              fontWeight: 500,
-              background: 'none',
+              fontWeight: 600,
+              backgroundColor: '#3ab3a1',
+              color: '#fff',
               border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#DC2626',
-              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '12px',
+              cursor: 'pointer'
             }}
           >
             <LogOut size={20} /> Log out
           </button>
         </div>
-      </div>
+      )}
     </>
   );
 }
