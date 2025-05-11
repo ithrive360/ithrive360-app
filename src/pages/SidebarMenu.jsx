@@ -44,7 +44,7 @@ export default function SidebarMenu({ isOpen, onClose }) {
           position: 'fixed',
           top: '50px',
           left: '20px',
-          width: '340px',
+          width: '320px',
           backgroundColor: 'white',
           borderRadius: '20px',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
