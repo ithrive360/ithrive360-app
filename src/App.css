@@ -169,3 +169,24 @@ a.btn,
   z-index: 0; /* Ensure the dashboard content stays under floating buttons */
 }
 
+.menu-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10000;
+  background: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.menu-toggle svg {
+  color: #3ab3a1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.menu-toggle.open svg {
+  transform: rotate(90deg);
+}

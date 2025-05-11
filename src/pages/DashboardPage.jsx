@@ -148,22 +148,12 @@ function DashboardPage() {
           setMenuOpen(prev => !prev);
           console.log('Burger clicked, toggling menu');
         }}
-        style={{
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 10000,
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
-          lineHeight: 0,
-          outline: 'none' // ✅ prevents black border
-        }}
+        className={`menu-toggle ${menuOpen ? 'open' : ''}`}
         aria-label="Toggle menu"
       >
-        {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
+        {menuOpen ? <X size={28} /> : <Menu size={28} />}
       </button>
+
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
