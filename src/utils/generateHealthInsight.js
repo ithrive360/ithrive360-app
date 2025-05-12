@@ -15,7 +15,17 @@ export async function generateHealthInsight({ user_id, health_area }) {
         ? 'http://localhost:54321/functions/v1'
         : 'https://oqjblzxhfszvluhvfclv.functions.supabase.co';
 
-    // ✅ Fetch and filter blood markers by health area
+    // ✅ Step 1: Fetch relevant blood marker IDs for this health area
+    const { data: bloodMarkerLinks, error: bloodLinkError } = await supabase
+      .from('blood_marker_health_area')
+      .select('marker_id')
+      .eq('health_area_id', health_area);
+
+    if (bloodLinkError) throw new Error('Failed to fetch blood marker links');
+
+    const relevantBloodIds = bloodMarkerLinks.map(r => r.marker_id);
+
+    // ✅ Step 2: Fetch user blood results for those marker IDs
     const { data: bloodResults } = await supabase
       .from('user_blood_result')
       .select(`
@@ -23,28 +33,21 @@ export async function generateHealthInsight({ user_id, health_area }) {
         marker_id,
         blood_marker_reference:marker_id (
           marker_name,
-          reference_range,
-          blood_marker_health_area:health_area_link (
-            health_area_id
-          )
+          reference_range
         )
       `)
-      .eq('user_id', user_id);
+      .eq('user_id', user_id)
+      .in('marker_id', relevantBloodIds);
 
-    const filteredBlood = (bloodResults || []).filter(row =>
-      (row.blood_marker_reference?.blood_marker_health_area || []).some(h => h.health_area_id === health_area)
-    );
-
-    const parsedBlood = filteredBlood.map(entry => {
+    const parsedBlood = (bloodResults || []).map(entry => {
       const rawValue = parseFloat(entry.value);
       const range = entry.blood_marker_reference?.reference_range;
       let status = 'Normal';
 
-      if (range && rawValue !== undefined && !isNaN(rawValue)) {
+      if (range && !isNaN(rawValue)) {
         const [minStr, maxStr] = range.split('-').map(s => s.trim());
         const min = parseFloat(minStr);
         const max = parseFloat(maxStr);
-
         if (!isNaN(min) && !isNaN(max)) {
           if (rawValue < min) status = 'Low';
           else if (rawValue > max) status = 'High';
@@ -60,7 +63,17 @@ export async function generateHealthInsight({ user_id, health_area }) {
       };
     });
 
-    // ✅ Fetch and filter DNA traits by health area
+    // ✅ Step 3: Fetch relevant DNA marker IDs for this health area
+    const { data: dnaMarkerLinks, error: dnaLinkError } = await supabase
+      .from('dna_marker_health_area')
+      .select('dna_id')
+      .eq('health_area_id', health_area);
+
+    if (dnaLinkError) throw new Error('Failed to fetch DNA marker links');
+
+    const relevantDNAIds = dnaMarkerLinks.map(r => r.dna_id);
+
+    // ✅ Step 4: Fetch user DNA results for those dna_ids
     const { data: dnaResults } = await supabase
       .from('user_dna_result')
       .select(`
@@ -69,19 +82,13 @@ export async function generateHealthInsight({ user_id, health_area }) {
         dna_marker_reference:dna_id (
           trait_name,
           rsid,
-          effect,
-          dna_marker_health_area:health_area_link (
-            health_area_id
-          )
+          effect
         )
       `)
-      .eq('user_id', user_id);
+      .eq('user_id', user_id)
+      .in('dna_id', relevantDNAIds);
 
-    const filteredDNA = (dnaResults || []).filter(row =>
-      (row.dna_marker_reference?.dna_marker_health_area || []).some(h => h.health_area_id === health_area)
-    );
-
-    const parsedDNA = filteredDNA.map(m => ({
+    const parsedDNA = (dnaResults || []).map(m => ({
       rsid: m.dna_marker_reference?.rsid,
       marker: m.dna_marker_reference?.trait_name,
       value: m.genotype,
