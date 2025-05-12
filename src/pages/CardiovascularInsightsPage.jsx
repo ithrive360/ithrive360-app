@@ -241,7 +241,7 @@ export default function CardiovascularInsightsPage() {
               {bloodGroupOpen[cat] ? <ChevronUp style={{ width: 20, height: 20 }} /> : <ChevronDown style={{ width: 20, height: 20 }} />}
             </div>
             {bloodGroupOpen[cat] && (
-              <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'left' }}>
                 {markers.map((marker, idx) => (
                   <div key={idx}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -269,7 +269,7 @@ export default function CardiovascularInsightsPage() {
               {dnaGroupOpen[cat] ? <ChevronUp style={{ width: 20, height: 20 }} /> : <ChevronDown style={{ width: 20, height: 20 }} />}
             </div>
             {dnaGroupOpen[cat] && (
-              <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'left' }}>
                 {traits.map((trait, idx) => (
                   <div key={idx}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -298,7 +298,7 @@ export default function CardiovascularInsightsPage() {
                 {expandedSection === title ? <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} /> : <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />}
               </div>
               {expandedSection === title && (
-                <div style={{ padding: 16, backgroundColor: '#FFFFFF' }}>
+                <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
                   <ul style={{ paddingLeft: 20, marginTop: 8 }}>
                     {items.map((item, i) => (
                       <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>{item}</li>
