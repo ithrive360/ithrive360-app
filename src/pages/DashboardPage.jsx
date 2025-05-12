@@ -140,7 +140,7 @@ function DashboardPage() {
     try {
       const result = await generateHealthInsight({
         user_id: user.id,
-        health_area: 'Cardiovascular Health'
+        health_area: 'HA002'
       });
 
       if (!result.success) {
