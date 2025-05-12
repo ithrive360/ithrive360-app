@@ -7,11 +7,8 @@ import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
+import Lottie from 'lottie-react';
 import logo from '../assets/logo.png';
-import Lottie from 'lottie-react'; // Import Lottie component
-import morningAnimation from '../public/icons/morning.json'; // Import morning animation
-import afternoonAnimation from '../public/icons/afternoon.json'; // Import afternoon animation
-import eveningAnimation from '../public/icons/evening.json'; // Import evening animation
 
 function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -24,6 +21,7 @@ function DashboardPage() {
   const [prompt, setPrompt] = useState('');
   const [gptResponse, setGptResponse] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [timeAnimation, setTimeAnimation] = useState(null);
 
   const navigate = useNavigate();
 
@@ -41,7 +39,6 @@ function DashboardPage() {
     }
 
     setUser(user);
-
     await initUserProfile(user);
 
     const { data: profileData, error: profileError } = await supabase
@@ -54,9 +51,25 @@ function DashboardPage() {
     setProfile(profileData || null);
 
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    let iconPath = '';
+    if (hour < 12) {
+      setGreeting('Good morning');
+      iconPath = '/icons/morning.json';
+    } else if (hour < 18) {
+      setGreeting('Good afternoon');
+      iconPath = '/icons/afternoon.json';
+    } else {
+      setGreeting('Good evening');
+      iconPath = '/icons/evening.json';
+    }
+
+    try {
+      const res = await fetch(iconPath);
+      const anim = await res.json();
+      setTimeAnimation(anim);
+    } catch (err) {
+      console.error('Failed to load time icon:', err);
+    }
 
     setLoading(false);
   };
@@ -180,8 +193,6 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-
-      {/* Fixed top bar */}
       <div
         style={{
           position: 'fixed',
@@ -198,10 +209,7 @@ function DashboardPage() {
         }}
       >
         <button
-          onClick={() => {
-            setMenuOpen(prev => !prev);
-            console.log('Burger clicked, toggling menu');
-          }}
+          onClick={() => setMenuOpen(prev => !prev)}
           style={{
             position: 'absolute',
             left: 16,
@@ -216,7 +224,6 @@ function DashboardPage() {
         >
           {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
         </button>
-
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
@@ -229,89 +236,14 @@ function DashboardPage() {
 
       <div style={{ height: 60 }} />
 
-      <h2>
-        <p>
-          {/* Add animated icon before the greeting */}
-          <span style={{ display: 'inline-block', width: 32, height: 32, verticalAlign: 'middle', marginRight: 8 }}>
-            <Lottie
-              animationData={
-                greeting === 'Good morning' ? morningAnimation :
-                greeting === 'Good afternoon' ? afternoonAnimation :
-                eveningAnimation
-              }
-              loop={true}
-              style={{ width: 32, height: 32 }}
-            />
-          </span>
-          {greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!
-        </p>
-      </h2>
-
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
-        <div className="card">
-          <h3>DNA Data</h3>
-          <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <label className="btn btn-primary">
-            Upload DNA
-            <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} />
-          </label>
-          {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
-        </div>
-        <div className="card">
-          <h3>Blood Test</h3>
-          <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <label className="btn btn-primary">
-            Upload Blood
-            <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} />
-          </label>
-          {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
-        </div>
-      </div>
-
-      <div style={{ marginTop: '3rem' }}>
-        <h2>Quick Actions</h2>
-        <button className="btn btn-primary">Start New Report</button>
-        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Insights</button>
-        <button className="btn btn-primary">Recommendations</button>
-        <button
-          className="btn"
-          onClick={handleTestGPT}
-          style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
-        >
-          Test GPT
-        </button>
-      </div>
-
-      {profile?.dna_uploaded && profile?.blood_uploaded && (
-        <div style={{ marginTop: '3rem' }}>
-          <h3>Progress Tracker</h3>
-          <p>3 out of 8 areas improved since your last test 💪</p>
-          <div style={{ height: '10px', width: '80%', background: '#eee', margin: '0 auto', borderRadius: '5px' }}>
-            <div style={{ width: '37%', height: '100%', background: '#3ab3a1', borderRadius: '5px' }}></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {timeAnimation && (
+          <div style={{ width: 36, height: 36 }}>
+            <Lottie animationData={timeAnimation} loop autoplay />
           </div>
-        </div>
-      )}
-
-      {inputJson && prompt && (
-        <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#f0f0f0' }}>
-          <h3>Preview: Input JSON</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{JSON.stringify(inputJson, null, 2)}</pre>
-
-          <h3 style={{ marginTop: '2rem' }}>Preview: Prompt Sent to GPT</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{prompt}</pre>
-        </div>
-      )}
-
-      {gptResponse && (
-        <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#e8f5e9' }}>
-          <h3>Preview: GPT Response</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{gptResponse}</pre>
-        </div>
-      )}
-
-      <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop: '2rem' }}>
-        Sign Out
-      </button>
+        )}
+        <h2>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</h2>
+      </div>
     </div>
   );
 }
