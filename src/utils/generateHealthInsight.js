@@ -78,7 +78,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const relevantDNAIds = dnaMarkerLinks.map(r => r.dna_id);
 
-    // ✅ Step 4: Fetch user DNA results in batches
+    // ✅ Step 4: Fetch user DNA results in batches (chunked .in() query)
     const dnaBatchSize = 50;
     let dnaResults = [];
 
@@ -87,12 +87,12 @@ export async function generateHealthInsight({ user_id, health_area }) {
       const { data: dnaData, error: batchError } = await supabase
         .from('user_dna_result')
         .select(`
-          genotype,
+          value,
           dna_id,
           dna_marker_reference:dna_id (
+            trait_name,
             rsid,
-            trait,
-            interpretation
+            effect
           )
         `)
         .eq('user_id', user_id)
@@ -108,10 +108,10 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const parsedDNA = dnaResults.map(m => ({
       rsid: m.dna_marker_reference?.rsid,
-      marker: m.dna_marker_reference?.trait,
-      value: m.genotype,
+      marker: m.dna_marker_reference?.trait_name,
+      value: m.value,
       type: 'dna',
-      effect: m.dna_marker_reference?.interpretation,
+      effect: m.dna_marker_reference?.effect,
     }));
 
     const markers = [...parsedBlood, ...parsedDNA];
