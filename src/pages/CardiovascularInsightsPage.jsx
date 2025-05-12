@@ -207,65 +207,41 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-<div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
-  <button
-    onClick={() => setActiveTab('blood')}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      padding: '8px 16px',
-      borderRadius: 8,
-      border: 'none',
-      backgroundColor: activeTab === 'blood' ? '#2563EB' : '#F3F4F6',
-      color: activeTab === 'blood' ? '#FFFFFF' : '#4B5563',
-      fontWeight: 600,
-      fontSize: 14,
-      cursor: 'pointer'
-    }}
-  >
-    <Droplet size={18} />
-    {bloodStats.total}
-  </button>
-
-  <button
-    onClick={() => setActiveTab('dna')}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      padding: '8px 16px',
-      borderRadius: 8,
-      border: 'none',
-      backgroundColor: activeTab === 'dna' ? '#2563EB' : '#F3F4F6',
-      color: activeTab === 'dna' ? '#FFFFFF' : '#4B5563',
-      fontWeight: 600,
-      fontSize: 14,
-      cursor: 'pointer'
-    }}
-  >
-    <Dna size={18} />
-    {dnaStats.total}
-  </button>
-
-  <button
-    onClick={() => setActiveTab('recommendations')}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      padding: '8px 16px',
-      borderRadius: 8,
-      border: 'none',
-      backgroundColor: activeTab === 'recommendations' ? '#2563EB' : '#F3F4F6',
-      color: activeTab === 'recommendations' ? '#FFFFFF' : '#4B5563',
-      fontWeight: 600,
-      fontSize: 14,
-      cursor: 'pointer'
-    }}
-  >
-    <ListChecks size={18} />
-  </button>
+<div style={{ display: 'flex', width: '100%', maxWidth: '1100px', margin: '0 auto 24px', gap: 0 }}>
+  {[
+    { key: 'blood', icon: <Droplet size={18} />, label: 'Blood', count: bloodStats.total, color: '#3B82F6' },
+    { key: 'dna', icon: <Dna size={18} />, label: 'DNA', count: dnaStats.total, color: '#8B5CF6' },
+    { key: 'recommendations', icon: <ListChecks size={18} />, label: 'Action', count: '', color: '#10B981' }
+  ].map(tab => (
+    <button
+      key={tab.key}
+      onClick={() => setActiveTab(tab.key)}
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        padding: '10px 0',
+        backgroundColor: activeTab === tab.key ? tab.color : '#F3F4F6',
+        color: activeTab === tab.key ? '#FFFFFF' : '#374151',
+        fontWeight: 600,
+        fontSize: 14,
+        border: '1px solid #E5E7EB',
+        borderLeft: tab.key === 'blood' ? '1px solid #E5E7EB' : 'none',
+        borderRight: tab.key === 'recommendations' ? '1px solid #E5E7EB' : 'none',
+        cursor: 'pointer',
+        borderRadius: tab.key === 'blood'
+          ? '8px 0 0 8px'
+          : tab.key === 'recommendations'
+          ? '0 8px 8px 0'
+          : '0'
+      }}
+    >
+      {tab.icon}
+      {tab.label} {tab.count !== '' && `(${tab.count})`}
+    </button>
+  ))}
 </div>
 
       {activeTab === 'blood' && ['strength', 'warning', 'risk'].map(cat => {
@@ -295,6 +271,7 @@ export default function CardiovascularInsightsPage() {
           </div>
         );
       })}
+
 
       {activeTab === 'dna' && ['strength', 'warning', 'risk'].map(cat => {
         const traits = data.dna_traits.filter(t => t.category === cat);
