@@ -24,7 +24,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
         blood_marker_reference:marker_id (
           marker_name,
           reference_range,
-          blood_marker_health_area (
+          blood_marker_health_area:health_area_link (
             health_area_id
           )
         )
@@ -32,7 +32,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .eq('user_id', user_id);
 
     const filteredBlood = (bloodResults || []).filter(row =>
-      row.blood_marker_reference?.blood_marker_health_area?.some(h => h.health_area_id === health_area)
+      (row.blood_marker_reference?.blood_marker_health_area || []).some(h => h.health_area_id === health_area)
     );
 
     const parsedBlood = filteredBlood.map(entry => {
@@ -60,17 +60,17 @@ export async function generateHealthInsight({ user_id, health_area }) {
       };
     });
 
-    // ✅ Fetch and filter DNA traits by health area (FIXED foreign key path)
+    // ✅ Fetch and filter DNA traits by health area
     const { data: dnaResults } = await supabase
       .from('user_dna_result')
       .select(`
         genotype,
         dna_id,
-        dna_marker_reference:dna_id!dna_id (
+        dna_marker_reference:dna_id (
           trait_name,
           rsid,
           effect,
-          dna_marker_health_area (
+          dna_marker_health_area:health_area_link (
             health_area_id
           )
         )
@@ -78,7 +78,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       .eq('user_id', user_id);
 
     const filteredDNA = (dnaResults || []).filter(row =>
-      row.dna_marker_reference?.dna_marker_health_area?.some(h => h.health_area_id === health_area)
+      (row.dna_marker_reference?.dna_marker_health_area || []).some(h => h.health_area_id === health_area)
     );
 
     const parsedDNA = filteredDNA.map(m => ({
