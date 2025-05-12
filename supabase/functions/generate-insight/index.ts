@@ -1,20 +1,19 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      headers: {
-        "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey",
-      },
-    });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const { user_id, health_area, markers } = await req.json();
 
-    // Separate blood and dna markers
     const blood_results = markers
       .filter((m: any) => m.type === "blood")
       .map((m: any) => ({
@@ -99,7 +98,6 @@ JSON to analyze:
 ${JSON.stringify(input_json, null, 2)}
     `.trim();
 
-    // 🔥 Call GPT-4o with the prompt
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -122,18 +120,13 @@ ${JSON.stringify(input_json, null, 2)}
     }
 
     const gptData = await openaiResponse.json();
-    console.log("GPT raw response:", JSON.stringify(gptData, null, 2));
-
     let gpt_response = gptData.choices?.[0]?.message?.content || "";
 
-    // ✅ More robust Markdown cleanup for GPT response
     gpt_response = gpt_response
       .trim()
-      .replace(/^```json\s*\n?/, '')
-      .replace(/^```\n?/, '')
-      .replace(/```$/, '');
-
-    console.log("Sanitized GPT content:", gpt_response);
+      .replace(/^```json\s*\n?/, "")
+      .replace(/^```\n?/, "")
+      .replace(/```$/, "");
 
     return new Response(
       JSON.stringify({
@@ -144,8 +137,8 @@ ${JSON.stringify(input_json, null, 2)}
       }),
       {
         headers: {
+          ...corsHeaders,
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
         },
       }
     );
@@ -154,8 +147,8 @@ ${JSON.stringify(input_json, null, 2)}
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
       },
     });
   }
