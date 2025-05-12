@@ -151,7 +151,21 @@ export async function generateHealthInsight({ user_id, health_area }) {
     }
 
     const result = await response.json();
-    console.log('[generateHealthInsight] Raw response data:', result);
+
+    console.log('[generateHealthInsight] Raw GPT response string:', result.gpt_response);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(result.gpt_response || '{}');
+    } catch (err) {
+      console.error(`[generateHealthInsight] ❌ Failed to parse GPT response for ${health_area}:`, err.message);
+      console.log('GPT raw response:', result.gpt_response);
+      return { success: false, error: 'Failed to parse GPT response.' };
+    }
+
+    console.log(`[generateHealthInsight] Parsed summary: ${parsed.summary}`);
+    console.log(`[generateHealthInsight] Parsed blood_markers:`, parsed.blood_markers?.length);
+    console.log(`[generateHealthInsight] Parsed dna_traits:`, parsed.dna_traits?.length);
 
     if (!result?.gpt_response || typeof result.gpt_response !== 'string') {
       throw new Error('Invalid or empty GPT response');
