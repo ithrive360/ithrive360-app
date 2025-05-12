@@ -54,12 +54,12 @@ export async function generateAllHealthInsights(user_id) {
 
       console.log(`[${area_id}] Insert payload:`, insertPayload);
 
-      const { error: insertError, data: insertResult } = await supabase
+      const { error: insertError } = await supabase
         .from('user_health_insight')
-        .upsert(insertPayload, { onConflict: ['user_id', 'health_area_id'] })
-        .select();
-
-      console.log(`[${area_id}] DB insert result:`, insertResult);
+        .upsert(insertPayload, {
+          onConflict: ['user_id', 'health_area_id'],
+          returning: 'minimal'
+        });
 
       if (insertError) {
         console.error(`❌ DB insert failed for ${area_id}:`, insertError.message);
