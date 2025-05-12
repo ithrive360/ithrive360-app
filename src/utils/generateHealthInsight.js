@@ -60,13 +60,13 @@ export async function generateHealthInsight({ user_id, health_area }) {
       };
     });
 
-    // ✅ Fetch and filter DNA traits by health area
+    // ✅ Fetch and filter DNA traits by health area (FIXED foreign key path)
     const { data: dnaResults } = await supabase
       .from('user_dna_result')
       .select(`
         genotype,
         dna_id,
-        dna_marker_reference:dna_id (
+        dna_marker_reference:dna_id!dna_id (
           trait_name,
           rsid,
           effect,
