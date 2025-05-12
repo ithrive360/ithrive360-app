@@ -8,6 +8,10 @@ import { generateHealthInsight } from '../utils/generateHealthInsight';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
 import logo from '../assets/logo.png';
+import Lottie from 'lottie-react'; // Import Lottie component
+import morningAnimation from '../public/icons/morning.json'; // Import morning animation
+import afternoonAnimation from '../public/icons/afternoon.json'; // Import afternoon animation
+import eveningAnimation from '../public/icons/evening.json'; // Import evening animation
 
 function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -225,7 +229,23 @@ function DashboardPage() {
 
       <div style={{ height: 60 }} />
 
-      <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
+      <h2>
+        <p>
+          {/* Add animated icon before the greeting */}
+          <span style={{ display: 'inline-block', width: 32, height: 32, verticalAlign: 'middle', marginRight: 8 }}>
+            <Lottie
+              animationData={
+                greeting === 'Good morning' ? morningAnimation :
+                greeting === 'Good afternoon' ? afternoonAnimation :
+                eveningAnimation
+              }
+              loop={true}
+              style={{ width: 32, height: 32 }}
+            />
+          </span>
+          {greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!
+        </p>
+      </h2>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
