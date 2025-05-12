@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut } from 'lucide-react';
+import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut, Apple } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
@@ -16,7 +16,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
     { icon: <User size={20} />, label: 'My Profile', action: () => {} },    
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/insights/cardiovascular') },
     { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => {} },
-    { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => {} },
+    { icon: <Apple size={20} />, label: 'Track Diet', action: () => {} },
     { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
     { icon: <Settings size={20} />, label: 'Settings', action: () => {} },
     { icon: <User size={20} />, label: 'My Profile', action: () => {} },
