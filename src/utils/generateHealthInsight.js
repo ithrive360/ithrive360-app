@@ -130,20 +130,24 @@ export async function generateHealthInsight({ user_id, health_area }) {
       };
     }
 
-    console.log('[generateHealthInsight] Input payload:', {
-      user_id,
-      health_area,
-      markers,
-    });
+    console.log('[generateHealthInsight] markers content preview:', markers);
+    const requestBody = { user_id, health_area, markers };
+    console.log('[generateHealthInsight] Final request body:', JSON.stringify(requestBody));
 
-    const response = await fetch(`${baseUrl}/generate-insight`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ user_id, health_area, markers }),
-    });
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/generate-insight`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+    } catch (err) {
+      console.error('[generateHealthInsight] Fetch to edge function failed:', err);
+      return { success: false, error: 'Fetch failed' };
+    }
 
     const contentType = response.headers.get('Content-Type') || '';
     if (!contentType.includes('application/json')) {
