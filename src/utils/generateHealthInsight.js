@@ -18,12 +18,12 @@ export async function generateHealthInsight({ user_id, health_area }) {
     // ✅ Step 1: Fetch relevant blood marker IDs for this health area
     const { data: bloodMarkerLinks, error: bloodLinkError } = await supabase
       .from('blood_marker_health_area')
-      .select('marker_id')
+      .select('blood_marker_id')
       .eq('health_area_id', health_area);
 
     if (bloodLinkError) throw new Error('Failed to fetch blood marker links');
 
-    const relevantBloodIds = bloodMarkerLinks.map(r => r.marker_id);
+    const relevantBloodIds = bloodMarkerLinks.map(r => r.blood_marker_id);
 
     // ✅ Step 2: Fetch user blood results for those marker IDs
     const { data: bloodResults } = await supabase
