@@ -90,7 +90,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
           value,
           dna_id,
           dna_marker_reference:dna_id (
-            trait_name,
+            trait,
             rsid,
             effect
           )
@@ -108,7 +108,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const parsedDNA = dnaResults.map(m => ({
       rsid: m.dna_marker_reference?.rsid,
-      marker: m.dna_marker_reference?.trait_name,
+      marker: m.dna_marker_reference?.trait,
       value: m.value,
       type: 'dna',
       effect: m.dna_marker_reference?.effect,
