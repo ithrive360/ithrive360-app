@@ -15,32 +15,29 @@ export async function generateHealthInsight({ user_id, health_area }) {
         ? 'http://localhost:54321/functions/v1'
         : 'https://oqjblzxhfszvluhvfclv.functions.supabase.co';
 
-    // ✅ Fetch user blood results with reference data
-    const { data: bloodData, error: bloodError } = await supabase
+    // ✅ Fetch and filter blood markers by health area
+    const { data: bloodResults } = await supabase
       .from('user_blood_result')
       .select(`
         value,
-        unit,
-        marker:blood_marker_reference (
+        marker_id,
+        blood_marker_reference:marker_id (
           marker_name,
           reference_range,
-          health_area
+          blood_marker_health_area (
+            health_area_id
+          )
         )
       `)
       .eq('user_id', user_id);
 
-    if (bloodError) {
-      console.error('[generateHealthInsight] Error fetching blood markers:', bloodError.message);
-      throw new Error('Failed to load blood results.');
-    }
-
-    const filteredBlood = (bloodData || []).filter(
-      entry => entry.marker?.health_area === health_area
+    const filteredBlood = (bloodResults || []).filter(row =>
+      row.blood_marker_reference?.blood_marker_health_area?.some(h => h.health_area_id === health_area)
     );
 
     const parsedBlood = filteredBlood.map(entry => {
       const rawValue = parseFloat(entry.value);
-      const range = entry.marker?.reference_range;
+      const range = entry.blood_marker_reference?.reference_range;
       let status = 'Normal';
 
       if (range && rawValue !== undefined && !isNaN(rawValue)) {
@@ -55,45 +52,41 @@ export async function generateHealthInsight({ user_id, health_area }) {
       }
 
       return {
-        marker: entry.marker?.marker_name,
+        marker: entry.blood_marker_reference?.marker_name,
         value: entry.value,
         type: 'blood',
         status,
-        reference_range: entry.marker?.reference_range,
+        reference_range: entry.blood_marker_reference?.reference_range,
       };
     });
 
-    // ✅ Fetch user DNA results with rsid added
-    const { data: dnaData, error: dnaError } = await supabase
+    // ✅ Fetch and filter DNA traits by health area
+    const { data: dnaResults } = await supabase
       .from('user_dna_result')
       .select(`
-        value,
-        marker:dna_marker_reference (
+        genotype,
+        dna_id,
+        dna_marker_reference:dna_id (
+          trait_name,
           rsid,
-          trait,
-          interpretation,
-          gpt_instruction,
-          health_area
+          effect,
+          dna_marker_health_area (
+            health_area_id
+          )
         )
       `)
       .eq('user_id', user_id);
 
-    if (dnaError) {
-      console.error('[generateHealthInsight] Error fetching DNA traits:', dnaError.message);
-      throw new Error('Failed to load DNA results.');
-    }
-
-    const filteredDNA = (dnaData || []).filter(
-      entry => entry.marker?.health_area === health_area
+    const filteredDNA = (dnaResults || []).filter(row =>
+      row.dna_marker_reference?.dna_marker_health_area?.some(h => h.health_area_id === health_area)
     );
 
     const parsedDNA = filteredDNA.map(m => ({
-      rsid: m.marker?.rsid,
-      marker: m.marker?.trait,
-      value: m.value,
+      rsid: m.dna_marker_reference?.rsid,
+      marker: m.dna_marker_reference?.trait_name,
+      value: m.genotype,
       type: 'dna',
-      effect: m.marker?.interpretation,
-      gpt_instruction: m.marker?.gpt_instruction,
+      effect: m.dna_marker_reference?.effect,
     }));
 
     const markers = [...parsedBlood, ...parsedDNA];
@@ -125,7 +118,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
       success: true,
       input_json: result.input_json,
       prompt: result.prompt,
-      gpt_response: result.gpt_response, // ✅ clean response only
+      gpt_response: result.gpt_response,
     };
   } catch (err) {
     console.error('[generateHealthInsight] GPT call failed:', err);
