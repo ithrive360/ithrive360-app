@@ -30,8 +30,13 @@ export async function generateAllHealthInsights(user_id) {
         parsed = JSON.parse(result.gpt_response || '{}');
       } catch (err) {
         console.error(`❌ Failed to parse GPT response for ${area_id}:`, err.message);
+        console.log('[RAW GPT RESPONSE]', result.gpt_response);
         continue;
       }
+
+      console.log(`[${area_id}] Parsed summary:`, parsed.summary);
+      console.log(`[${area_id}] Blood markers:`, parsed.blood_markers?.length ?? 0);
+      console.log(`[${area_id}] DNA traits:`, parsed.dna_traits?.length ?? 0);
 
       const insertPayload = {
         user_id,
@@ -46,6 +51,8 @@ export async function generateAllHealthInsights(user_id) {
         prompt_version: 'v1',
         created_at: new Date().toISOString()
       };
+
+      console.log(`[${area_id}] Insert payload:`, insertPayload);
 
       const { error: insertError } = await supabase
         .from('user_health_insight')
