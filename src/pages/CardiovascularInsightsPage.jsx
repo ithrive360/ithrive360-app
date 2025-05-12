@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import {
   Heart, AlertCircle, CheckCircle, AlertTriangle,
   ChevronDown, ChevronUp, Utensils, Pill, Dumbbell, Smile,
-  ArrowLeft
+  ArrowLeft, Droplet, Dna, ListChecks
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -207,27 +207,66 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-      {['blood', 'dna', 'recommendations'].map(tab => (
-        <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
-          style={{
-            padding: '10px 16px',
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: 'pointer',
-            border: 'none',
-            borderRadius: '8px 8px 0 0',
-            backgroundColor: activeTab === tab ? '#2563EB' : '#F3F4F6',
-            color: activeTab === tab ? '#FFFFFF' : '#4B5563',
-            marginRight: 8
-          }}
-        >
-          {tab === 'blood' && `Blood Markers (${bloodStats.total})`}
-          {tab === 'dna' && `DNA Traits (${dnaStats.total})`}
-          {tab === 'recommendations' && 'Recommendations'}
-        </button>
-      ))}
+<div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
+  <button
+    onClick={() => setActiveTab('blood')}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '8px 16px',
+      borderRadius: 8,
+      border: 'none',
+      backgroundColor: activeTab === 'blood' ? '#2563EB' : '#F3F4F6',
+      color: activeTab === 'blood' ? '#FFFFFF' : '#4B5563',
+      fontWeight: 600,
+      fontSize: 14,
+      cursor: 'pointer'
+    }}
+  >
+    <Droplet size={18} />
+    {bloodStats.total}
+  </button>
+
+  <button
+    onClick={() => setActiveTab('dna')}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '8px 16px',
+      borderRadius: 8,
+      border: 'none',
+      backgroundColor: activeTab === 'dna' ? '#2563EB' : '#F3F4F6',
+      color: activeTab === 'dna' ? '#FFFFFF' : '#4B5563',
+      fontWeight: 600,
+      fontSize: 14,
+      cursor: 'pointer'
+    }}
+  >
+    <Dna size={18} />
+    {dnaStats.total}
+  </button>
+
+  <button
+    onClick={() => setActiveTab('recommendations')}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '8px 16px',
+      borderRadius: 8,
+      border: 'none',
+      backgroundColor: activeTab === 'recommendations' ? '#2563EB' : '#F3F4F6',
+      color: activeTab === 'recommendations' ? '#FFFFFF' : '#4B5563',
+      fontWeight: 600,
+      fontSize: 14,
+      cursor: 'pointer'
+    }}
+  >
+    <ListChecks size={18} />
+  </button>
+</div>
 
       {activeTab === 'blood' && ['strength', 'warning', 'risk'].map(cat => {
         const markers = data.blood_markers.filter(m => m.category === cat);
