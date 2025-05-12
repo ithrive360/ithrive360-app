@@ -247,7 +247,7 @@ function DashboardPage() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
         {timeAnimation && (
-          <div style={{ width: 36, height: 36 }}>
+          <div style={{ width: 48, height: 48 }}>
             <Lottie animationData={timeAnimation} loop autoplay />
           </div>
         )}
