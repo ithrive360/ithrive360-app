@@ -23,6 +23,7 @@ function DashboardPage() {
   const [gptResponse, setGptResponse] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [timeAnimation, setTimeAnimation] = useState(null);
+  const [insightStatus, setInsightStatus] = useState(''); // Added new state for insight status
 
   const navigate = useNavigate();
 
@@ -75,7 +76,6 @@ function DashboardPage() {
     }
 
     setLoading(false);
-
   };
 
   useEffect(() => {
@@ -185,11 +185,25 @@ function DashboardPage() {
       } else {
         console.log('Insight saved to DB.');
       }
-
     } catch (e) {
       console.error("Unhandled error in handleTestGPT:", e);
       alert("Unexpected error. See console.");
     }
+  };
+
+  const generateInsightsIndividually = async () => {
+    const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
+    for (const area of healthAreas) {
+      setInsightStatus(`Processing ${area}...`);
+      const { error } = await supabase.functions.invoke('generate-insight', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: user.id, health_area: area }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (error) console.error(`❌ Error invoking for ${area}:`, error.message);
+      await new Promise(r => setTimeout(r, 250));
+    }
+    setInsightStatus('✅ All insights processed.');
   };
 
   if (loading) return <p>Loading...</p>;
@@ -197,7 +211,6 @@ function DashboardPage() {
 
   return (
     <div className="dashboard">
-
       {/* Fixed top bar */}
       <div
         style={{
@@ -255,7 +268,6 @@ function DashboardPage() {
         <h2 style={{ margin: 0 }}>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</h2>
       </div>
 
-
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
           <h3>DNA Data</h3>
@@ -281,18 +293,16 @@ function DashboardPage() {
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
         <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Cardio Insights</button>
-        
+
         <button
-          onClick={async () => {
-            const ok = await generateAllHealthInsights(user.id);
-            alert(ok ? '✅ All insights generated.' : '❌ Something went wrong.');
-          }}
+          onClick={generateInsightsIndividually}
           className="btn btn-primary"
           style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}
         >
           Generate All Insights
         </button>
 
+        {insightStatus && <p style={{ marginTop: '1rem', fontWeight: 'bold' }}>{insightStatus}</p>}
 
         <button className="btn btn-primary">Recommendations</button>
         <button
