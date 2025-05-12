@@ -24,6 +24,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
     if (bloodLinkError) throw new Error('Failed to fetch blood marker links');
 
     const relevantBloodIds = bloodMarkerLinks.map(r => r.blood_marker_id);
+    console.log(`[generateHealthInsight] Relevant blood IDs for ${health_area}:`, relevantBloodIds);
 
     // ✅ Step 2: Fetch user blood results for those marker IDs
     let bloodResults = [];
@@ -43,6 +44,8 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
       bloodResults = bloodData || [];
     }
+
+    console.log(`[generateHealthInsight] Found ${bloodResults.length} blood results for ${health_area}`);
 
     const parsedBlood = bloodResults.map(entry => {
       const rawValue = parseFloat(entry.value);
@@ -92,7 +95,7 @@ export async function generateHealthInsight({ user_id, health_area }) {
           dna_marker_reference:dna_id (
             trait,
             rsid,
-            effect
+            interpretation
           )
         `)
         .eq('user_id', user_id)
@@ -111,8 +114,10 @@ export async function generateHealthInsight({ user_id, health_area }) {
       marker: m.dna_marker_reference?.trait,
       value: m.value,
       type: 'dna',
-      effect: m.dna_marker_reference?.effect,
+      effect: m.dna_marker_reference?.interpretation,
     }));
+
+    console.log(`[generateHealthInsight] parsedBlood: ${parsedBlood.length}, parsedDNA: ${parsedDNA.length}`);
 
     const markers = [...parsedBlood, ...parsedDNA];
 
