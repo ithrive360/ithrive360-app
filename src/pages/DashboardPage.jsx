@@ -7,6 +7,7 @@ import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
+import Lottie from 'lottie-react';
 import logo from '../assets/logo.png';
 
 function DashboardPage() {
@@ -20,6 +21,7 @@ function DashboardPage() {
   const [prompt, setPrompt] = useState('');
   const [gptResponse, setGptResponse] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [timeAnimation, setTimeAnimation] = useState(null);
 
   const navigate = useNavigate();
 
@@ -50,11 +52,29 @@ function DashboardPage() {
     setProfile(profileData || null);
 
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    let iconPath = '';
+
+    if (hour < 12) {
+      setGreeting('Good morning');
+      iconPath = '/icons/morning.json';
+    } else if (hour < 18) {
+      setGreeting('Good afternoon');
+      iconPath = '/icons/afternoon.json';
+    } else {
+      setGreeting('Good evening');
+      iconPath = '/icons/evening.json';
+    }
+
+    try {
+      const res = await fetch(iconPath);
+      const anim = await res.json();
+      setTimeAnimation(anim);
+    } catch (err) {
+      console.error('Failed to load time icon:', err);
+    }
 
     setLoading(false);
+
   };
 
   useEffect(() => {
@@ -225,7 +245,15 @@ function DashboardPage() {
 
       <div style={{ height: 60 }} />
 
-      <h2><p>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</p></h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+        {timeAnimation && (
+          <div style={{ width: 36, height: 36 }}>
+            <Lottie animationData={timeAnimation} loop autoplay />
+          </div>
+        )}
+        <h2 style={{ margin: 0 }}>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</h2>
+      </div>
+
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
