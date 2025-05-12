@@ -3,10 +3,10 @@ import { generateHealthInsight } from './generateHealthInsight';
 
 export async function generateAllHealthInsights(user_id) {
   try {
-    // Get all health areas
+    // Get all health areas using correct column
     const { data: areas, error: areasError } = await supabase
       .from('health_area_reference')
-      .select('id');
+      .select('health_area_id');
 
     if (areasError) {
       console.error('[generateAllHealthInsights] Failed to fetch health areas:', areasError.message);
@@ -14,7 +14,7 @@ export async function generateAllHealthInsights(user_id) {
     }
 
     for (const area of areas) {
-      const area_id = area.id;
+      const area_id = area.health_area_id;
       console.log(`▶ Generating insight for ${area_id}...`);
 
       const result = await generateHealthInsight({ user_id, health_area: area_id });
