@@ -78,10 +78,13 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const relevantDNAIds = dnaMarkerLinks.map(r => r.dna_id);
 
-    // ✅ Step 4: Fetch user DNA results for those dna_ids
+    // ✅ Step 4: Fetch user DNA results in batches
+    const dnaBatchSize = 50;
     let dnaResults = [];
-    if (relevantDNAIds.length > 0) {
-      const { data: dnaData } = await supabase
+
+    for (let i = 0; i < relevantDNAIds.length; i += dnaBatchSize) {
+      const batch = relevantDNAIds.slice(i, i + dnaBatchSize);
+      const { data: dnaData, error: batchError } = await supabase
         .from('user_dna_result')
         .select(`
           genotype,
@@ -93,9 +96,14 @@ export async function generateHealthInsight({ user_id, health_area }) {
           )
         `)
         .eq('user_id', user_id)
-        .in('dna_id', relevantDNAIds);
+        .in('dna_id', batch);
 
-      dnaResults = dnaData || [];
+      if (batchError) {
+        console.error(`Failed to fetch DNA batch ${i / dnaBatchSize + 1}:`, batchError.message);
+        continue;
+      }
+
+      dnaResults = dnaResults.concat(dnaData || []);
     }
 
     const parsedDNA = dnaResults.map(m => ({
