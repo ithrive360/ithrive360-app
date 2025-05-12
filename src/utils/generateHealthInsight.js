@@ -116,6 +116,15 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const markers = [...parsedBlood, ...parsedDNA];
 
+    // 🛑 Early exit if no markers found
+    if (markers.length === 0) {
+      console.warn(`[generateHealthInsight] No markers found for ${health_area}`);
+      return {
+        success: false,
+        error: 'No markers available for this health area.',
+      };
+    }
+
     console.log('[generateHealthInsight] Input payload:', {
       user_id,
       health_area,
