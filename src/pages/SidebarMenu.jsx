@@ -19,7 +19,6 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
     { icon: <Soup size={20} />, label: 'Track Diet', action: () => {} },
     { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
     { icon: <Settings size={20} />, label: 'Settings', action: () => {} },
-    { icon: <User size={20} />, label: 'My Profile', action: () => {} },
     { icon: <HelpCircle size={20} />, label: 'Help Center', action: () => {} },
   ];
 
