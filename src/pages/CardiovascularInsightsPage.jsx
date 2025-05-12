@@ -223,8 +223,12 @@ export default function CardiovascularInsightsPage() {
         justifyContent: 'center',
         gap: 6,
         padding: '10px 0',
-        backgroundColor: activeTab === tab.key ? tab.color : '#F3F4F6',
+        backgroundColor:
+          activeTab === tab.key
+            ? (tab.key === 'blood' ? '#EF4444' : tab.key === 'dna' ? '#3B82F6' : '#10B981')
+            : '#F3F4F6',
         color: activeTab === tab.key ? '#FFFFFF' : '#374151',
+        outline: 'none',
         fontWeight: 600,
         fontSize: 14,
         border: '1px solid #E5E7EB',
