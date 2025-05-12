@@ -26,20 +26,25 @@ export async function generateHealthInsight({ user_id, health_area }) {
     const relevantBloodIds = bloodMarkerLinks.map(r => r.blood_marker_id);
 
     // ✅ Step 2: Fetch user blood results for those marker IDs
-    const { data: bloodResults } = await supabase
-      .from('user_blood_result')
-      .select(`
-        value,
-        marker_id,
-        blood_marker_reference:marker_id (
-          marker_name,
-          reference_range
-        )
-      `)
-      .eq('user_id', user_id)
-      .in('marker_id', relevantBloodIds);
+    let bloodResults = [];
+    if (relevantBloodIds.length > 0) {
+      const { data: bloodData } = await supabase
+        .from('user_blood_result')
+        .select(`
+          value,
+          marker_id,
+          blood_marker_reference:marker_id (
+            marker_name,
+            reference_range
+          )
+        `)
+        .eq('user_id', user_id)
+        .in('marker_id', relevantBloodIds);
 
-    const parsedBlood = (bloodResults || []).map(entry => {
+      bloodResults = bloodData || [];
+    }
+
+    const parsedBlood = bloodResults.map(entry => {
       const rawValue = parseFloat(entry.value);
       const range = entry.blood_marker_reference?.reference_range;
       let status = 'Normal';
@@ -74,21 +79,26 @@ export async function generateHealthInsight({ user_id, health_area }) {
     const relevantDNAIds = dnaMarkerLinks.map(r => r.dna_id);
 
     // ✅ Step 4: Fetch user DNA results for those dna_ids
-    const { data: dnaResults } = await supabase
-      .from('user_dna_result')
-      .select(`
-        genotype,
-        dna_id,
-        dna_marker_reference:dna_id (
-          trait_name,
-          rsid,
-          effect
-        )
-      `)
-      .eq('user_id', user_id)
-      .in('dna_id', relevantDNAIds);
+    let dnaResults = [];
+    if (relevantDNAIds.length > 0) {
+      const { data: dnaData } = await supabase
+        .from('user_dna_result')
+        .select(`
+          genotype,
+          dna_id,
+          dna_marker_reference:dna_id (
+            trait_name,
+            rsid,
+            effect
+          )
+        `)
+        .eq('user_id', user_id)
+        .in('dna_id', relevantDNAIds);
 
-    const parsedDNA = (dnaResults || []).map(m => ({
+      dnaResults = dnaData || [];
+    }
+
+    const parsedDNA = dnaResults.map(m => ({
       rsid: m.dna_marker_reference?.rsid,
       marker: m.dna_marker_reference?.trait_name,
       value: m.genotype,
@@ -120,6 +130,10 @@ export async function generateHealthInsight({ user_id, health_area }) {
 
     const result = await response.json();
     console.log('[generateHealthInsight] Raw response data:', result);
+
+    if (!result?.gpt_response || typeof result.gpt_response !== 'string') {
+      throw new Error('Invalid or empty GPT response');
+    }
 
     return {
       success: true,
