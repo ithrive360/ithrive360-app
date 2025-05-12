@@ -284,14 +284,16 @@ function DashboardPage() {
         
         <button
           onClick={async () => {
-            await generateAllHealthInsights(user.id);
-            alert('✅ All health insights generated and saved.');
+            const success = await generateAllHealthInsights(user.id);
+            if (success) alert('✅ All health insights generated and saved.');
+            else alert('⚠️ Some insights failed to generate.');
           }}
           className="btn btn-primary"
           style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}
         >
           Generate All Insights
         </button>
+
 
 
         <button className="btn btn-primary">Recommendations</button>
