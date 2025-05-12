@@ -281,7 +281,18 @@ function DashboardPage() {
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
         <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Cardio Insights</button>
-        <button onClick={() => generateAllHealthInsights(user.id)} className="btn btn-primary"style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}>Generate All Insights</button>
+        
+        <button
+          onClick={async () => {
+            await generateAllHealthInsights(user.id);
+            alert('✅ All health insights generated and saved.');
+          }}
+          className="btn btn-primary"
+          style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}
+        >
+          Generate All Insights
+        </button>
+
 
         <button className="btn btn-primary">Recommendations</button>
         <button
