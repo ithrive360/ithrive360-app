@@ -5,6 +5,7 @@ import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
+import { generateAllHealthInsights } from '../utils/generateAllHealthInsights';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
 import Lottie from 'lottie-react';
@@ -279,7 +280,9 @@ function DashboardPage() {
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
         <button className="btn btn-primary">Start New Report</button>
-        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Insights</button>
+        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Cardio Insights</button>
+        <button onClick={() => generateAllHealthInsights(user.id)} className="btn btn-primary"style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}>Generate All Insights</button>
+
         <button className="btn btn-primary">Recommendations</button>
         <button
           className="btn"
