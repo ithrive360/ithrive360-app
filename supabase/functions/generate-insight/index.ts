@@ -1,18 +1,66 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://ithrive360-app.vercel.app",
+  "Access-Control-Allow-Origin": "*",  // Consider restricting this in production
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req: Request) => {
+  // Handle preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { user_id, health_area, markers } = await req.json();
+    // Check if the request body is empty
+    const text = await req.text();
+    if (!text) {
+      throw new Error("Request body is empty");
+    }
+
+    // Try to parse the JSON
+    let requestData;
+    try {
+      requestData = JSON.parse(text);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError.message);
+      console.error("Received text:", text);
+      throw new Error(`Failed to parse request JSON: ${parseError.message}`);
+    }
+
+    // Validate required fields
+    const { user_id, health_area, markers = [] } = requestData;
+    
+    if (!user_id) {
+      throw new Error("Missing required field: user_id");
+    }
+    
+    if (!health_area) {
+      throw new Error("Missing required field: health_area");
+    }
+
+    console.log(`Processing request for user_id=${user_id}, health_area=${health_area}, markers.length=${markers.length}`);
+
+    // If no markers are provided, we need to fetch them from the database
+    if (markers.length === 0) {
+      console.log("No markers provided in request. You need to fetch them from the database.");
+      // Here you would normally fetch the markers data from Supabase
+      // For now, returning a meaningful error
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "No markers provided in request body. The 'markers' array is required.",
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     const blood_results = markers
       .filter((m: any) => m.type === "blood")
@@ -71,7 +119,7 @@ Rules:
 Return format (strict):
 
 {
-  "health_area": "{Health Area Name}",
+  "health_area": "${health_area}",
   "summary": "{Short overview}",
   "blood_markers": [
     { "marker_name": "...", "status": "Normal/High/Low", "category": "strength/warning/risk", "insight": "..." }
@@ -122,16 +170,26 @@ ${JSON.stringify(input_json, null, 2)}
     const gptData = await openaiResponse.json();
     let gpt_response = gptData.choices?.[0]?.message?.content || "";
 
+    // Clean up response - remove code block markdown if present
     gpt_response = gpt_response
       .trim()
       .replace(/^```json\s*\n?/, "")
       .replace(/^```\n?/, "")
       .replace(/```$/, "");
 
+    // Validate the GPT response is valid JSON before returning
+    try {
+      JSON.parse(gpt_response);
+    } catch (jsonError) {
+      console.error("Invalid JSON in GPT response:", jsonError.message);
+      console.error("Raw GPT response:", gpt_response);
+      throw new Error("GPT returned invalid JSON");
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        input_json,
+        input_json: JSON.stringify(input_json),  // Convert to string for consistency
         prompt,
         gpt_response,
       }),
@@ -143,13 +201,21 @@ ${JSON.stringify(input_json, null, 2)}
       }
     );
   } catch (error) {
-    console.error("Handler error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
+    console.error("Handler error:", error.message);
+    // Include more diagnostic information in the response
+    return new Response(
+      JSON.stringify({ 
+        success: false,
+        error: error.message,
+        details: "See function logs for more information"
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   }
 });
