@@ -286,6 +286,8 @@ function DashboardPage() {
               returning: 'representation',
             });
 
+          console.log(`[${area}] Upsert result:`, insertResult, insertError);
+
           if (insertError) {
             console.error(`❌ DB insert failed for ${area}:`, insertError.message);
             setInsightStatus(`DB error for ${area}`);
@@ -303,6 +305,7 @@ function DashboardPage() {
 
       setInsightStatus('✅ All insights processed.');
     };
+
 
 
 
