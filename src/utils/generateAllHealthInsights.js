@@ -25,25 +25,54 @@ export async function generateAllHealthInsights(user_id) {
         continue;
       }
 
-        let parsed;
-        if (typeof result.gpt_response === 'string') {
+      // ✅ Fix: Safely parse input_json whether string or object
+      let parsedInput;
+      try {
+        parsedInput = typeof result.input_json === 'string'
+          ? JSON.parse(result.input_json)
+          : result.input_json;
+      } catch (err) {
+        console.error(`❌ Failed to parse marker JSON for ${area_id}:`, err.message);
+        console.log('[RAW marker input_json]', result.input_json);
+        continue;
+      }
+
+      const markers = [
+        ...(parsedInput.blood_results || []).map(b => ({
+          marker: b.marker_name,
+          value: b.value,
+          reference_range: b.reference_range,
+          type: 'blood',
+        })),
+        ...(parsedInput.dna_results || []).map(d => ({
+          marker: d.trait_name,
+          rsid: d.rsid,
+          value: d.genotype,
+          effect: d.effect,
+          type: 'dna',
+        })),
+      ];
+      console.log(`✅ Parsed ${markers.length} markers for ${area_id}`);
+
+      // ✅ Parse GPT response
+      let parsed;
+      if (typeof result.gpt_response === 'string') {
         try {
-            parsed = JSON.parse(result.gpt_response);
-            console.log(`[${area_id}] Parsed string GPT response`);
+          parsed = JSON.parse(result.gpt_response);
+          console.log(`[${area_id}] Parsed string GPT response`);
         } catch (err) {
-            console.error(`❌ Failed to parse GPT response for ${area_id}:`, err.message);
-            console.log('[RAW GPT RESPONSE]', result.gpt_response);
-            continue;
+          console.error(`❌ Failed to parse GPT response for ${area_id}:`, err.message);
+          console.log('[RAW GPT RESPONSE]', result.gpt_response);
+          continue;
         }
-        } else if (typeof result.gpt_response === 'object' && result.gpt_response !== null) {
+      } else if (typeof result.gpt_response === 'object' && result.gpt_response !== null) {
         parsed = result.gpt_response;
         console.log(`[${area_id}] Parsed object GPT response`);
-        } else {
+      } else {
         console.error(`❌ Unexpected GPT response format for ${area_id}:`, typeof result.gpt_response);
         console.log('[RAW GPT RESPONSE]', result.gpt_response);
         continue;
-        }
-
+      }
 
       console.log(`[${area_id}] Parsed summary:`, parsed.summary);
       console.log(`[${area_id}] Blood markers:`, parsed.blood_markers?.length ?? 0);
