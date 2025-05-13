@@ -25,14 +25,25 @@ export async function generateAllHealthInsights(user_id) {
         continue;
       }
 
-      let parsed;
-      try {
-        parsed = JSON.parse(result.gpt_response || '{}');
-      } catch (err) {
-        console.error(`❌ Failed to parse GPT response for ${area_id}:`, err.message);
+        let parsed;
+        if (typeof result.gpt_response === 'string') {
+        try {
+            parsed = JSON.parse(result.gpt_response);
+            console.log(`[${area_id}] Parsed string GPT response`);
+        } catch (err) {
+            console.error(`❌ Failed to parse GPT response for ${area_id}:`, err.message);
+            console.log('[RAW GPT RESPONSE]', result.gpt_response);
+            continue;
+        }
+        } else if (typeof result.gpt_response === 'object' && result.gpt_response !== null) {
+        parsed = result.gpt_response;
+        console.log(`[${area_id}] Parsed object GPT response`);
+        } else {
+        console.error(`❌ Unexpected GPT response format for ${area_id}:`, typeof result.gpt_response);
         console.log('[RAW GPT RESPONSE]', result.gpt_response);
         continue;
-      }
+        }
+
 
       console.log(`[${area_id}] Parsed summary:`, parsed.summary);
       console.log(`[${area_id}] Blood markers:`, parsed.blood_markers?.length ?? 0);

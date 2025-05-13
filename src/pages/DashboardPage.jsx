@@ -217,7 +217,11 @@ function DashboardPage() {
 
           let markers = [];
           try {
-            const parsed = JSON.parse(markerResult.input_json);
+            const parsed =
+              typeof markerResult.input_json === 'string'
+                ? JSON.parse(markerResult.input_json)
+                : markerResult.input_json;
+
             markers = [
               ...(parsed.blood_results || []).map(b => ({
                 marker: b.marker_name,
@@ -238,6 +242,7 @@ function DashboardPage() {
             console.error(`❌ Failed to parse marker JSON for ${area}:`, err);
             continue;
           }
+
 
           const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('generate-insight', {
             method: 'POST',
