@@ -215,51 +215,27 @@ function DashboardPage() {
             continue;
           }
 
-          let markers = [];
-          try {
-            const parsed =
-              typeof markerResult.input_json === 'string'
-                ? JSON.parse(markerResult.input_json)
-                : markerResult.input_json;
-
-            markers = [
-              ...(parsed.blood_results || []).map(b => ({
-                marker: b.marker_name,
-                value: b.value,
-                reference_range: b.reference_range,
-                type: 'blood',
-              })),
-              ...(parsed.dna_results || []).map(d => ({
-                marker: d.trait_name,
-                rsid: d.rsid,
-                value: d.genotype,
-                effect: d.effect,
-                type: 'dna',
-              }))
-            ];
-            console.log(`✅ Parsed ${markers.length} markers for ${area}`);
-          } catch (err) {
-            console.error(`❌ Failed to parse marker JSON for ${area}:`, err);
+          // Handle string or object GPT response
+          let parsedResponse;
+          if (typeof markerResult.gpt_response === 'string') {
+            try {
+              parsedResponse = JSON.parse(markerResult.gpt_response);
+              console.log(`[${area}] Parsed string GPT response`);
+            } catch (err) {
+              console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
+              console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
+              setInsightStatus(`Parse error in ${area}`);
+              continue;
+            }
+          } else if (typeof markerResult.gpt_response === 'object' && markerResult.gpt_response !== null) {
+            parsedResponse = markerResult.gpt_response;
+            console.log(`[${area}] Parsed object GPT response`);
+          } else {
+            console.error(`❌ Unexpected GPT response format for ${area}:`, typeof markerResult.gpt_response);
+            console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
+            setInsightStatus(`Invalid GPT response in ${area}`);
             continue;
           }
-
-
-          const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('generate-insight', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify({ user_id: user.id, health_area: area, markers })
-          });
-
-          if (edgeFunctionError) {
-            console.error(`❌ Function error for ${area}:`, edgeFunctionError.message);
-            continue;
-          }
-
-          const parsedResponse = edgeFunctionData.gpt_response;
-          console.log(`📤 Using already-parsed GPT response for ${area}`);
 
           const insertPayload = {
             user_id: user.id,
@@ -303,8 +279,6 @@ function DashboardPage() {
 
       setInsightStatus('✅ All insights processed.');
     };
-
-
 
 
 
