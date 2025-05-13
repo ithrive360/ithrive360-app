@@ -159,13 +159,21 @@ export async function generateHealthInsight({ user_id, health_area }) {
     console.log('[generateHealthInsight] Raw GPT response string:', result.gpt_response);
 
     let parsed;
-    try {
-      parsed = JSON.parse(result.gpt_response || '{}');
-    } catch (err) {
-      console.error(`[generateHealthInsight] ❌ Failed to parse GPT response for ${health_area}:`, err.message);
-      console.log('GPT raw response:', result.gpt_response);
-      return { success: false, error: 'Failed to parse GPT response.' };
+    if (typeof result.gpt_response === 'string') {
+      try {
+        parsed = JSON.parse(result.gpt_response);
+      } catch (err) {
+        console.error(`[generateHealthInsight] ❌ Failed to parse GPT response for ${health_area}:`, err.message);
+        console.log('GPT raw response:', result.gpt_response);
+        return { success: false, error: 'Failed to parse GPT response.' };
+      }
+    } else if (typeof result.gpt_response === 'object' && result.gpt_response !== null) {
+      parsed = result.gpt_response;
+    } else {
+      console.error(`[generateHealthInsight] ❌ Unexpected GPT response type:`, typeof result.gpt_response);
+      return { success: false, error: 'Invalid GPT response format.' };
     }
+
 
     console.log(`[generateHealthInsight] Parsed summary: ${parsed.summary}`);
     console.log(`[generateHealthInsight] Parsed blood_markers:`, parsed.blood_markers?.length);
@@ -179,8 +187,9 @@ export async function generateHealthInsight({ user_id, health_area }) {
       success: true,
       input_json: result.input_json,
       prompt: result.prompt,
-      gpt_response: result.gpt_response,
+      gpt_response: parsed,
     };
+
   } catch (err) {
     console.error('[generateHealthInsight] GPT call failed:', err);
     return { success: false, error: err.message };
