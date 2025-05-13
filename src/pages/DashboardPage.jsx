@@ -207,14 +207,15 @@ function DashboardPage() {
         console.log(`[Frontend] Calling edge function for ${area}`, payload); // ✅ ← Add here
 
         try {
-          const { error } = await supabase.functions.invoke('generate-insight', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify(payload)
-          });
+        const { error } = await supabase.functions.invoke('generate-insight', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ user_id: user.id, health_area: area }) // <-- this fixes it
+        });
+
 
           if (error) {
             console.error(`❌ Error invoking ${area}:`, error.message);
