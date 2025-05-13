@@ -179,8 +179,8 @@ export async function generateHealthInsight({ user_id, health_area }) {
     console.log(`[generateHealthInsight] Parsed blood_markers:`, parsed.blood_markers?.length);
     console.log(`[generateHealthInsight] Parsed dna_traits:`, parsed.dna_traits?.length);
 
-    if (!result?.gpt_response || typeof result.gpt_response !== 'string') {
-      throw new Error('Invalid or empty GPT response');
+    if (!parsed || !parsed.summary) {
+      throw new Error('Parsed GPT response is missing required fields.');
     }
 
     return {
