@@ -23,67 +23,61 @@ function DashboardPage() {
   const [gptResponse, setGptResponse] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [timeAnimation, setTimeAnimation] = useState(null);
-  const [insightStatus, setInsightStatus] = useState(''); // Added new state for insight status
+  const [insightStatus, setInsightStatus] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false); // Added to prevent navigation issues
+  const [selectedHealthArea, setSelectedHealthArea] = useState('HA002'); // Added for dropdown
 
   const navigate = useNavigate();
 
   const fetchUserData = async () => {
-    const { data: sessionData, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Session fetch error:", error.message);
-      return;
-    }
-
-    const user = sessionData?.session?.user;
-    if (!user) {
-      console.log("No session user found.");
-      return;
-    }
-
-    setUser(user);
-
-    await initUserProfile(user);
-
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profile')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profileError) console.error('Profile fetch error:', profileError.message);
-    setProfile(profileData || null);
-
-    const hour = new Date().getHours();
-    let iconPath = '';
-
-    if (hour < 12) {
-      setGreeting('Good morning');
-      iconPath = '/icons/morning.json';
-    } else if (hour < 18) {
-      setGreeting('Good afternoon');
-      iconPath = '/icons/afternoon.json';
-    } else {
-      setGreeting('Good evening');
-      iconPath = '/icons/evening.json';
-    }
-
     try {
-      const res = await fetch(iconPath);
-      const anim = await res.json();
-      setTimeAnimation(anim);
-    } catch (err) {
-      console.error('Failed to load time icon:', err);
-    }
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      if (error) throw new Error(`Session fetch error: ${error.message}`);
 
-    setLoading(false);
+      const user = sessionData?.session?.user;
+      if (!user) {
+        console.log('No session user found.');
+        return;
+      }
+
+      setUser(user);
+      await initUserProfile(user);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw new Error(`Profile fetch error: ${profileError.message}`);
+      setProfile(profileData || null);
+
+      const hour = new Date().getHours();
+      const iconPath = `/icons/${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}.json`;
+
+      try {
+        const res = await fetch(iconPath);
+        const anim = await res.json();
+        setTimeAnimation(anim);
+      } catch (err) {
+        console.error('Failed to load time icon:', err);
+        setTimeAnimation(null);
+      }
+    } catch (err) {
+      console.error('fetchUserData error:', err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     const checkSessionAndFetch = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await fetchUserData();
-      } else {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) await fetchUserData();
+        else setLoading(false);
+      } catch (err) {
+        console.error('Session check error:', err.message);
         setLoading(false);
       }
     };
@@ -92,8 +86,10 @@ function DashboardPage() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        if (session?.user) {
-          await fetchUserData();
+        try {
+          if (session?.user) await fetchUserData();
+        } catch (err) {
+          console.error('Auth state change error:', err.message);
         }
       }
     );
@@ -104,12 +100,18 @@ function DashboardPage() {
   }, []);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error('Logout error:', error.message);
-    else window.location.href = '/';
+    if (isProcessing) return;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw new Error(`Logout error: ${error.message}`);
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Logout error:', err.message);
+    }
   };
 
   const handleDNAUpload = async (e) => {
+    if (isProcessing) return;
     const file = e.target.files[0];
     if (!file || !user?.id) {
       setMessage('Missing file or user ID.');
@@ -121,6 +123,7 @@ function DashboardPage() {
   };
 
   const handleBloodUpload = async (e) => {
+    if (isProcessing) return;
     const file = e.target.files[0];
     if (!file || !user?.id) {
       setBloodMessage('Missing file or user ID.');
@@ -132,21 +135,18 @@ function DashboardPage() {
   };
 
   const handleTestGPT = async () => {
-    if (!user?.id) {
-      alert('User not authenticated. Please log in again.');
+    if (!user?.id || isProcessing) {
+      alert('User not authenticated or processing in progress. Please wait.');
       return;
     }
-
+    setIsProcessing(true);
     try {
       const result = await generateHealthInsight({
         user_id: user.id,
-        health_area: 'HA002'
+        health_area: selectedHealthArea, // Use the selected health area
       });
 
-      if (!result.success) {
-        alert(`Error: ${result.error}`);
-        return;
-      }
+      if (!result.success) throw new Error(`Error: ${result.error}`);
 
       setInputJson(result.input_json);
       setPrompt(result.prompt);
@@ -154,7 +154,7 @@ function DashboardPage() {
 
       let parsed;
       try {
-        parsed = JSON.parse(result.gpt_response);
+        parsed = typeof result.gpt_response === 'string' ? JSON.parse(result.gpt_response) : result.gpt_response;
       } catch (parseErr) {
         console.error('Failed to parse GPT response:', parseErr);
         alert('GPT response was not valid JSON.');
@@ -163,132 +163,128 @@ function DashboardPage() {
 
       const insertPayload = {
         user_id: user.id,
-        health_area_id: 'HA002',
+        health_area_id: selectedHealthArea, // Use the selected health area
         summary: parsed.summary || '',
         findings_json: {
           blood_markers: parsed.blood_markers || [],
-          dna_traits: parsed.dna_traits || []
+          dna_traits: parsed.dna_traits || [],
         },
         recommendations_json: parsed.recommendations || {},
         gpt_model: 'gpt-4o',
         prompt_version: 'v1',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       const { error: insertError } = await supabase.from('user_health_insight').upsert(insertPayload, {
-        onConflict: ['user_id', 'health_area_id']
+        onConflict: ['user_id', 'health_area_id'],
       });
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        alert('Failed to save insight to DB.');
-      } else {
-        console.log('Insight saved to DB.');
-      }
+      if (insertError) throw new Error(`Insert error: ${insertError.message}`);
+      console.log('Insight saved to DB.');
     } catch (e) {
-      console.error("Unhandled error in handleTestGPT:", e);
-      alert("Unexpected error. See console.");
+      console.error('Unhandled error in handleTestGPT:', e.message);
+      alert(`Unexpected error: ${e.message}. See console.`);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-    //FRONTEND function
-    const generateInsightsIndividually = async () => {
-      const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
+  const generateInsightsIndividually = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
 
-      const session = (await supabase.auth.getSession())?.data?.session;
-      if (!session) {
-        alert('❌ No valid session. Please log in again.');
-        return;
-      }
+    const session = (await supabase.auth.getSession())?.data?.session;
+    if (!session) {
+      alert('❌ No valid session. Please log in again.');
+      setIsProcessing(false);
+      return;
+    }
 
-      for (const area of healthAreas) {
-        setInsightStatus(`Processing ${area}...`);
-        console.log(`🔁 Starting ${area}`);
+    for (const area of healthAreas) {
+      setInsightStatus(`Processing ${area}...`);
+      console.log(`🔁 Starting ${area}`);
 
-        try {
-          const markerResult = await generateHealthInsight({ user_id: user.id, health_area: area });
-          console.log(`📥 Marker result for ${area}`, markerResult);
+      try {
+        const markerResult = await generateHealthInsight({ user_id: user.id, health_area: area });
+        console.log(`📥 Marker result for ${area}`, markerResult);
 
-          if (!markerResult.success) {
-            console.warn(`⚠️ Marker error for ${area}:`, markerResult.error);
-            setInsightStatus(`Error with ${area}`);
-            continue;
-          }
-
-          // Handle string or object GPT response
-          let parsedResponse;
-          if (typeof markerResult.gpt_response === 'string') {
-            try {
-              parsedResponse = JSON.parse(markerResult.gpt_response);
-              console.log(`[${area}] Parsed string GPT response`);
-            } catch (err) {
-              console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
-              console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
-              setInsightStatus(`Parse error in ${area}`);
-              continue;
-            }
-          } else if (typeof markerResult.gpt_response === 'object' && markerResult.gpt_response !== null) {
-            parsedResponse = markerResult.gpt_response;
-            console.log(`[${area}] Parsed object GPT response`);
-          } else {
-            console.error(`❌ Unexpected GPT response format for ${area}:`, typeof markerResult.gpt_response);
-            console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
-            setInsightStatus(`Invalid GPT response in ${area}`);
-            continue;
-          }
-
-          const insertPayload = {
-            user_id: user.id,
-            health_area_id: area,
-            summary: parsedResponse.summary || '',
-            findings_json: {
-              blood_markers: parsedResponse.blood_markers || [],
-              dna_traits: parsedResponse.dna_traits || [],
-            },
-            recommendations_json: parsedResponse.recommendations || {},
-            gpt_model: 'gpt-4o',
-            prompt_version: 'v1',
-            created_at: new Date().toISOString()
-          };
-
-          console.log(`📌 Inserting to DB for ${area}`, insertPayload);
-
-          const { data: insertResult, error: insertError } = await supabase
-            .from('user_health_insight')
-            .upsert(insertPayload, {
-              onConflict: ['user_id', 'health_area_id'],
-              returning: 'representation',
-            });
-
-          console.log(`[${area}] Upsert result:`, insertResult, insertError);
-
-          if (insertError) {
-            console.error(`❌ DB insert failed for ${area}:`, insertError.message);
-            setInsightStatus(`DB error for ${area}`);
-          } else {
-            console.log(`✅ DB insert success for ${area}`, insertResult);
-            setInsightStatus(`✅ Processed ${area}`);
-          }
-        } catch (err) {
-          console.error(`🔥 Unhandled error for ${area}:`, err.message || err);
-          setInsightStatus(`Unhandled error for ${area}`);
+        if (!markerResult.success) {
+          console.warn(`⚠️ Marker error for ${area}:`, markerResult.error);
+          setInsightStatus(`Error with ${area}`);
+          continue;
         }
 
-        await new Promise(r => setTimeout(r, 500));
+        let parsedResponse;
+        if (typeof markerResult.gpt_response === 'string') {
+          try {
+            parsedResponse = JSON.parse(markerResult.gpt_response);
+            console.log(`[${area}] Parsed string GPT response`);
+          } catch (err) {
+            console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
+            console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
+            setInsightStatus(`Parse error in ${area}`);
+            continue;
+          }
+        } else if (typeof markerResult.gpt_response === 'object' && markerResult.gpt_response !== null) {
+          parsedResponse = markerResult.gpt_response;
+          console.log(`[${area}] Parsed object GPT response`);
+        } else {
+          console.error(`❌ Unexpected GPT response format for ${area}:`, typeof markerResult.gpt_response);
+          console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
+          setInsightStatus(`Invalid GPT response in ${area}`);
+          continue;
+        }
+
+        const insertPayload = {
+          user_id: user.id,
+          health_area_id: area,
+          summary: parsedResponse.summary || '',
+          findings_json: {
+            blood_markers: parsedResponse.blood_markers || [],
+            dna_traits: parsedResponse.dna_traits || [],
+          },
+          recommendations_json: parsedResponse.recommendations || {},
+          gpt_model: 'gpt-4o',
+          prompt_version: 'v1',
+          created_at: new Date().toISOString(),
+        };
+
+        console.log(`📌 Inserting to DB for ${area}`, insertPayload);
+
+        const { data: insertResult, error: insertError } = await supabase
+          .from('user_health_insight')
+          .upsert(insertPayload, {
+            onConflict: ['user_id', 'health_area_id'],
+            returning: 'representation',
+          });
+
+        console.log(`[${area}] Upsert result:`, insertResult, insertError);
+
+        if (insertError) {
+          console.error(`❌ DB insert failed for ${area}:`, insertError.message);
+          setInsightStatus(`DB error for ${area}`);
+        } else {
+          console.log(`✅ DB insert success for ${area}`, insertResult);
+          setInsightStatus(`✅ Processed ${area}`);
+        }
+      } catch (err) {
+        console.error(`🔥 Unhandled error for ${area}:`, err.message || err);
+        setInsightStatus(`Unhandled error for ${area}`);
       }
 
-      setInsightStatus('✅ All insights processed.');
-    };
+      await new Promise((r) => setTimeout(r, 500));
+    }
 
-
-
+    setInsightStatus('✅ All insights processed.');
+    setIsProcessing(false);
+  };
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
   return (
     <div className="dashboard">
-      {/* Fixed top bar */}
       <div
         style={{
           position: 'fixed',
@@ -306,7 +302,7 @@ function DashboardPage() {
       >
         <button
           onClick={() => {
-            setMenuOpen(prev => !prev);
+            setMenuOpen((prev) => !prev);
             console.log('Burger clicked, toggling menu');
           }}
           style={{
@@ -320,6 +316,7 @@ function DashboardPage() {
             outline: 'none',
           }}
           aria-label="Toggle menu"
+          disabled={isProcessing}
         >
           {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
         </button>
@@ -342,7 +339,9 @@ function DashboardPage() {
             <Lottie animationData={timeAnimation} loop autoplay />
           </div>
         )}
-        <h2 style={{ margin: 0 }}>{greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!</h2>
+        <h2 style={{ margin: 0 }}>
+          {greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!
+        </h2>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
@@ -351,7 +350,7 @@ function DashboardPage() {
           <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
           <label className="btn btn-primary">
             Upload DNA
-            <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} />
+            <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} disabled={isProcessing} />
           </label>
           {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
         </div>
@@ -360,7 +359,7 @@ function DashboardPage() {
           <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
           <label className="btn btn-primary">
             Upload Blood
-            <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} />
+            <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} disabled={isProcessing} />
           </label>
           {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
@@ -368,24 +367,55 @@ function DashboardPage() {
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
-        <button className="btn btn-primary">Start New Report</button>
-        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')}>View Cardio Insights</button>
+        <button className="btn btn-primary" disabled={isProcessing}>
+          Start New Report
+        </button>
+        <button className="btn btn-primary" onClick={() => navigate('/insights/cardiovascular')} disabled={isProcessing}>
+          View Cardio Insights
+        </button>
 
         <button
           onClick={generateInsightsIndividually}
           className="btn btn-primary"
           style={{ backgroundColor: '#3ab3a1', marginTop: 12 }}
+          disabled={isProcessing}
         >
           Generate All Insights
         </button>
 
         {insightStatus && <p style={{ marginTop: '1rem', fontWeight: 'bold' }}>{insightStatus}</p>}
 
-        <button className="btn btn-primary">Recommendations</button>
+        <button className="btn btn-primary" disabled={isProcessing}>
+          Recommendations
+        </button>
+        <div style={{ marginTop: '1rem' }}>
+          <label htmlFor="healthAreaSelect" style={{ marginRight: '0.5rem' }}>
+            Select Health Area for Test:
+          </label>
+          <select
+            id="healthAreaSelect"
+            value={selectedHealthArea}
+            onChange={(e) => setSelectedHealthArea(e.target.value)}
+            disabled={isProcessing}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            <option value="HA001">Metabolic Health</option>
+            <option value="HA002">Cardiovascular Health</option>
+            <option value="HA003">Nutrient & Vitamin Status</option>
+            <option value="HA004">Hormonal Balance</option>
+            <option value="HA005">Cognitive & Mood</option>
+            <option value="HA006">Fitness & Recovery</option>
+            <option value="HA007">Immune Function</option>
+            <option value="HA008">Liver & Detox</option>
+            <option value="HA009">Longevity & Inflammation</option>
+          </select>
+        </div>
+
         <button
           className="btn"
           onClick={handleTestGPT}
-          style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
+          style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', marginTop: '0.5rem' }}
+          disabled={isProcessing}
         >
           Test GPT
         </button>
@@ -418,7 +448,7 @@ function DashboardPage() {
         </div>
       )}
 
-      <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop: '2rem' }}>
+      <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop: '2rem' }} disabled={isProcessing}>
         Sign Out
       </button>
     </div>
