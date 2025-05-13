@@ -24,8 +24,8 @@ function DashboardPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [timeAnimation, setTimeAnimation] = useState(null);
   const [insightStatus, setInsightStatus] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false); // Added to prevent navigation issues
-  const [selectedHealthArea, setSelectedHealthArea] = useState('HA002'); // Added for dropdown
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedHealthArea, setSelectedHealthArea] = useState('HA002');
 
   const navigate = useNavigate();
 
@@ -141,9 +141,10 @@ function DashboardPage() {
     }
     setIsProcessing(true);
     try {
+      console.log(`🔍 Testing GPT for ${selectedHealthArea}`);
       const result = await generateHealthInsight({
         user_id: user.id,
-        health_area: selectedHealthArea, // Use the selected health area
+        health_area: selectedHealthArea,
       });
 
       if (!result.success) throw new Error(`Error: ${result.error}`);
@@ -152,38 +153,66 @@ function DashboardPage() {
       setPrompt(result.prompt);
       setGptResponse(result.gpt_response);
 
-      let parsed;
-      try {
-        parsed = typeof result.gpt_response === 'string' ? JSON.parse(result.gpt_response) : result.gpt_response;
-      } catch (parseErr) {
-        console.error('Failed to parse GPT response:', parseErr);
-        alert('GPT response was not valid JSON.');
-        return;
+      let parsed = null;
+      let summary = 'Failed to parse GPT response';
+      let blood_markers = [];
+      let dna_traits = [];
+      let recommendations = {};
+
+      if (typeof result.gpt_response === 'string') {
+        console.log(`[handleTestGPT] Raw GPT response string:`, result.gpt_response);
+        try {
+          parsed = JSON.parse(result.gpt_response);
+          console.log(`[handleTestGPT] Parsed GPT response:`, parsed);
+        } catch (parseErr) {
+          console.error(`Failed to parse GPT response for ${selectedHealthArea}:`, parseErr.message);
+          summary = `Raw GPT response (unparsed): ${result.gpt_response}`;
+        }
+      } else if (typeof result.gpt_response === 'object' && result.gpt_response !== null) {
+        parsed = result.gpt_response;
+        console.log(`[handleTestGPT] GPT response is already an object:`, parsed);
+      } else {
+        console.error(`Unexpected GPT response format for ${selectedHealthArea}:`, typeof result.gpt_response);
+        summary = `Invalid GPT response format: ${result.gpt_response}`;
+      }
+
+      if (parsed) {
+        summary = parsed.summary || 'No summary provided';
+        blood_markers = parsed.blood_markers || [];
+        dna_traits = parsed.dna_traits || [];
+        recommendations = parsed.recommendations || {};
       }
 
       const insertPayload = {
         user_id: user.id,
-        health_area_id: selectedHealthArea, // Use the selected health area
-        summary: parsed.summary || '',
+        health_area_id: selectedHealthArea,
+        summary,
         findings_json: {
-          blood_markers: parsed.blood_markers || [],
-          dna_traits: parsed.dna_traits || [],
+          blood_markers,
+          dna_traits,
         },
-        recommendations_json: parsed.recommendations || {},
+        recommendations_json: recommendations,
         gpt_model: 'gpt-4o',
         prompt_version: 'v1',
         created_at: new Date().toISOString(),
       };
 
-      const { error: insertError } = await supabase.from('user_health_insight').upsert(insertPayload, {
-        onConflict: ['user_id', 'health_area_id'],
-      });
+      console.log(`📌 Inserting to DB for ${selectedHealthArea}`, insertPayload);
+
+      const { data: insertResult, error: insertError } = await supabase
+        .from('user_health_insight')
+        .upsert(insertPayload, {
+          onConflict: ['user_id', 'health_area_id'],
+        });
+
+      console.log(`[${selectedHealthArea}] Upsert result:`, insertResult, insertError);
 
       if (insertError) throw new Error(`Insert error: ${insertError.message}`);
-      console.log('Insight saved to DB.');
+      console.log(`✅ DB insert success for ${selectedHealthArea}`);
+      setInsightStatus(`✅ Processed ${selectedHealthArea}`);
     } catch (e) {
-      console.error('Unhandled error in handleTestGPT:', e.message);
-      alert(`Unexpected error: ${e.message}. See console.`);
+      console.error(`Unhandled error in handleTestGPT for ${selectedHealthArea}:`, e.message);
+      setInsightStatus(`Error with ${selectedHealthArea}: ${e.message}`);
     } finally {
       setIsProcessing(false);
     }
@@ -217,18 +246,18 @@ function DashboardPage() {
 
         let parsedResponse;
         if (typeof markerResult.gpt_response === 'string') {
+          console.log(`[${area}] Raw GPT response string:`, markerResult.gpt_response);
           try {
             parsedResponse = JSON.parse(markerResult.gpt_response);
-            console.log(`[${area}] Parsed string GPT response`);
+            console.log(`[${area}] Parsed string GPT response:`, parsedResponse);
           } catch (err) {
             console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
-            console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
             setInsightStatus(`Parse error in ${area}`);
             continue;
           }
         } else if (typeof markerResult.gpt_response === 'object' && markerResult.gpt_response !== null) {
           parsedResponse = markerResult.gpt_response;
-          console.log(`[${area}] Parsed object GPT response`);
+          console.log(`[${area}] Parsed object GPT response:`, parsedResponse);
         } else {
           console.error(`❌ Unexpected GPT response format for ${area}:`, typeof markerResult.gpt_response);
           console.log('[RAW GPT RESPONSE]', markerResult.gpt_response);
@@ -256,7 +285,6 @@ function DashboardPage() {
           .from('user_health_insight')
           .upsert(insertPayload, {
             onConflict: ['user_id', 'health_area_id'],
-            returning: 'representation',
           });
 
         console.log(`[${area}] Upsert result:`, insertResult, insertError);
@@ -264,16 +292,18 @@ function DashboardPage() {
         if (insertError) {
           console.error(`❌ DB insert failed for ${area}:`, insertError.message);
           setInsightStatus(`DB error for ${area}`);
-        } else {
-          console.log(`✅ DB insert success for ${area}`, insertResult);
-          setInsightStatus(`✅ Processed ${area}`);
+          continue;
         }
+
+        console.log(`✅ DB insert success for ${area}`);
+        setInsightStatus(`✅ Processed ${area}`);
       } catch (err) {
         console.error(`🔥 Unhandled error for ${area}:`, err.message || err);
         setInsightStatus(`Unhandled error for ${area}`);
+        continue;
       }
 
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 1000));
     }
 
     setInsightStatus('✅ All insights processed.');
@@ -444,7 +474,9 @@ function DashboardPage() {
       {gptResponse && (
         <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#e8f5e9' }}>
           <h3>Preview: GPT Response</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{gptResponse}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+            {typeof gptResponse === 'object' ? JSON.stringify(gptResponse, null, 2) : gptResponse}
+          </pre>
         </div>
       )}
 
