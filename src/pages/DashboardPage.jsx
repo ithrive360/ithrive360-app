@@ -11,6 +11,13 @@ import { Menu, X } from 'lucide-react';
 import Lottie from 'lottie-react';
 import logo from '../assets/logo.png';
 
+// Add a global unhandled promise rejection handler for debugging
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+  });
+}
+
 function DashboardPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +35,16 @@ function DashboardPage() {
   const [selectedHealthArea, setSelectedHealthArea] = useState('HA002');
 
   const navigate = useNavigate();
+
+  // Utility function to wrap a promise with a timeout
+  const withTimeout = (promise, timeoutMs) => {
+    const timeout = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
+    return Promise.race([promise, timeout]);
+  };
 
   const fetchUserData = async () => {
     try {
@@ -142,12 +159,29 @@ function DashboardPage() {
     setIsProcessing(true);
     try {
       console.log(`🔍 Testing GPT for ${selectedHealthArea}`);
-      const result = await generateHealthInsight({
-        user_id: user.id,
-        health_area: selectedHealthArea,
-      });
+      console.log(`[handleTestGPT] Calling generateHealthInsight with user_id: ${user.id}, health_area: ${selectedHealthArea}`);
 
-      if (!result.success) throw new Error(`Error: ${result.error}`);
+      // Wrap generateHealthInsight with a 30-second timeout
+      let result;
+      try {
+        result = await withTimeout(
+          generateHealthInsight({
+            user_id: user.id,
+            health_area: selectedHealthArea,
+          }),
+          30000 // 30 seconds
+        );
+      } catch (genErr) {
+        console.error(`[handleTestGPT] generateHealthInsight failed for ${selectedHealthArea}:`, genErr.message);
+        throw new Error(`generateHealthInsight error: ${genErr.message}`);
+      }
+
+      console.log(`[handleTestGPT] generateHealthInsight result for ${selectedHealthArea}:`, result);
+
+      if (!result.success) {
+        console.error(`[handleTestGPT] generateHealthInsight returned unsuccessful for ${selectedHealthArea}:`, result.error);
+        throw new Error(`Error: ${result.error}`);
+      }
 
       setInputJson(result.input_json);
       setPrompt(result.prompt);
@@ -211,7 +245,7 @@ function DashboardPage() {
       console.log(`✅ DB insert success for ${selectedHealthArea}`);
       setInsightStatus(`✅ Processed ${selectedHealthArea}`);
     } catch (e) {
-      console.error(`Unhandled error in handleTestGPT for ${selectedHealthArea}:`, e.message);
+      console.error(`Unhandled error in handleTestGPT for ${selectedHealthArea}:`, e.message, e.stack);
       setInsightStatus(`Error with ${selectedHealthArea}: ${e.message}`);
     } finally {
       setIsProcessing(false);
@@ -235,7 +269,10 @@ function DashboardPage() {
       console.log(`🔁 Starting ${area}`);
 
       try {
-        const markerResult = await generateHealthInsight({ user_id: user.id, health_area: area });
+        const markerResult = await withTimeout(
+          generateHealthInsight({ user_id: user.id, health_area: area }),
+          30000
+        );
         console.log(`📥 Marker result for ${area}`, markerResult);
 
         if (!markerResult.success) {
