@@ -253,15 +253,8 @@ function DashboardPage() {
             continue;
           }
 
-          let parsedResponse;
-          try {
-            parsedResponse = JSON.parse(edgeFunctionData.gpt_response || '{}');
-            console.log(`📤 GPT response parsed for ${area}`);
-          } catch (err) {
-            console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
-            console.log('Raw GPT response:', edgeFunctionData.gpt_response);
-            continue;
-          }
+          const parsedResponse = edgeFunctionData.gpt_response;
+          console.log(`📤 Using already-parsed GPT response for ${area}`);
 
           const insertPayload = {
             user_id: user.id,

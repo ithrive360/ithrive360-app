@@ -1,83 +1,58 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",  // Consider restricting this in production
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req: Request) => {
-  // Handle preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Check if the request body is empty
     const text = await req.text();
-    if (!text) {
-      throw new Error("Request body is empty");
-    }
+    if (!text) throw new Error("Request body is empty");
 
-    // Try to parse the JSON
     let requestData;
     try {
       requestData = JSON.parse(text);
-    } catch (parseError) {
-      console.error("JSON parse error:", parseError.message);
+    } catch (err) {
+      console.error("JSON parse error:", err.message);
       console.error("Received text:", text);
-      throw new Error(`Failed to parse request JSON: ${parseError.message}`);
+      throw new Error(`Failed to parse request JSON: ${err.message}`);
     }
 
-    // Validate required fields
     const { user_id, health_area, markers = [] } = requestData;
-    
-    if (!user_id) {
-      throw new Error("Missing required field: user_id");
-    }
-    
-    if (!health_area) {
-      throw new Error("Missing required field: health_area");
-    }
+
+    if (!user_id) throw new Error("Missing required field: user_id");
+    if (!health_area) throw new Error("Missing required field: health_area");
 
     console.log(`Processing request for user_id=${user_id}, health_area=${health_area}, markers.length=${markers.length}`);
 
-    // If no markers are provided, we need to fetch them from the database
     if (markers.length === 0) {
-      console.log("No markers provided in request. You need to fetch them from the database.");
-      // Here you would normally fetch the markers data from Supabase
-      // For now, returning a meaningful error
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "No markers provided in request body. The 'markers' array is required.",
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return new Response(JSON.stringify({
+        success: false,
+        error: "No markers provided in request body. The 'markers' array is required.",
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    const blood_results = markers
-      .filter((m: any) => m.type === "blood")
-      .map((m: any) => ({
-        marker_name: m.marker,
-        value: m.value,
-        reference_range: m.reference_range || null,
-      }));
+    const blood_results = markers.filter((m: any) => m.type === "blood").map((m: any) => ({
+      marker_name: m.marker,
+      value: m.value,
+      reference_range: m.reference_range || null,
+    }));
 
-    const dna_results = markers
-      .filter((m: any) => m.type === "dna")
-      .map((m: any) => ({
-        trait_name: m.marker,
-        rsid: m.rsid || null,
-        genotype: m.value,
-        effect: m.effect || null,
-      }));
+    const dna_results = markers.filter((m: any) => m.type === "dna").map((m: any) => ({
+      trait_name: m.marker,
+      rsid: m.rsid || null,
+      genotype: m.value,
+      effect: m.effect || null,
+    }));
 
     const input_json = {
       user_id,
@@ -144,7 +119,7 @@ Return format (strict):
 
 JSON to analyze:
 ${JSON.stringify(input_json, null, 2)}
-    `.trim();
+`.trim();
 
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -170,28 +145,34 @@ ${JSON.stringify(input_json, null, 2)}
     const gptData = await openaiResponse.json();
     let gpt_response = gptData.choices?.[0]?.message?.content || "";
 
-    // Clean up response - remove code block markdown if present
     gpt_response = gpt_response
       .trim()
       .replace(/^```json\s*\n?/, "")
       .replace(/^```\n?/, "")
       .replace(/```$/, "");
 
-    // Validate the GPT response is valid JSON before returning
+    let parsedGpt;
     try {
-      JSON.parse(gpt_response);
-    } catch (jsonError) {
-      console.error("Invalid JSON in GPT response:", jsonError.message);
+      parsedGpt = JSON.parse(gpt_response);
+    } catch (err) {
+      console.error("❌ Final parse error:", err.message);
       console.error("Raw GPT response:", gpt_response);
-      throw new Error("GPT returned invalid JSON");
+      throw new Error("Final GPT response is not valid JSON");
     }
+
+    console.log("📤 Returning to frontend:", {
+      success: true,
+      input_json,
+      prompt,
+      gpt_response: parsedGpt
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
-        input_json: JSON.stringify(input_json),  // Convert to string for consistency
+        input_json,
         prompt,
-        gpt_response,
+        gpt_response: parsedGpt
       }),
       {
         headers: {
@@ -202,7 +183,6 @@ ${JSON.stringify(input_json, null, 2)}
     );
   } catch (error) {
     console.error("Handler error:", error.message);
-    // Include more diagnostic information in the response
     return new Response(
       JSON.stringify({ 
         success: false,
