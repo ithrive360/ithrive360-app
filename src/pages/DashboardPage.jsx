@@ -191,40 +191,44 @@ function DashboardPage() {
     }
   };
 
-  const generateInsightsIndividually = async () => {
-    const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
+    const generateInsightsIndividually = async () => {
+      const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
 
-    const session = (await supabase.auth.getSession())?.data?.session;
-    if (!session) {
-      alert('❌ No valid session. Please log in again.');
-      return;
-    }
-
-    for (const area of healthAreas) {
-      setInsightStatus(`Processing ${area}...`);
-
-      try {
-        const { error } = await supabase.functions.invoke('generate-insight', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: { user_id: user.id, health_area: area }
-        });
-
-        if (error) {
-          console.error(`❌ Error invoking ${area}:`, error.message);
-        }
-      } catch (err) {
-        console.error(`❌ Network error for ${area}:`, err.message || err);
+      const session = (await supabase.auth.getSession())?.data?.session;
+      if (!session) {
+        alert('❌ No valid session. Please log in again.');
+        return;
       }
 
-      await new Promise(r => setTimeout(r, 250)); // add slight delay
-    }
+      for (const area of healthAreas) {
+        setInsightStatus(`Processing ${area}...`);
 
-    setInsightStatus('✅ All insights processed.');
-  };
+        const payload = { user_id: user.id, health_area: area };
+        console.log(`[Frontend] Calling edge function for ${area}`, payload); // ✅ ← Add here
+
+        try {
+          const { error } = await supabase.functions.invoke('generate-insight', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (error) {
+            console.error(`❌ Error invoking ${area}:`, error.message);
+          }
+        } catch (err) {
+          console.error(`❌ Network error for ${area}:`, err.message || err);
+        }
+
+        await new Promise(r => setTimeout(r, 250));
+      }
+
+      setInsightStatus('✅ All insights processed.');
+    };
+
 
 
   if (loading) return <p>Loading...</p>;
