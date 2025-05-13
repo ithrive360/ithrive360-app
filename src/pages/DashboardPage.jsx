@@ -191,6 +191,7 @@ function DashboardPage() {
     }
   };
 
+  
     const generateInsightsIndividually = async () => {
       const healthAreas = ['HA001', 'HA002', 'HA003', 'HA004', 'HA005', 'HA006', 'HA007', 'HA008', 'HA009'];
 
@@ -203,19 +204,30 @@ function DashboardPage() {
       for (const area of healthAreas) {
         setInsightStatus(`Processing ${area}...`);
 
-        const payload = { user_id: user.id, health_area: area };
-        console.log(`[Frontend] Calling edge function for ${area}`, payload); // ✅ ← Add here
-
         try {
-        const { error } = await supabase.functions.invoke('generate-insight', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({ user_id: user.id, health_area: area }) // <-- this fixes it
-        });
+          const localResult = await generateHealthInsight({ user_id: user.id, health_area: area });
 
+          if (!localResult.success) {
+            console.error(`❌ Failed to prepare input for ${area}:`, localResult.error);
+            continue;
+          }
+
+          const payload = {
+            user_id: user.id,
+            health_area: area,
+            markers: [...(localResult.input_json?.blood_results || []), ...(localResult.input_json?.dna_results || [])]
+          };
+
+          console.log(`[Frontend] Calling edge function for ${area}`, payload);
+
+          const { error } = await supabase.functions.invoke('generate-insight', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify(payload)
+          });
 
           if (error) {
             console.error(`❌ Error invoking ${area}:`, error.message);
@@ -224,11 +236,12 @@ function DashboardPage() {
           console.error(`❌ Network error for ${area}:`, err.message || err);
         }
 
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 250)); // slight delay between requests
       }
 
       setInsightStatus('✅ All insights processed.');
     };
+
 
 
 
