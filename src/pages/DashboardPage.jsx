@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js'; // Import createClient for reinitialization
 import { supabase } from '../supabaseClient';
 import { uploadAndParseDNA } from '../utils/uploadAndParseDNA';
 import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
@@ -36,14 +37,39 @@ function DashboardPage() {
 
   const navigate = useNavigate();
 
-  // Utility function to wrap a promise with a timeout
-  const withTimeout = (promise, timeoutMs) => {
+  // Utility function to wrap a promise with a timeout and abort support
+  const withTimeout = (promise, timeoutMs, signal = null) => {
+    let timeoutId;
     const timeout = new Promise((_, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
+        if (signal) signal.abort(); // Abort the fetch request
+        console.log(`[withTimeout] Aborted due to timeout after ${timeoutMs}ms`);
         reject(new Error(`Operation timed out after ${timeoutMs}ms`));
       }, timeoutMs);
     });
-    return Promise.race([promise, timeout]);
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+  };
+
+  // Utility function for retrying a promise with exponential backoff
+  const withRetry = async (fn, retries = 3, baseDelayMs = 2000) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        console.log(`[withRetry] Attempt ${attempt} of ${retries}`);
+        return await fn();
+      } catch (err) {
+        if (attempt === retries) throw err;
+        const delay = baseDelayMs * Math.pow(2, attempt - 1); // Exponential backoff: 2s, 4s, 8s
+        console.warn(`[withRetry] Attempt ${attempt} failed: ${err.message}. Retrying after ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  };
+
+  // Function to reinitialize the Supabase client
+  const reinitializeSupabase = () => {
+    const { supabaseUrl, supabaseKey } = supabase; // Assuming supabaseClient exports these
+    global.supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('[reinitializeSupabase] Supabase client reinitialized');
   };
 
   const fetchUserData = async () => {
@@ -161,18 +187,20 @@ function DashboardPage() {
       console.log(`🔍 Testing GPT for ${selectedHealthArea}`);
       console.log(`[handleTestGPT] Calling generateHealthInsight with user_id: ${user.id}, health_area: ${selectedHealthArea}`);
 
-      // Wrap generateHealthInsight with a 30-second timeout
+      // Wrap generateHealthInsight with a 90-second timeout and retry
       let result;
       try {
-        result = await withTimeout(
-          generateHealthInsight({
-            user_id: user.id,
-            health_area: selectedHealthArea,
-          }),
-          90000 // 90 seconds
+        result = await withRetry(() =>
+          withTimeout(
+            generateHealthInsight({
+              user_id: user.id,
+              health_area: selectedHealthArea,
+            }),
+            90000 // 90 seconds
+          )
         );
       } catch (genErr) {
-        console.error(`[handleTestGPT] generateHealthInsight failed for ${selectedHealthArea}:`, genErr.message);
+        console.error(`[handleTestGPT] generateHealthInsight failed for ${selectedHealthArea}:`, genErr.message, genErr.stack);
         throw new Error(`generateHealthInsight error: ${genErr.message}`);
       }
 
@@ -246,6 +274,10 @@ function DashboardPage() {
       setInsightStatus(`✅ Processed ${selectedHealthArea}`);
     } catch (e) {
       console.error(`Unhandled error in handleTestGPT for ${selectedHealthArea}:`, e.message, e.stack);
+      if (e.message.includes('timed out')) {
+        // Reinitialize Supabase client on timeout to reset network state
+        reinitializeSupabase();
+      }
       setInsightStatus(`Error with ${selectedHealthArea}: ${e.message}`);
     } finally {
       setIsProcessing(false);
@@ -269,9 +301,11 @@ function DashboardPage() {
       console.log(`🔁 Starting ${area}`);
 
       try {
-        const markerResult = await withTimeout(
-          generateHealthInsight({ user_id: user.id, health_area: area }),
-          90000
+        const markerResult = await withRetry(() =>
+          withTimeout(
+            generateHealthInsight({ user_id: user.id, health_area: area }),
+            90000
+          )
         );
         console.log(`📥 Marker result for ${area}`, markerResult);
 
@@ -336,11 +370,15 @@ function DashboardPage() {
         setInsightStatus(`✅ Processed ${area}`);
       } catch (err) {
         console.error(`🔥 Unhandled error for ${area}:`, err.message || err);
+        if (err.message.includes('timed out')) {
+          // Reinitialize Supabase client on timeout to reset network state
+          reinitializeSupabase();
+        }
         setInsightStatus(`Unhandled error for ${area}`);
         continue;
       }
 
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 5000)); // Increased delay to 5 seconds
     }
 
     setInsightStatus('✅ All insights processed.');
