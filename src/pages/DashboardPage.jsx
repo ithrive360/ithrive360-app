@@ -203,127 +203,107 @@ function DashboardPage() {
 
       for (const area of healthAreas) {
         setInsightStatus(`Processing ${area}...`);
+        console.log(`🔁 Starting ${area}`);
 
         try {
-          // First, use the existing function to gather markers
-          const markerResult = await generateHealthInsight({ 
-            user_id: user.id, 
-            health_area: area 
-          });
-          
+          const markerResult = await generateHealthInsight({ user_id: user.id, health_area: area });
+          console.log(`📥 Marker result for ${area}`, markerResult);
+
           if (!markerResult.success) {
-            console.error(`❌ Error gathering markers for ${area}:`, markerResult.error);
-            setInsightStatus(`Error with ${area}: ${markerResult.error}`);
-            continue; // Move to the next health area
+            console.warn(`⚠️ Marker error for ${area}:`, markerResult.error);
+            setInsightStatus(`Error with ${area}`);
+            continue;
           }
-          
-          // Parse the response to get markers
+
           let markers = [];
           try {
             const parsed = JSON.parse(markerResult.input_json);
-            
-            // Convert to the format expected by the edge function
             markers = [
-              ...parsed.blood_results.map(b => ({
+              ...(parsed.blood_results || []).map(b => ({
                 marker: b.marker_name,
                 value: b.value,
                 reference_range: b.reference_range,
-                type: 'blood'
+                type: 'blood',
               })),
-              ...parsed.dna_results.map(d => ({
+              ...(parsed.dna_results || []).map(d => ({
                 marker: d.trait_name,
                 rsid: d.rsid,
                 value: d.genotype,
                 effect: d.effect,
-                type: 'dna'
+                type: 'dna',
               }))
             ];
-            
-            console.log(`[Frontend] Gathered ${markers.length} markers for ${area}`);
-          } catch (parseErr) {
-            console.error(`❌ Error parsing marker data for ${area}:`, parseErr);
-            setInsightStatus(`Error parsing data for ${area}`);
-            continue; // Move to the next health area
+            console.log(`✅ Parsed ${markers.length} markers for ${area}`);
+          } catch (err) {
+            console.error(`❌ Failed to parse marker JSON for ${area}:`, err);
+            continue;
           }
-          
-          // Now call the edge function with the complete payload
+
           const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('generate-insight', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${session.access_token}`
             },
-            body: JSON.stringify({ 
-              user_id: user.id, 
-              health_area: area,
-              markers: markers
-            })
+            body: JSON.stringify({ user_id: user.id, health_area: area, markers })
           });
 
           if (edgeFunctionError) {
-            console.error(`❌ Error invoking edge function for ${area}:`, edgeFunctionError.message);
-            setInsightStatus(`Error calling function for ${area}`);
-            continue; // Move to the next health area
+            console.error(`❌ Function error for ${area}:`, edgeFunctionError.message);
+            continue;
           }
-          
-          console.log(`✅ Edge function success for ${area}`, edgeFunctionData);
-          
-          // Parse the GPT response
-          let parsed;
+
+          let parsedResponse;
           try {
-            parsed = JSON.parse(edgeFunctionData.gpt_response);
-            console.log(`✅ Successfully parsed GPT response for ${area}`);
-          } catch (parseErr) {
-            console.error(`❌ Failed to parse GPT response for ${area}:`, parseErr.message);
+            parsedResponse = JSON.parse(edgeFunctionData.gpt_response || '{}');
+            console.log(`📤 GPT response parsed for ${area}`);
+          } catch (err) {
+            console.error(`❌ Failed to parse GPT response for ${area}:`, err.message);
             console.log('Raw GPT response:', edgeFunctionData.gpt_response);
-            setInsightStatus(`Error parsing GPT response for ${area}`);
-            continue; // Move to the next health area
+            continue;
           }
-          
-          // Prepare the data for insertion
+
           const insertPayload = {
             user_id: user.id,
             health_area_id: area,
-            summary: parsed.summary || '',
+            summary: parsedResponse.summary || '',
             findings_json: {
-              blood_markers: parsed.blood_markers || [],
-              dna_traits: parsed.dna_traits || [],
+              blood_markers: parsedResponse.blood_markers || [],
+              dna_traits: parsedResponse.dna_traits || [],
             },
-            recommendations_json: parsed.recommendations || {},
+            recommendations_json: parsedResponse.recommendations || {},
             gpt_model: 'gpt-4o',
             prompt_version: 'v1',
             created_at: new Date().toISOString()
           };
-          
-          console.log(`[${area}] Preparing to save to DB:`, insertPayload);
-          
-          // Save to the database using upsert
-          const { error: insertError } = await supabase
+
+          console.log(`📌 Inserting to DB for ${area}`, insertPayload);
+
+          const { data: insertResult, error: insertError } = await supabase
             .from('user_health_insight')
             .upsert(insertPayload, {
               onConflict: ['user_id', 'health_area_id'],
-              returning: 'minimal'
+              returning: 'representation',
             });
-          
+
           if (insertError) {
             console.error(`❌ DB insert failed for ${area}:`, insertError.message);
-            setInsightStatus(`Error saving ${area} to database`);
+            setInsightStatus(`DB error for ${area}`);
           } else {
-            console.log(`✅ Insight saved to DB for ${area}`);
+            console.log(`✅ DB insert success for ${area}`, insertResult);
             setInsightStatus(`✅ Processed ${area}`);
           }
-          
         } catch (err) {
-          console.error(`❌ Unhandled error for ${area}:`, err.message || err);
+          console.error(`🔥 Unhandled error for ${area}:`, err.message || err);
           setInsightStatus(`Unhandled error for ${area}`);
         }
 
-        // Add a small delay between processing each health area
         await new Promise(r => setTimeout(r, 500));
       }
 
       setInsightStatus('✅ All insights processed.');
     };
+
 
 
 
