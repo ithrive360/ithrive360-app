@@ -169,7 +169,7 @@ function DashboardPage() {
             user_id: user.id,
             health_area: selectedHealthArea,
           }),
-          300000 // 30 seconds
+          90000 // 90 seconds
         );
       } catch (genErr) {
         console.error(`[handleTestGPT] generateHealthInsight failed for ${selectedHealthArea}:`, genErr.message);
@@ -271,7 +271,7 @@ function DashboardPage() {
       try {
         const markerResult = await withTimeout(
           generateHealthInsight({ user_id: user.id, health_area: area }),
-          300000
+          90000
         );
         console.log(`📥 Marker result for ${area}`, markerResult);
 
