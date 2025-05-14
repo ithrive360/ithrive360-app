@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut, Soup } from 'lucide-react';
+import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut, Soup, NotebookTabs } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
@@ -14,7 +14,8 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
 
   const menuItems = [
     { icon: <User size={20} />, label: 'My Profile', action: () => {} },    
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/insights/all') },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/dashboard') },
+    { icon: <NotebookTabs size={20} />, label: 'All Insights', action: () => navigate('/insights/all') },
     { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => navigate('/upload') },
     { icon: <Soup size={20} />, label: 'Track Diet', action: () => {} },
     { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
