@@ -453,16 +453,20 @@ function DashboardPage() {
 
       <div style={{ height: 60 }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
         {timeAnimation && (
-          <div style={{ width: 48, height: 48 }}>
+          <div style={{ width: 48, height: 48, marginRight: 12 }}>
             <Lottie animationData={timeAnimation} loop autoplay />
           </div>
         )}
-        <h2 style={{ margin: 0 }}>
-          {greeting && `${greeting}, `}{user.user_metadata?.full_name || user.email || 'there'}!
-        </h2>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ margin: 0, fontWeight: 600 }}>{greeting}</h2>
+          <h2 style={{ margin: 0 }}>
+            {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}
+          </h2>
+        </div>
       </div>
+
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
