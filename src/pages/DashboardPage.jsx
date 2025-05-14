@@ -456,7 +456,7 @@ function DashboardPage() {
       <div style={{ position: 'relative', textAlign: 'center', marginTop: 12 }}>
         <h3 style={{ margin: 0, fontWeight: 600, display: 'inline-block', position: 'relative', paddingLeft: 48 }}>
           {timeAnimation && (
-            <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32 }}>
+            <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 64, height: 64 }}>
               <Lottie animationData={timeAnimation} loop autoplay />
             </span>
           )}
