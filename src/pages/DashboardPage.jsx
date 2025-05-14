@@ -452,15 +452,22 @@ function DashboardPage() {
       />
 
       <div style={{ height: 60 }} />
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
-        <div style={{ width: 64, height: 64, marginRight: 12 }}>
-          <Lottie animationData={timeAnimation} loop autoplay />
-        </div>
-        <h3 style={{ margin: 0, fontWeight: 600 }}>
+      <div style={{ position: 'relative', textAlign: 'center', marginTop: 12 }}>
+        <h3 style={{ margin: 0, fontWeight: 600, display: 'inline-block', position: 'relative', paddingLeft: 72 }}>
+          <span style={{
+            position: 'absolute',
+            left: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 64,
+            height: 64
+          }}>
+            <Lottie animationData={timeAnimation} loop autoplay />
+          </span>
           {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email || 'there'}
         </h3>
       </div>
+
 
 
 
