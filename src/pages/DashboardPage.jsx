@@ -96,7 +96,21 @@ function DashboardPage() {
       setProfile(profileData || null);
 
       const hour = new Date().getHours();
-      const iconPath = `/icons/${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}.json`;
+      let greetingText = '';
+      let iconPath = '';
+
+      if (hour < 12) {
+        greetingText = 'Good morning';
+        iconPath = '/icons/morning.json';
+      } else if (hour < 18) {
+        greetingText = 'Good afternoon';
+        iconPath = '/icons/afternoon.json';
+      } else {
+        greetingText = 'Good evening';
+        iconPath = '/icons/evening.json';
+      }
+
+      setGreeting(greetingText);
 
       try {
         const res = await fetch(iconPath);
@@ -106,6 +120,7 @@ function DashboardPage() {
         console.error('Failed to load time icon:', err);
         setTimeAnimation(null);
       }
+
     } catch (err) {
       console.error('fetchUserData error:', err.message);
     } finally {
@@ -445,7 +460,7 @@ function DashboardPage() {
           </div>
         )}
         <h2 style={{ margin: 0 }}>
-          {greeting}, {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}!
+          {greeting && `${greeting}, `}{user.user_metadata?.full_name || user.email || 'there'}!
         </h2>
       </div>
 
