@@ -459,14 +459,10 @@ function DashboardPage() {
             <Lottie animationData={timeAnimation} loop autoplay />
           </div>
         )}
-        <div style={{ textAlign: 'left' }}>
-          <h3 style={{ margin: 0, fontWeight: 600 }}>{greeting}</h3>
-          <h3 style={{ margin: 0 }}>
-            {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}
-          </h3>
-        </div>
+        <h3 style={{ margin: 0, fontWeight: 600 }}>
+          {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email || 'there'}
+        </h3>
       </div>
-
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
