@@ -454,7 +454,7 @@ function DashboardPage() {
       <div style={{ height: 60 }} />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
-        <div style={{ width: 32, height: 32, marginRight: 12 }}>
+        <div style={{ width: 64, height: 64, marginRight: 12 }}>
           <Lottie animationData={timeAnimation} loop autoplay />
         </div>
         <h3 style={{ margin: 0, fontWeight: 600 }}>
