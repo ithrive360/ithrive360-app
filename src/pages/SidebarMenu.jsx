@@ -15,7 +15,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
   const menuItems = [
     { icon: <User size={20} />, label: 'My Profile', action: () => {} },    
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/insights/all') },
-    { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => {} },
+    { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => navigate('/upload') },
     { icon: <Soup size={20} />, label: 'Track Diet', action: () => {} },
     { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
     { icon: <Settings size={20} />, label: 'Settings', action: () => {} },

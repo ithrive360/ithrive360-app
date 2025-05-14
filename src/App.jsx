@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import AuthCallback from './pages/AuthCallback';
 import CardiovascularInsightsPage from './pages/CardiovascularInsightsPage';
 import Allinsights from './pages/Allinsights'; // ✅ import your new insights page
+import UploadPage from './pages/Upload';
 import './App.css';
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/insights/cardiovascular" element={<CardiovascularInsightsPage />} />
         <Route path="/insights/all" element={user ? <Allinsights /> : <Navigate to="/" replace />} /> {/* ✅ new route */}
+        <Route path="/upload" element={user ? <UploadPage /> : <Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
