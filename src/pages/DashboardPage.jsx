@@ -460,10 +460,10 @@ function DashboardPage() {
           </div>
         )}
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ margin: 0, fontWeight: 600 }}>{greeting}</h2>
-          <h2 style={{ margin: 0 }}>
+          <h3 style={{ margin: 0, fontWeight: 600 }}>{greeting}</h3>
+          <h3 style={{ margin: 0 }}>
             {user.user_metadata?.full_name?.split(' ')[0] || user.email || 'there'}
-          </h2>
+          </h3>
         </div>
       </div>
 
