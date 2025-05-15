@@ -29,6 +29,7 @@ export default function CardiovascularInsightsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedHA, setSelectedHA] = useState('HA001');
   const [healthAreas, setHealthAreas] = useState([]);
+  const [healthScore, setHealthScore] = useState(null);
 
   const navigate = useNavigate();
 
