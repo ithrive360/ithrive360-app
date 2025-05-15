@@ -168,29 +168,33 @@ function DashboardPage() {
     }
   };
 
-  const handleDNAUpload = async (e) => {
-    if (isProcessing) return;
-    const file = e.target.files[0];
-    if (!file || !user?.id) {
-      setMessage('Missing file or user ID.');
-      return;
-    }
-    const result = await uploadAndParseDNA(file, user.id);
-    setMessage(result.message);
-    if (result.success) fetchUserData();
-  };
 
-  const handleBloodUpload = async (e) => {
-    if (isProcessing) return;
-    const file = e.target.files[0];
-    if (!file || !user?.id) {
-      setBloodMessage('Missing file or user ID.');
-      return;
-    }
-    const result = await uploadAndParseBlood(file, user.id);
-    setBloodMessage(result.message);
-    if (result.message?.startsWith('Uploaded')) fetchUserData();
-  };
+    {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
+
+    /*   const handleDNAUpload = async (e) => {
+        if (isProcessing) return;
+        const file = e.target.files[0];
+        if (!file || !user?.id) {
+          setMessage('Missing file or user ID.');
+          return;
+        }
+        const result = await uploadAndParseDNA(file, user.id);
+        setMessage(result.message);
+        if (result.success) fetchUserData();
+      };
+
+      const handleBloodUpload = async (e) => {
+        if (isProcessing) return;
+        const file = e.target.files[0];
+        if (!file || !user?.id) {
+          setBloodMessage('Missing file or user ID.');
+          return;
+        }
+        const result = await uploadAndParseBlood(file, user.id);
+        setBloodMessage(result.message);
+        if (result.message?.startsWith('Uploaded')) fetchUserData();
+      }; */
+
 
   const handleTestGPT = async () => {
     if (!user?.id || isProcessing) {
@@ -471,8 +475,10 @@ function DashboardPage() {
       </div>
 
 
+{/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
+
+{/*       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
           <h3>DNA Data</h3>
           <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
@@ -491,7 +497,7 @@ function DashboardPage() {
           </label>
           {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
-      </div>
+      </div> */}
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
