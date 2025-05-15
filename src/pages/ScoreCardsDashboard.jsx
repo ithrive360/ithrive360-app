@@ -4,7 +4,7 @@ const scoreCards = [
   {
     score: 84,
     title: 'Health Score',
-    description: 'Based on your overall health test, your score is 84 and consider good.',
+    description: 'Based on your overall health test, your score is 84 and considered good.',
     color: '#6B46C1',
   },
   {
@@ -41,28 +41,28 @@ export default function ScoreCardsDashboard() {
           gap: '1rem',
           maxWidth: '300px',
         }}>
-            <div style={{ width: 64, height: 64, flexShrink: 0 }}>
-            <svg viewBox="0 0 100 100" width="100%" height="100%">
-                <polygon
-                points="25,5 75,5 95,50 75,95 25,95 5,50"
-                fill={card.color}
-                stroke={card.color}
-                strokeLinejoin="round"
-                style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}
-                />
-                <text
-                x="50"
-                y="58"
+          <div style={{ width: 64, height: 64, flexShrink: 0 }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="64"
+              height="64"
+              fill={card.color}
+              stroke="none"
+            >
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <text
+                x="12"
+                y="16"
                 textAnchor="middle"
-                fontSize="34"
-                fontWeight="700"
+                fontSize="10"
+                fontWeight="bold"
                 fill="#fff"
-                fontFamily="Arial, sans-serif"
-                >
+              >
                 {card.score}
-                </text>
+              </text>
             </svg>
-            </div>
+          </div>
 
           <div style={{ flex: 1 }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
