@@ -41,21 +41,29 @@ export default function ScoreCardsDashboard() {
           gap: '1rem',
           maxWidth: '300px',
         }}>
-          <div style={{
-            backgroundColor: card.color,
-            clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
-            width: '56px',
-            height: '56px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            fontWeight: 700,
-            fontSize: '20px',
-            flexShrink: 0,
-          }}>
-            {card.score}
-          </div>
+            <div style={{ width: 64, height: 64, flexShrink: 0 }}>
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <polygon
+                points="25,5 75,5 95,50 75,95 25,95 5,50"
+                fill={card.color}
+                stroke={card.color}
+                strokeLinejoin="round"
+                style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}
+                />
+                <text
+                x="50"
+                y="58"
+                textAnchor="middle"
+                fontSize="34"
+                fontWeight="700"
+                fill="#fff"
+                fontFamily="Arial, sans-serif"
+                >
+                {card.score}
+                </text>
+            </svg>
+            </div>
+
           <div style={{ flex: 1 }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
