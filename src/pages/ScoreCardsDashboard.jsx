@@ -39,7 +39,7 @@ export default function ScoreCardsDashboard() {
           alignItems: 'center',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           gap: '1rem',
-          maxWidth: '300px',
+          maxWidth: '400px',
         }}>
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
             <svg
