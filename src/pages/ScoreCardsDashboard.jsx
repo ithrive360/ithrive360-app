@@ -3,7 +3,7 @@ import React from 'react';
 const scoreCards = [
   {
     score: 84,
-    title: 'Health Score',
+    title: 'Overall Health Score',
     description: 'Based on your overall health test, your score is 84 and considered good.',
     color: '#4f46e5',
   },
