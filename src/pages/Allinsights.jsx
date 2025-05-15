@@ -41,108 +41,190 @@ export default function CardiovascularInsightsPage() {
     loadAreasAndDefaultInsight();
   }, []);
 
-  useEffect(() => {
-    const fetchInsight = async () => {
-      setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        console.error('User not logged in.');
-        return;
-      }
 
-      const { data: insightData, error: fetchError } = await supabase
-        .from('user_health_insight')
-        .select('summary, findings_json, recommendations_json')
-        .eq('user_id', user.id)
-        .eq('health_area_id', selectedHA)
-        .single();
+        // Score calculation logic
+        useEffect(() => {
+            const fetchInsight = async () => {
+            setLoading(true);
+            const { data: sessionData } = await supabase.auth.getSession();
+            const user = sessionData?.session?.user;
+            if (!user) {
+                console.error('User not logged in.');
+                return;
+            }
 
-      if (fetchError || !insightData) {
-        console.error('Error fetching insight:', fetchError?.message || 'No data');
-        setData(null);
-      } else {
-        const name = healthAreas.find(h => h.health_area_id === selectedHA)?.health_area_name || selectedHA;
-        setData({
-          health_area: name,
-          summary: insightData.summary,
-          blood_markers: insightData.findings_json?.blood_markers || [],
-          dna_traits: insightData.findings_json?.dna_traits || [],
-          recommendations: insightData.recommendations_json || {}
-        });
-      }
+            const { data: insightData, error: fetchError } = await supabase
+                .from('user_health_insight')
+                .select('summary, findings_json, recommendations_json')
+                .eq('user_id', user.id)
+                .eq('health_area_id', selectedHA)
+                .single();
 
-      setLoading(false);
-    };
+            if (fetchError || !insightData) {
+                console.error('Error fetching insight:', fetchError?.message || 'No data');
+                setData(null);
+            } else {
+                const name = healthAreas.find(h => h.health_area_id === selectedHA)?.health_area_name || selectedHA;
+                setData({
+                health_area: name,
+                summary: insightData.summary,
+                blood_markers: insightData.findings_json?.blood_markers || [],
+                dna_traits: insightData.findings_json?.dna_traits || [],
+                recommendations: insightData.recommendations_json || {}
+                });
+            }
 
-    if (selectedHA && healthAreas.length) fetchInsight();
-  }, [selectedHA, healthAreas]);
+            setLoading(false);
+            };
 
-  const IconForArea = ({ id }) => {
-    const Icon = healthIcons[id] || Heart;
-    return <Icon size={24} />;
-  };
+            if (selectedHA && healthAreas.length) fetchInsight();
+        }, [selectedHA, healthAreas]);
 
-  const bloodStats = {
-    strength: data?.blood_markers?.filter(m => m.category === 'strength').length || 0,
-    warning: data?.blood_markers?.filter(m => m.category === 'warning').length || 0,
-    risk: data?.blood_markers?.filter(m => m.category === 'risk').length || 0,
-    total: data?.blood_markers?.length || 0
-  };
+        const IconForArea = ({ id }) => {
+            const Icon = healthIcons[id] || Heart;
+            return <Icon size={24} />;
+        };
 
-  const dnaStats = {
-    strength: data?.dna_traits?.filter(m => m.category === 'strength').length || 0,
-    warning: data?.dna_traits?.filter(m => m.category === 'warning').length || 0,
-    risk: data?.dna_traits?.filter(m => m.category === 'risk').length || 0,
-    total: data?.dna_traits?.length || 0
-  };
+        const bloodStats = {
+            strength: data?.blood_markers?.filter(m => m.category === 'strength').length || 0,
+            warning: data?.blood_markers?.filter(m => m.category === 'warning').length || 0,
+            risk: data?.blood_markers?.filter(m => m.category === 'risk').length || 0,
+            total: data?.blood_markers?.length || 0
+        };
 
-  const getCategoryIcon = (cat) => {
-    const size = 24;
-    const style = { width: size, height: size };
-    if (cat === 'strength') return <CheckCircle style={{ ...style, color: '#10B981' }} />;
-    if (cat === 'warning') return <AlertTriangle style={{ ...style, color: '#F59E0B' }} />;
-    if (cat === 'risk') return <AlertCircle style={{ ...style, color: '#EF4444' }} />;
-    return null;
-  };
+        const dnaStats = {
+            strength: data?.dna_traits?.filter(m => m.category === 'strength').length || 0,
+            warning: data?.dna_traits?.filter(m => m.category === 'warning').length || 0,
+            risk: data?.dna_traits?.filter(m => m.category === 'risk').length || 0,
+            total: data?.dna_traits?.length || 0
+        };
 
-  const getCategoryStyle = (cat) => {
-    if (cat === 'strength') return { backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' };
-    if (cat === 'warning') return { backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' };
-    if (cat === 'risk') return { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA' };
-    return { backgroundColor: '#F3F4F6', color: '#1F2937', border: '1px solid #E5E7EB' };
-  };
+        const getCategoryIcon = (cat) => {
+            const size = 24;
+            const style = { width: size, height: size };
+            if (cat === 'strength') return <CheckCircle style={{ ...style, color: '#10B981' }} />;
+            if (cat === 'warning') return <AlertTriangle style={{ ...style, color: '#F59E0B' }} />;
+            if (cat === 'risk') return <AlertCircle style={{ ...style, color: '#EF4444' }} />;
+            return null;
+        };
 
-  const getStatusStyle = (status, category) => {
-    if (category === 'strength') return { color: '#059669' };
-    if (category === 'warning') return { color: '#F59E0B' };
-    if (category === 'risk') return { color: '#DC2626' };
-    return { color: '#4B5563' };
-  };
+        const getCategoryStyle = (cat) => {
+            if (cat === 'strength') return { backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' };
+            if (cat === 'warning') return { backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' };
+            if (cat === 'risk') return { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA' };
+            return { backgroundColor: '#F3F4F6', color: '#1F2937', border: '1px solid #E5E7EB' };
+        };
 
-  const getRecIcon = (title) => {
-    const icons = {
-      Diet: <Utensils style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
-      Supplementation: <Pill style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
-      Exercise: <Dumbbell style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
-      Lifestyle: <Smile style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />
-    };
-    return icons[title] || null;
-  };
+        const getStatusStyle = (status, category) => {
+            if (category === 'strength') return { color: '#059669' };
+            if (category === 'warning') return { color: '#F59E0B' };
+            if (category === 'risk') return { color: '#DC2626' };
+            return { color: '#4B5563' };
+        };
 
-  const toggleSection = (section) => {
-    setExpandedSection(expandedSection === section ? '' : section);
-  };
+        const getRecIcon = (title) => {
+            const icons = {
+            Diet: <Utensils style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+            Supplementation: <Pill style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+            Exercise: <Dumbbell style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />,
+            Lifestyle: <Smile style={{ width: 20, height: 20, marginRight: 8, color: '#4B5563' }} />
+            };
+            return icons[title] || null;
+        };
 
-  const toggleBloodGroup = (cat) => {
-    setBloodGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
+        const toggleSection = (section) => {
+            setExpandedSection(expandedSection === section ? '' : section);
+        };
 
-  const toggleDnaGroup = (cat) => {
-    setDnaGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
+        const toggleBloodGroup = (cat) => {
+            setBloodGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
+        };
 
-  const healthScore = Math.round((bloodStats.strength + dnaStats.strength) / Math.max(1, (bloodStats.total + dnaStats.total)) * 100);
+        const toggleDnaGroup = (cat) => {
+            setDnaGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
+        };
+
+        useEffect(() => {
+        const fetchInsight = async () => {
+            setLoading(true);
+            const { data: sessionData } = await supabase.auth.getSession();
+            const user = sessionData?.session?.user;
+            if (!user) {
+            console.error('User not logged in.');
+            return;
+            }
+
+            const { data: insightData, error: fetchError } = await supabase
+            .from('user_health_insight')
+            .select('summary, findings_json, recommendations_json')
+            .eq('user_id', user.id)
+            .eq('health_area_id', selectedHA)
+            .single();
+
+            if (fetchError || !insightData) {
+            console.error('Error fetching insight:', fetchError?.message || 'No data');
+            setData(null);
+            setHealthScore(null);
+            setLoading(false);
+            return;
+            }
+
+            const name = healthAreas.find(h => h.health_area_id === selectedHA)?.health_area_name || selectedHA;
+            const blood_markers = insightData.findings_json?.blood_markers || [];
+            const dna_traits = insightData.findings_json?.dna_traits || [];
+
+            // 🔍 Pull weights and references
+            const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
+            const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
+            const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
+            const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
+
+            const bloodWeightMap = {};
+            for (const ref of bloodRefs) {
+            const match = bloodWeights.find(w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id === selectedHA);
+            if (match) bloodWeightMap[ref.marker_name] = match.importance_weight;
+            }
+
+            const dnaWeightMap = {};
+            for (const ref of dnaRefs) {
+            const match = dnaWeights.find(w => w.dna_id === ref.dna_id && w.health_area_id === selectedHA);
+            if (match) dnaWeightMap[ref.trait] = match.importance_weight;
+            }
+
+            let totalWeighted = 0;
+            let totalWeight = 0;
+
+            for (const m of blood_markers) {
+            const w = bloodWeightMap[m.marker_name] || 1;
+            const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
+            totalWeighted += w * score;
+            totalWeight += w;
+            }
+
+            for (const t of dna_traits) {
+            const w = dnaWeightMap[t.trait_name] || 1;
+            const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
+            totalWeighted += w * score;
+            totalWeight += w;
+            }
+
+            const score = totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null;
+
+            setData({
+            health_area: name,
+            summary: insightData.summary,
+            blood_markers,
+            dna_traits,
+            recommendations: insightData.recommendations_json || {}
+            });
+
+            setHealthScore(score);
+            setLoading(false);
+        };
+
+        if (selectedHA && healthAreas.length) fetchInsight();
+        }, [selectedHA, healthAreas]);
+    // End of score calculation logic
 
   if (loading) return <p>Loading insights...</p>;
   if (!data) return <p>No insights found for selected health area.</p>;
