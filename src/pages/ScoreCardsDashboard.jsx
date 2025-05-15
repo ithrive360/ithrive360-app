@@ -3,9 +3,9 @@ import React from 'react';
 const scoreCards = [
   {
     score: 84,
-    title: 'General Health',
-    description: 'Based on your overall health test, your score is 84 and considered good.',
-    color: '#4f46e5',
+    title: 'Health Score',
+    description: 'Based on your overall health test, your score is 84 and consider good.',
+    color: '#6B46C1',
   },
   {
     score: 76,
@@ -26,39 +26,40 @@ export default function ScoreCardsDashboard() {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '1.25rem',
+      gap: '1rem',
       padding: '1rem',
+      fontFamily: 'Arial, sans-serif',
     }}>
       {scoreCards.map((card, index) => (
         <div key={index} style={{
-          backgroundColor: '#f9fafb',
-          borderRadius: '1rem',
-          padding: '1.25rem',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          padding: '1rem',
           display: 'flex',
           alignItems: 'center',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           gap: '1rem',
+          maxWidth: '300px',
         }}>
           <div style={{
             backgroundColor: card.color,
             clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
-            width: '48px',
-            height: '48px',
+            width: '56px',
+            height: '56px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
+            color: '#FFFFFF',
             fontWeight: 700,
-            fontSize: '16px',
+            fontSize: '20px',
             flexShrink: 0,
           }}>
             {card.score}
           </div>
-
           <div style={{ flex: 1 }}>
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#111827' }}>{card.title}</h4>
-            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>{card.description}</p>
-            <a href="#" style={{ marginTop: '6px', display: 'inline-block', fontSize: '14px', color: card.color, fontWeight: 500 }}>Read more</a>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
+            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
+            <a href="#" style={{ marginTop: '6px', display: 'inline-block', fontSize: '14px', color: card.color, fontWeight: 500, textDecoration: 'underline' }}>Read more</a>
           </div>
         </div>
       ))}
