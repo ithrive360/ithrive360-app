@@ -36,9 +36,9 @@ export default function ScoreCardsDashboard() {
           borderRadius: '12px',
           padding: '1rem',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start', // changed from center
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          gap: '1rem',
+          gap: '1.25rem', // slightly increased spacing
           maxWidth: '400px',
         }}>
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
@@ -64,7 +64,7 @@ export default function ScoreCardsDashboard() {
             </svg>
           </div>
 
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, textAlign: 'left' }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
             <a href="#" style={{ marginTop: '6px', display: 'inline-block', fontSize: '14px', color: card.color, fontWeight: 500, textDecoration: 'underline' }}>Read more</a>
