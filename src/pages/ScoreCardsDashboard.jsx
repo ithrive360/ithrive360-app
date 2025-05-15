@@ -5,7 +5,7 @@ const scoreCards = [
     score: 84,
     title: 'Health Score',
     description: 'Based on your overall health test, your score is 84 and considered good.',
-    color: '#6B46C1',
+    color: '#4f46e5',
   },
   {
     score: 76,
