@@ -475,6 +475,36 @@ function DashboardPage() {
       </div>
 
 
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+        {[
+          { title: 'General Health', score: 84, color: '#4f46e5' },
+          { title: 'Longevity', score: 76, color: '#3ab3a1' },
+          { title: 'Performance & Recovery', score: 91, color: '#8b5cf6' }
+        ].map((item, idx) => (
+          <div key={idx} style={{
+            flex: '1 1 200px',
+            maxWidth: 240,
+            borderRadius: '16px',
+            border: `3px solid ${item.color}`,
+            background: '#ffffff',
+            padding: '20px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            textAlign: 'center'
+          }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, color: item.color, marginBottom: 8 }}>{item.title}</h4>
+            <div style={{
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#1f2937'
+            }}>
+              {item.score}
+            </div>
+          </div>
+        ))}
+      </div>
+
+
+
 {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
 
