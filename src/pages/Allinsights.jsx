@@ -7,6 +7,9 @@ import {
   ArrowLeft, Droplet, Dna, ListChecks, Brain, ShieldCheck, Flame, Apple, Moon, RefreshCcw, Activity
 } from 'lucide-react';
 import logo from '../assets/logo.png';
+import SidebarMenu from './SidebarMenu'; // same component as Upload
+import { Menu, X } from 'lucide-react';  // already imported
+
 
 const healthIcons = {
   HA001: Apple,
@@ -30,6 +33,7 @@ export default function CardiovascularInsightsPage() {
   const [selectedHA, setSelectedHA] = useState('HA001');
   const [healthAreas, setHealthAreas] = useState([]);
   const [healthScore, setHealthScore] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -232,22 +236,53 @@ export default function CardiovascularInsightsPage() {
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
-      <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100%', backgroundColor: '#fff',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px',
-        zIndex: 1000, boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
-      }}>
-        <button
-          onClick={() => navigate('/dashboard')}
-          style={{ position: 'absolute', left: 16, background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0, outline: 'none' }}
-          aria-label="Go back to dashboard"
+        <div
+        style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '12px 16px',
+            zIndex: 1000,
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
+        }}
         >
-          <ArrowLeft size={28} color="#3ab3a1" />
+        <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            style={{
+            position: 'absolute',
+            left: 16,
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            lineHeight: 0,
+            outline: 'none',
+            }}
+            aria-label="Toggle menu"
+        >
+            {menuOpen ? <X size={28} color="#3ab3a1" /> : <Menu size={28} color="#3ab3a1" />}
         </button>
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
-      </div>
+        </div>
+
 
       <div style={{ height: 60 }} />
+
+        <SidebarMenu
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onLogout={async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/';
+        }}
+        profile={null} // or pass real profile data if available in this page
+        />
+
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
