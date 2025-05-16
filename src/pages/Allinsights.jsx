@@ -34,6 +34,8 @@ export default function CardiovascularInsightsPage() {
   const [healthAreas, setHealthAreas] = useState([]);
   const [healthScore, setHealthScore] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
+
 
   const navigate = useNavigate();
 
@@ -45,6 +47,25 @@ export default function CardiovascularInsightsPage() {
 
     loadAreasAndDefaultInsight();
   }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+        const session = await supabase.auth.getSession();
+        const userId = session?.data?.session?.user?.id;
+        if (!userId) return;
+
+        const { data, error } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+        if (!error) setProfile(data);
+        else console.error('Error fetching profile:', error.message);
+    };
+
+    fetchProfile();
+    }, []);
 
 
         // Score calculation logic
@@ -280,7 +301,7 @@ export default function CardiovascularInsightsPage() {
             await supabase.auth.signOut();
             window.location.href = '/';
         }}
-        profile={null} // or pass real profile data if available in this page
+        profile={profile} // or pass real profile data if available in this page
         />
 
 
