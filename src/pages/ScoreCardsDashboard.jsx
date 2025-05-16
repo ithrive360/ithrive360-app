@@ -1,27 +1,27 @@
 import React from 'react';
 
-const scoreCards = [
-  {
-    score: scores?.general ?? '--',
-    title: 'Overall Health Score',
-    description: `Based on your overall health test, your score is ${scores?.general ?? '--'} and considered good.`,
-    color: '#4f46e5',
-  },
-  {
-    score: scores?.longevity ?? '--',
-    title: 'Longevity',
-    description: `Your score reflects long-term health and risk resilience based on blood and DNA data.`,
-    color: '#3ab3a1',
-  },
-  {
-    score: scores?.performance ?? '--',
-    title: 'Performance & Recovery',
-    description: `Optimised recovery, energy and performance markers place you in an excellent range.`,
-    color: '#8b5cf6',
-  },
-];
-
 export default function ScoreCardsDashboard({ scores }) {
+  const scoreCards = [
+    {
+      score: scores?.general ?? '--',
+      title: 'Overall Health Score',
+      description: `Based on your overall health test, your score is ${scores?.general ?? '--'} and considered good.`,
+      color: '#4f46e5',
+    },
+    {
+      score: scores?.longevity ?? '--',
+      title: 'Longevity',
+      description: `Your score reflects long-term health and risk resilience based on blood and DNA data.`,
+      color: '#3ab3a1',
+    },
+    {
+      score: scores?.performance ?? '--',
+      title: 'Performance & Recovery',
+      description: `Optimised recovery, energy and performance markers place you in an excellent range.`,
+      color: '#8b5cf6',
+    },
+  ];
+
   return (
     <div style={{
       display: 'flex',
@@ -36,9 +36,9 @@ export default function ScoreCardsDashboard({ scores }) {
           borderRadius: '12px',
           padding: '1rem',
           display: 'flex',
-          alignItems: 'flex-start', // changed from center
+          alignItems: 'flex-start',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          gap: '1.25rem', // slightly increased spacing
+          gap: '1.25rem',
           maxWidth: '400px',
         }}>
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
