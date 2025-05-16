@@ -35,6 +35,9 @@ function DashboardPage() {
   const [insightStatus, setInsightStatus] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedHealthArea, setSelectedHealthArea] = useState('HA002');
+  const [areaScores, setAreaScores] = useState([]); // Holds all per-HA scores
+  const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null });
+
 
   const navigate = useNavigate();
 
@@ -133,8 +136,14 @@ function DashboardPage() {
     const checkSessionAndFetch = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) await fetchUserData();
-        else setLoading(false);
+        const user = session?.user;
+
+        if (user) {
+          await fetchUserData();
+          await fetchAreaScores(user.id);  // 👈 Add this here
+        } else {
+          setLoading(false);
+        }
       } catch (err) {
         console.error('Session check error:', err.message);
         setLoading(false);
@@ -146,7 +155,10 @@ function DashboardPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         try {
-          if (session?.user) await fetchUserData();
+          if (session?.user) {
+            await fetchUserData();
+            await fetchAreaScores(session.user.id);  // 👈 Also add here
+          }
         } catch (err) {
           console.error('Auth state change error:', err.message);
         }
@@ -157,6 +169,100 @@ function DashboardPage() {
       authListener?.subscription?.unsubscribe();
     };
   }, []);
+
+
+  const fetchAreaScores = async (userId) => {
+  try {
+    const { data: insights, error } = await supabase
+      .from('user_health_insight')
+      .select('health_area_id, findings_json')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    // Pull weights
+    const { data: bloodWeights } = await supabase
+      .from('blood_marker_health_area')
+      .select('blood_marker_id, health_area_id, importance_weight');
+    const { data: bloodRefs } = await supabase
+      .from('blood_marker_reference')
+      .select('blood_marker_id, marker_name');
+
+    const { data: dnaWeights } = await supabase
+      .from('dna_marker_health_area')
+      .select('dna_id, health_area_id, importance_weight');
+    const { data: dnaRefs } = await supabase
+      .from('dna_marker_reference')
+      .select('dna_id, trait');
+
+    const bloodWeightMap = {};
+    for (const ref of bloodRefs) {
+      const key = `${ref.marker_name}|${ref.blood_marker_id}`;
+      bloodWeightMap[key] = bloodWeights.find(
+        w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id
+      )?.importance_weight || 1;
+    }
+
+    const dnaWeightMap = {};
+    for (const ref of dnaRefs) {
+      const key = `${ref.trait}|${ref.dna_id}`;
+      dnaWeightMap[key] = dnaWeights.find(
+        w => w.dna_id === ref.dna_id && w.health_area_id
+      )?.importance_weight || 1;
+    }
+
+    const scores = insights.map(insight => {
+      let totalWeighted = 0;
+      let totalWeight = 0;
+
+      for (const m of insight.findings_json.blood_markers || []) {
+        const weight = bloodWeights.find(w =>
+          bloodRefs.find(r => r.marker_name === m.marker_name && r.blood_marker_id === w.blood_marker_id) &&
+          w.health_area_id === insight.health_area_id
+        )?.importance_weight || 1;
+        const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
+        totalWeighted += weight * score;
+        totalWeight += weight;
+      }
+
+      for (const t of insight.findings_json.dna_traits || []) {
+        const weight = dnaWeights.find(w =>
+          dnaRefs.find(r => r.trait === t.trait_name && r.dna_id === w.dna_id) &&
+          w.health_area_id === insight.health_area_id
+        )?.importance_weight || 1;
+        const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
+        totalWeighted += weight * score;
+        totalWeight += weight;
+      }
+
+      return {
+        health_area_id: insight.health_area_id,
+        score: totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null
+      };
+    });
+
+    setAreaScores(scores);
+
+
+    // === Calculate grouped scores ===
+    const getGroupAvg = (ids) => {
+      const filtered = scores.filter(s => ids.includes(s.health_area_id));
+      const valid = filtered.filter(s => s.score !== null);
+      const avg = valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
+      return avg;
+    };
+
+    setOverallScores({
+      general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
+      performance: getGroupAvg(['HA005', 'HA006']),
+      longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
+    });
+  } catch (e) {
+    console.error('❌ Error calculating overall scores:', e);
+  }
+};
+
+
 
   const handleLogout = async () => {
     if (isProcessing) return;
@@ -476,7 +582,7 @@ function DashboardPage() {
       </div>
 
 
-<ScoreCardsDashboard />
+<ScoreCardsDashboard scores={overallScores} />
 
 
 
