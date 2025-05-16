@@ -40,7 +40,6 @@ export default function CardiovascularInsightsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
       if (!user) {
@@ -59,6 +58,7 @@ export default function CardiovascularInsightsPage() {
       console.log('Fetched profile data:', profileData); // Debug log to verify profile data
       setProfile(profileData || null);
 
+      // Fetch health areas
       const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
       setHealthAreas(areas || []);
 
@@ -70,7 +70,6 @@ export default function CardiovascularInsightsPage() {
 
   useEffect(() => {
     const fetchInsight = async () => {
-      if (loading) return; // Prevent fetching insights until profile and areas are loaded
       setLoading(true);
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
@@ -148,7 +147,7 @@ export default function CardiovascularInsightsPage() {
     };
 
     if (selectedHA && healthAreas.length) fetchInsight();
-  }, [selectedHA, healthAreas, loading]);
+  }, [selectedHA, healthAreas]);
 
   const IconForArea = ({ id }) => {
     const Icon = healthIcons[id] || Heart;
@@ -215,6 +214,7 @@ export default function CardiovascularInsightsPage() {
   };
 
   if (loading) return <p>Loading insights...</p>;
+  if (!data) return <p>No insights found for selected health area.</p>;
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
@@ -254,17 +254,15 @@ export default function CardiovascularInsightsPage() {
 
       <div style={{ height: 60 }} />
 
-      {profile && (
-        <SidebarMenu
-          isOpen={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          onLogout={async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/';
-          }}
-          profile={profile}
-        />
-      )}
+      <SidebarMenu
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onLogout={async () => {
+          await supabase.auth.signOut();
+          window.location.href = '/';
+        }}
+        profile={profile}
+      />
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
