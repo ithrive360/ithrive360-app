@@ -33,48 +33,39 @@ export default function CardiovascularInsightsPage() {
   const [healthAreas, setHealthAreas] = useState([]);
   const [healthScore, setHealthScore] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Fetch health areas
-        const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
-        setHealthAreas(areas || []);
-
-        // Fetch user session and profile
-        const { data: sessionData } = await supabase.auth.getSession();
-        const user = sessionData?.session?.user;
-        if (!user) {
-          console.error('User not logged in.');
-          setLoading(false);
-          return;
-        }
-
-        const { data: profileData, error } = await supabase
-          .from('user_profile')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching profile:', error.message);
-          setProfile(null);
-        } else {
-          setProfile(profileData);
-        }
-      } catch (error) {
-        console.error('Error in data loading:', error.message);
-        setProfile(null);
-      } finally {
+    const fetchData = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        console.error('User not logged in.');
         setLoading(false);
+        return;
       }
+      setUser(user);
+
+      const { data: profileData } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('Fetched profile data:', profileData); // Debug log to verify profile data
+      setProfile(profileData || null);
+
+      // Fetch health areas
+      const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
+      setHealthAreas(areas || []);
+
+      setLoading(false);
     };
 
-    loadData();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -107,7 +98,6 @@ export default function CardiovascularInsightsPage() {
       const blood_markers = insightData.findings_json?.blood_markers || [];
       const dna_traits = insightData.findings_json?.dna_traits || [];
 
-      // Fetch weights and references
       const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
       const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
       const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
