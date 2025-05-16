@@ -585,7 +585,6 @@ function DashboardPage() {
 <ScoreCardsDashboard scores={overallScores} />
 
 
-
 {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
 

@@ -2,26 +2,26 @@ import React from 'react';
 
 const scoreCards = [
   {
-    score: 84,
+    score: scores?.general ?? '--',
     title: 'Overall Health Score',
-    description: 'Based on your overall health test, your score is 84 and considered good.',
+    description: `Based on your overall health test, your score is ${scores?.general ?? '--'} and considered good.`,
     color: '#4f46e5',
   },
   {
-    score: 76,
+    score: scores?.longevity ?? '--',
     title: 'Longevity',
-    description: 'Your score reflects long-term health and risk resilience based on blood and DNA data.',
+    description: `Your score reflects long-term health and risk resilience based on blood and DNA data.`,
     color: '#3ab3a1',
   },
   {
-    score: 91,
+    score: scores?.performance ?? '--',
     title: 'Performance & Recovery',
-    description: 'Optimised recovery, energy and performance markers place you in an excellent range.',
+    description: `Optimised recovery, energy and performance markers place you in an excellent range.`,
     color: '#8b5cf6',
   },
 ];
 
-export default function ScoreCardsDashboard() {
+export default function ScoreCardsDashboard({ scores }) {
   return (
     <div style={{
       display: 'flex',
