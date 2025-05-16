@@ -38,34 +38,43 @@ export default function CardiovascularInsightsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadAreasAndProfile = async () => {
+    const loadData = async () => {
       setLoading(true);
-      // Fetch health areas
-      const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
-      setHealthAreas(areas || []);
+      try {
+        // Fetch health areas
+        const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
+        setHealthAreas(areas || []);
 
-      // Fetch user profile
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        console.error('User not logged in.');
+        // Fetch user session and profile
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user) {
+          console.error('User not logged in.');
+          setLoading(false);
+          return;
+        }
+
+        const { data: profileData, error } = await supabase
+          .from('user_profile')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error.message);
+          setProfile(null);
+        } else {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error('Error in data loading:', error.message);
+        setProfile(null);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const { data: profileData, error } = await supabase
-        .from('user_profile')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!error) setProfile(profileData);
-      else console.error('Error fetching profile:', error.message);
-
-      setLoading(false);
     };
 
-    loadAreasAndProfile();
+    loadData();
   }, []);
 
   useEffect(() => {
