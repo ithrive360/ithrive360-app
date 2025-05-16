@@ -261,7 +261,7 @@ export default function CardiovascularInsightsPage() {
           await supabase.auth.signOut();
           window.location.href = '/';
         }}
-        user={profile}
+        profile={profile}
       />
 
       <div style={{
