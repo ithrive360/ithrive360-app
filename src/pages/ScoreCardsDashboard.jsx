@@ -4,7 +4,7 @@ export default function ScoreCardsDashboard({ scores }) {
   const scoreCards = [
     {
       score: scores?.general ?? '--',
-      title: 'Overall Health Score',
+      title: 'Overall Health',
       description: `Based on your overall health test, your score is ${scores?.general ?? '--'} and considered good.`,
       color: '#4f46e5',
     },
@@ -36,7 +36,7 @@ export default function ScoreCardsDashboard({ scores }) {
         borderRadius: '12px',
         padding: '1rem',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'center',  // <--- changed this
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         gap: '1.25rem',
         width: '90%',
@@ -44,8 +44,9 @@ export default function ScoreCardsDashboard({ scores }) {
         margin: '0 auto',
         }}>
 
+
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
-            
+
             <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -56,17 +57,17 @@ export default function ScoreCardsDashboard({ scores }) {
             >
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
             <text
-                x="12"
-                y="16"
-                textAnchor="middle"
-                fontSize="10"
-                fontWeight="bold"
-                fill="#fff"
-                dominantBaseline="middle"
-                alignmentBaseline="middle"
+            x="12"
+            y="13.5"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            fontWeight="bold"
+            fill="#fff"
             >
-                {card.score}
+            {card.score}
             </text>
+
             </svg>
 
           </div>
