@@ -35,7 +35,6 @@ export default function CardiovascularInsightsPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const hardcodedProfile = { full_name: "Test User" };
 
   const navigate = useNavigate();
 
@@ -263,7 +262,7 @@ export default function CardiovascularInsightsPage() {
             await supabase.auth.signOut();
             window.location.href = '/';
             }}
-            profile={hardcodedProfile}
+            profile={profile}
         />
         )}
 

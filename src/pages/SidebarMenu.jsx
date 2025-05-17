@@ -3,7 +3,7 @@ import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle
 import { useNavigate } from 'react-router-dom';
 
 export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
-
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
               {profile?.full_name?.charAt(0) || 'U'}
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 18 }}>
+              <div style={{ fontWeight: 700, fontSize: 18, color: '#1F2937' }}>
                 {profile?.full_name || 'User'}
               </div>
             </div>
