@@ -66,8 +66,10 @@ export default function ScoreCardsDashboard({ scores }) {
 
           <div style={{ flex: 1, textAlign: 'left' }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
+            {/* 
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
             <a href="#" style={{ marginTop: '6px', display: 'inline-block', fontSize: '14px', color: card.color, fontWeight: 500, textDecoration: 'underline' }}>Read more</a>
+            */}
           </div>
         </div>
       ))}
