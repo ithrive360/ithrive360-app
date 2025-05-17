@@ -263,7 +263,7 @@ export default function CardiovascularInsightsPage() {
             await supabase.auth.signOut();
             window.location.href = '/';
             }}
-            profile={profile}
+            profile={hardcodedProfile}
         />
         )}
 
