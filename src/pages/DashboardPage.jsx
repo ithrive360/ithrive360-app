@@ -562,10 +562,9 @@ function DashboardPage() {
         profile={profile}
       />
 
-      <div style={{ height: 60 }} />
+      <div style={{ height: 20 }} />
       
-      
-      <div style={{ position: 'relative', textAlign: 'center', marginTop: 32 }}>
+      <div style={{ position: 'relative', textAlign: 'center', marginTop: 10 }}>
         <h3 style={{ display: 'inline-block', fontWeight: 600, margin: 0, position: 'relative' }}>
           {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email || 'there'}
           <span style={{
