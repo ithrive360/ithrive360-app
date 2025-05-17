@@ -254,15 +254,17 @@ export default function CardiovascularInsightsPage() {
 
       <div style={{ height: 60 }} />
 
-      <SidebarMenu
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onLogout={async () => {
-          await supabase.auth.signOut();
-          window.location.href = '/';
-        }}
-        profile={profile}
-      />
+        {profile && (
+        <SidebarMenu
+            isOpen={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            onLogout={async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/';
+            }}
+            profile={profile}
+        />
+        )}
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
