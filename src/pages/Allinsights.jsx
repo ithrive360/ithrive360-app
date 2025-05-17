@@ -35,6 +35,7 @@ export default function CardiovascularInsightsPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const hardcodedProfile = { full_name: "Test User" };
 
   const navigate = useNavigate();
 
