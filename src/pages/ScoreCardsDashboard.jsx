@@ -32,36 +32,43 @@ export default function ScoreCardsDashboard({ scores }) {
     }}>
       {scoreCards.map((card, index) => (
         <div key={index} style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '12px',
-          padding: '1rem',
-          display: 'flex',
-          alignItems: 'flex-start',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          gap: '1.25rem',
-          maxWidth: '400px',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
+        padding: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        gap: '1.25rem',
+        width: '90%',
+        maxWidth: '600px',
+        margin: '0 auto',
         }}>
+
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
+            
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="64"
-              height="64"
-              fill={card.color}
-              stroke="none"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="48"
+            height="48"
+            fill={card.color}
+            stroke="none"
             >
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-              <text
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <text
                 x="12"
                 y="16"
                 textAnchor="middle"
                 fontSize="10"
                 fontWeight="bold"
                 fill="#fff"
-              >
+                dominantBaseline="middle"
+                alignmentBaseline="middle"
+            >
                 {card.score}
-              </text>
+            </text>
             </svg>
+
           </div>
 
           <div style={{ flex: 1, textAlign: 'left' }}>
