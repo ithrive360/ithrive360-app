@@ -23,16 +23,20 @@ export default function ScoreCardsDashboard({ scores }) {
   ];
 
   return (
-        <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
+        <div key={index} style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
         padding: '1rem',
-        fontFamily: 'Arial, sans-serif',
-        width: '100vw',               // Fill viewport width
-        maxWidth: '100%',             // Prevent max-width clipping
-        boxSizing: 'border-box',      // Ensure padding is respected
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        gap: '1.25rem',
+        width: 'calc(100vw - 2rem)', // Use full viewport width minus padding
+        maxWidth: '600px',           // Cap width on large screens for aesthetics
+        margin: '0 auto',
+        boxSizing: 'border-box',
         }}>
+
 
       {scoreCards.map((card, index) => (
         <div key={index} style={{
