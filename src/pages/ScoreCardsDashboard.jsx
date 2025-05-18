@@ -23,13 +23,17 @@ export default function ScoreCardsDashboard({ scores }) {
   ];
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      padding: '1rem',
-      fontFamily: 'Arial, sans-serif',
-    }}>
+        <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        padding: '1rem',
+        fontFamily: 'Arial, sans-serif',
+        width: '100vw',               // Fill viewport width
+        maxWidth: '100%',             // Prevent max-width clipping
+        boxSizing: 'border-box',      // Ensure padding is respected
+        }}>
+
       {scoreCards.map((card, index) => (
         <div key={index} style={{
           backgroundColor: '#FFFFFF',
