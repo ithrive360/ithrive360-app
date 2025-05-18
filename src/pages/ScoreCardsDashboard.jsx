@@ -40,7 +40,7 @@ export default function ScoreCardsDashboard({ scores }) {
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         gap: '1.25rem',
         width: '90%',
-        maxWidth: '800px',
+        maxWidth: '1200px',
         margin: '0 auto',
         }}>
 
