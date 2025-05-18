@@ -72,7 +72,14 @@ export default function ScoreCardsDashboard({ scores }) {
 
           </div>
 
-          <div style={{ flex: 1, textAlign: 'left' }}>
+            <div style={{
+            flex: 1,
+            textAlign: 'left',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
+            }}>
+
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
             {/* 
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
