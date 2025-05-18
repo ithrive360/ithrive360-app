@@ -32,54 +32,46 @@ export default function ScoreCardsDashboard({ scores }) {
     }}>
       {scoreCards.map((card, index) => (
         <div key={index} style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: '12px',
-        padding: '1rem',
-        display: 'flex',
-        alignItems: 'center',  // <--- changed this
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        gap: '1.25rem',
-        width: '90%',
-        maxWidth: '1200px',
-        margin: '0 auto',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          padding: '1rem',
+          display: 'flex',
+          alignItems: 'center', // Ensures vertical centering of all items
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          gap: '1.25rem',
+          width: '100%', // Increased to full width
+          margin: '0 auto',
         }}>
-
-
           <div style={{ width: 64, height: 64, flexShrink: 0 }}>
-
             <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="48"
-            height="48"
-            fill={card.color}
-            stroke="none"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="48"
+              height="48"
+              fill={card.color}
+              stroke="none"
             >
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-            <text
-            x="12"
-            y="13.5"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="10"
-            fontWeight="bold"
-            fill="#fff"
-            >
-            {card.score}
-            </text>
-
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <text
+                x="12"
+                y="13.5"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="10"
+                fontWeight="bold"
+                fill="#fff"
+              >
+                {card.score}
+              </text>
             </svg>
-
           </div>
-
-            <div style={{
+          <div style={{
             flex: 1,
             textAlign: 'left',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center'
-            }}>
-
+            justifyContent: 'center', // Centers text vertically within its container
+          }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
             {/* 
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#4B5563' }}>{card.description}</p>
