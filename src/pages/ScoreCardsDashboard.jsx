@@ -36,10 +36,10 @@ export default function ScoreCardsDashboard({ scores }) {
           borderRadius: '12px',
           padding: '1rem',
           display: 'flex',
-          alignItems: 'center', // Ensures vertical centering of all items
+          alignItems: 'center',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           gap: '1.25rem',
-          width: '100%', // Full width
+          width: '90%', // Set to 90% of the total width
           margin: '0 auto',
         }}>
           <div style={{ width: 64, height: 64, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -50,7 +50,7 @@ export default function ScoreCardsDashboard({ scores }) {
               height="48"
               fill={card.color}
               stroke="none"
-              style={{ margin: 'auto' }} // Center the SVG within its container
+              style={{ margin: 'auto' }}
             >
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <text
@@ -70,8 +70,8 @@ export default function ScoreCardsDashboard({ scores }) {
             flex: 1,
             textAlign: 'left',
             display: 'flex',
-            alignItems: 'center', // Center the text vertically
-            minHeight: '64px', // Match the height of the hexagon container
+            alignItems: 'center',
+            minHeight: '64px',
           }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
           </div>
