@@ -440,53 +440,68 @@ export default function CardiovascularInsightsPage() {
       })}
 
       {activeTab === 'recommendations' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', minWidth: '300px' }}>
-          {Object.entries(data.recommendations).map(([title, items]) => (
-            <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', width: '100%', minWidth: '300px' }}>
-              <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500, color: '#1F2937' }}>
-                  {getRecIcon(title)} {title}
-                </h3>
-                {expandedSection === title ? <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} /> : <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />}
-              </div>
-              {expandedSection === title && (
-                <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
-                  <ul style={{ paddingLeft: 20, marginTop: 8 }}>
-                    {items.map((item, i) => {
-                      const text = typeof item === 'string' ? item : item.text;
-                      const priority = typeof item === 'object' && item.priority;
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', minWidth: '300px' }}>
+    {['Diet', 'Supplementation', 'Exercise', 'Lifestyle', 'Monitoring']
+      .filter(title => data.recommendations[title])
+      .map(title => {
+        const items = data.recommendations[title];
+        return (
+          <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', width: '100%', minWidth: '300px' }}>
+            <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500, color: '#1F2937' }}>
+                {getRecIcon(title)} {title}
+              </h3>
+              {expandedSection === title ? (
+                <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} />
+              ) : (
+                <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />
+              )}
+            </div>
+            {expandedSection === title && (
+              <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
+                <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+                  {items.map((item, i) => {
+                    const text = typeof item === 'string' ? item : item.text;
+                    const priority = typeof item === 'object' && item.priority;
 
-                      return (
-                        <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>
-                          {text}
-                          {priority && (
-                            <span style={{
+                    return (
+                      <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>
+                        {text}
+                        {priority && (
+                          <span
+                            style={{
                               fontSize: '0.75rem',
                               marginLeft: 8,
                               padding: '2px 6px',
                               borderRadius: 4,
                               backgroundColor:
-                                priority === 'high' ? '#fee2e2' :
-                                priority === 'medium' ? '#fef3c7' :
-                                '#e0f2fe',
+                                priority === 'high'
+                                  ? '#fee2e2'
+                                  : priority === 'medium'
+                                  ? '#fef3c7'
+                                  : '#e0f2fe',
                               color:
-                                priority === 'high' ? '#991b1b' :
-                                priority === 'medium' ? '#92400e' :
-                                '#1e40af'
-                            }}>
-                              {priority}
-                            </span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                                priority === 'high'
+                                  ? '#991b1b'
+                                  : priority === 'medium'
+                                  ? '#92400e'
+                                  : '#1e40af',
+                            }}
+                          >
+                            {priority}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+  </div>
+)}
     </div>
   );
 }
