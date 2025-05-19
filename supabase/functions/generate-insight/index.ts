@@ -87,7 +87,8 @@ Rules:
   - Exercise
   - Lifestyle
   - Monitoring (if applicable)
-- Keep recommendations short and actionable.
+- Keep recommendations short and actionable. Something the user can action themselves, not referring them to a third party
+- All you language should be addressing the user directly. No referring to the user in the third person
 - If a category has no relevant advice, omit it from the output.
 - Only respond with the JSON output. No explanation or text outside the JSON block.
 
@@ -109,11 +110,36 @@ Return format (strict):
     }
   ],
   "recommendations": {
-    "Diet": ["..."],
-    "Supplementation": ["..."],
-    "Exercise": ["..."],
-    "Lifestyle": ["..."],
-    "Monitoring": ["..."]
+        "Diet": [
+                  {
+                    "text": "...",
+                    "priority": "high/medium/low"
+                  }
+                ],
+    "Supplementation": [
+                  {
+                    "text": "...",
+                    "priority": "high/medium/low"
+                  }
+                ],
+    "Exercise": [
+                  {
+                    "text": "...",
+                    "priority": "high/medium/low"
+                  }
+                ],
+    "Lifestyle": [
+                  {
+                    "text": "...",
+                    "priority": "high/medium/low"
+                  }
+                ],
+    "Monitoring": [
+                  {
+                    "text": "...",
+                    "priority": "high/medium/low"
+                  }
+                ],
   }
 }
 
