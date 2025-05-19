@@ -35,6 +35,7 @@ export default function CardiovascularInsightsPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [preloadedInsights, setPreloadedInsights] = useState({}); // New state to store preloaded data
 
   const navigate = useNavigate();
 
@@ -55,12 +56,93 @@ export default function CardiovascularInsightsPage() {
         .eq('user_id', user.id)
         .single();
 
-      console.log('Fetched profile data:', profileData); // Debug log to verify profile data
+      console.log('Fetched profile data:', profileData);
       setProfile(profileData || null);
 
       // Fetch health areas
       const { data: areas } = await supabase.from('health_area_reference').select('health_area_id, health_area_name');
       setHealthAreas(areas || []);
+
+      // Fetch insights for all health areas
+      if (areas && areas.length > 0) {
+        const insightsMap = {};
+
+        // Fetch weights and references once for all health areas
+        const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
+        const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
+        const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
+        const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
+
+        // Fetch insights for all health areas at once
+        const { data: allInsights, error: fetchError } = await supabase
+          .from('user_health_insight')
+          .select('health_area_id, summary, findings_json, recommendations_json')
+          .eq('user_id', user.id)
+          .in('health_area_id', areas.map(area => area.health_area_id));
+
+        if (fetchError || !allInsights) {
+          console.error('Error fetching insights:', fetchError?.message || 'No data');
+        } else {
+          for (const insight of allInsights) {
+            const haId = insight.health_area_id;
+            const name = areas.find(h => h.health_area_id === haId)?.health_area_name || haId;
+            const blood_markers = insight.findings_json?.blood_markers || [];
+            const dna_traits = insight.findings_json?.dna_traits || [];
+
+            // Precompute weight maps for this health area
+            const bloodWeightMap = {};
+            for (const ref of bloodRefs) {
+              const match = bloodWeights.find(w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id === haId);
+              if (match) bloodWeightMap[ref.marker_name] = match.importance_weight;
+            }
+
+            const dnaWeightMap = {};
+            for (const ref of dnaRefs) {
+              const match = dnaWeights.find(w => w.dna_id === ref.dna_id && w.health_area_id === haId);
+              if (match) dnaWeightMap[ref.trait] = match.importance_weight;
+            }
+
+            let totalWeighted = 0;
+            let totalWeight = 0;
+
+            for (const m of blood_markers) {
+              const w = bloodWeightMap[m.marker_name] || 1;
+              const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
+              totalWeighted += w * score;
+              totalWeight += w;
+            }
+
+            for (const t of dna_traits) {
+              const w = dnaWeightMap[t.trait_name] || 1;
+              const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
+              totalWeighted += w * score;
+              totalWeight += w;
+            }
+
+            const score = totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null;
+
+            insightsMap[haId] = {
+              health_area: name,
+              summary: insight.summary,
+              blood_markers,
+              dna_traits,
+              recommendations: insight.recommendations_json || {},
+              healthScore: score
+            };
+          }
+        }
+
+        setPreloadedInsights(insightsMap);
+
+        // Set initial data for the default selected health area (HA001)
+        if (insightsMap['HA001']) {
+          setData(insightsMap['HA001']);
+          setHealthScore(insightsMap['HA001'].healthScore);
+        } else {
+          setData(null);
+          setHealthScore(null);
+        }
+      }
 
       setLoading(false);
     };
@@ -68,86 +150,16 @@ export default function CardiovascularInsightsPage() {
     fetchData();
   }, []);
 
+  // Update data and healthScore when selectedHA changes
   useEffect(() => {
-    const fetchInsight = async () => {
-      setLoading(true);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        console.error('User not logged in.');
-        setLoading(false);
-        return;
-      }
-
-      const { data: insightData, error: fetchError } = await supabase
-        .from('user_health_insight')
-        .select('summary, findings_json, recommendations_json')
-        .eq('user_id', user.id)
-        .eq('health_area_id', selectedHA)
-        .single();
-
-      if (fetchError || !insightData) {
-        console.error('Error fetching insight:', fetchError?.message || 'No data');
-        setData(null);
-        setHealthScore(null);
-        setLoading(false);
-        return;
-      }
-
-      const name = healthAreas.find(h => h.health_area_id === selectedHA)?.health_area_name || selectedHA;
-      const blood_markers = insightData.findings_json?.blood_markers || [];
-      const dna_traits = insightData.findings_json?.dna_traits || [];
-
-      const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
-      const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
-      const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
-      const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
-
-      const bloodWeightMap = {};
-      for (const ref of bloodRefs) {
-        const match = bloodWeights.find(w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id === selectedHA);
-        if (match) bloodWeightMap[ref.marker_name] = match.importance_weight;
-      }
-
-      const dnaWeightMap = {};
-      for (const ref of dnaRefs) {
-        const match = dnaWeights.find(w => w.dna_id === ref.dna_id && w.health_area_id === selectedHA);
-        if (match) dnaWeightMap[ref.trait] = match.importance_weight;
-      }
-
-      let totalWeighted = 0;
-      let totalWeight = 0;
-
-      for (const m of blood_markers) {
-        const w = bloodWeightMap[m.marker_name] || 1;
-        const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
-        totalWeighted += w * score;
-        totalWeight += w;
-      }
-
-      for (const t of dna_traits) {
-        const w = dnaWeightMap[t.trait_name] || 1;
-        const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
-        totalWeighted += w * score;
-        totalWeight += w;
-      }
-
-      const score = totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null;
-
-      setData({
-        health_area: name,
-        summary: insightData.summary,
-        blood_markers,
-        dna_traits,
-        recommendations: insightData.recommendations_json || {}
-      });
-
-      setHealthScore(score);
-      setLoading(false);
-    };
-
-    if (selectedHA && healthAreas.length) fetchInsight();
-  }, [selectedHA, healthAreas]);
+    if (preloadedInsights[selectedHA]) {
+      setData(preloadedInsights[selectedHA]);
+      setHealthScore(preloadedInsights[selectedHA].healthScore);
+    } else {
+      setData(null);
+      setHealthScore(null);
+    }
+  }, [selectedHA, preloadedInsights]);
 
   const IconForArea = ({ id }) => {
     const Icon = healthIcons[id] || Heart;
@@ -254,17 +266,17 @@ export default function CardiovascularInsightsPage() {
 
       <div style={{ height: 60 }} />
 
-        {profile && (
+      {profile && (
         <SidebarMenu
-            isOpen={menuOpen}
-            onClose={() => setMenuOpen(false)}
-            onLogout={async () => {
+          isOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onLogout={async () => {
             await supabase.auth.signOut();
             window.location.href = '/';
-            }}
-            profile={profile}
+          }}
+          profile={profile}
         />
-        )}
+      )}
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
@@ -440,68 +452,68 @@ export default function CardiovascularInsightsPage() {
       })}
 
       {activeTab === 'recommendations' && (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', minWidth: '300px' }}>
-    {['Diet', 'Supplementation', 'Exercise', 'Lifestyle', 'Monitoring']
-      .filter(title => data.recommendations[title])
-      .map(title => {
-        const items = data.recommendations[title];
-        return (
-          <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', width: '100%', minWidth: '300px' }}>
-            <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500, color: '#1F2937' }}>
-                {getRecIcon(title)} {title}
-              </h3>
-              {expandedSection === title ? (
-                <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} />
-              ) : (
-                <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />
-              )}
-            </div>
-            {expandedSection === title && (
-              <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
-                <ul style={{ paddingLeft: 20, marginTop: 8 }}>
-                  {items.map((item, i) => {
-                    const text = typeof item === 'string' ? item : item.text;
-                    const priority = typeof item === 'object' && item.priority;
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', minWidth: '300px' }}>
+          {['Diet', 'Supplementation', 'Exercise', 'Lifestyle', 'Monitoring']
+            .filter(title => data.recommendations[title])
+            .map(title => {
+              const items = data.recommendations[title];
+              return (
+                <div key={title} style={{ border: '1px solid #E5E7EB', borderRadius: 8, overflow: 'hidden', width: '100%', minWidth: '300px' }}>
+                  <div onClick={() => toggleSection(title)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#F9FAFB', cursor: 'pointer' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', fontWeight: 500, color: '#1F2937' }}>
+                      {getRecIcon(title)} {title}
+                    </h3>
+                    {expandedSection === title ? (
+                      <ChevronUp style={{ width: 20, height: 20, color: '#6B7280' }} />
+                    ) : (
+                      <ChevronDown style={{ width: 20, height: 20, color: '#6B7280' }} />
+                    )}
+                  </div>
+                  {expandedSection === title && (
+                    <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
+                      <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+                        {items.map((item, i) => {
+                          const text = typeof item === 'string' ? item : item.text;
+                          const priority = typeof item === 'object' && item.priority;
 
-                    return (
-                      <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>
-                        {text}
-                        {priority && (
-                          <span
-                            style={{
-                              fontSize: '0.75rem',
-                              marginLeft: 8,
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              backgroundColor:
-                                priority === 'high'
-                                  ? '#fee2e2'
-                                  : priority === 'medium'
-                                  ? '#fef3c7'
-                                  : '#e0f2fe',
-                              color:
-                                priority === 'high'
-                                  ? '#991b1b'
-                                  : priority === 'medium'
-                                  ? '#92400e'
-                                  : '#1e40af',
-                            }}
-                          >
-                            {priority}
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
-        );
-      })}
-  </div>
-)}
+                          return (
+                            <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>
+                              {text}
+                              {priority && (
+                                <span
+                                  style={{
+                                    fontSize: '0.75rem',
+                                    marginLeft: 8,
+                                    padding: '2px 6px',
+                                    borderRadius: 4,
+                                    backgroundColor:
+                                      priority === 'high'
+                                        ? '#fee2e2'
+                                        : priority === 'medium'
+                                        ? '#fef3c7'
+                                        : '#e0f2fe',
+                                    color:
+                                      priority === 'high'
+                                        ? '#991b1b'
+                                        : priority === 'medium'
+                                        ? '#92400e'
+                                        : '#1e40af',
+                                  }}
+                                >
+                                  {priority}
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      )}
     </div>
   );
 }
