@@ -38,7 +38,6 @@ function DashboardPage() {
   const [areaScores, setAreaScores] = useState([]); // Holds all per-HA scores
   const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null });
 
-
   const navigate = useNavigate();
 
   // Utility function to wrap a promise with a timeout and abort support
@@ -243,7 +242,6 @@ function DashboardPage() {
 
     setAreaScores(scores);
 
-
     // === Calculate grouped scores ===
     const getGroupAvg = (ids) => {
       const filtered = scores.filter(s => ids.includes(s.health_area_id));
@@ -262,8 +260,6 @@ function DashboardPage() {
   }
 };
 
-
-
   const handleLogout = async () => {
     if (isProcessing) return;
     try {
@@ -274,7 +270,6 @@ function DashboardPage() {
       console.error('Logout error:', err.message);
     }
   };
-
 
     {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
@@ -301,7 +296,6 @@ function DashboardPage() {
         setBloodMessage(result.message);
         if (result.message?.startsWith('Uploaded')) fetchUserData();
       }; */
-
 
   const handleTestGPT = async () => {
     if (!user?.id || isProcessing) {
@@ -371,6 +365,13 @@ function DashboardPage() {
         recommendations = parsed.recommendations || {};
       }
 
+      // Refresh session before database write
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData?.session) {
+        console.error('[handleTestGPT] Session refresh failed:', sessionError?.message);
+        throw new Error('Session expired. Please refresh the page.');
+      }
+
       const insertPayload = {
         user_id: user.id,
         health_area_id: selectedHealthArea,
@@ -395,13 +396,16 @@ function DashboardPage() {
 
       console.log(`[${selectedHealthArea}] Upsert result:`, insertResult, insertError);
 
-      if (insertError) throw new Error(`Insert error: ${insertError.message}`);
+      if (insertError) {
+        console.error(`[handleTestGPT] DB insert failed for ${selectedHealthArea}:`, insertError.message, insertError.code, insertError.details);
+        throw new Error(`Insert error: ${insertError.message} (Code: ${insertError.code})`);
+      }
       console.log(`✅ DB insert success for ${selectedHealthArea}`);
       setInsightStatus(`✅ Processed ${selectedHealthArea}`);
     } catch (e) {
       console.error(`Unhandled error in handleTestGPT for ${selectedHealthArea}:`, e.message, e.stack);
-      if (e.message.includes('timed out')) {
-        // Reinitialize Supabase client on timeout to reset network state
+      if (e.message.includes('timed out') || e.message.includes('401') || e.message.includes('Session expired')) {
+        // Reinitialize Supabase client on timeout or authentication errors
         reinitializeSupabase();
       }
       setInsightStatus(`Error with ${selectedHealthArea}: ${e.message}`);
@@ -580,12 +584,9 @@ function DashboardPage() {
         </h3>
       </div>
 
-
 <ScoreCardsDashboard scores={overallScores} />
 
-
 {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
-
 
 {/*       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
         <div className="card">
