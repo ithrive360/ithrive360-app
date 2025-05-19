@@ -452,9 +452,34 @@ export default function CardiovascularInsightsPage() {
               {expandedSection === title && (
                 <div style={{ padding: 16, backgroundColor: '#FFFFFF', textAlign: 'left' }}>
                   <ul style={{ paddingLeft: 20, marginTop: 8 }}>
-                    {items.map((item, i) => (
-                      <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>{item}</li>
-                    ))}
+                    {items.map((item, i) => {
+                      const text = typeof item === 'string' ? item : item.text;
+                      const priority = typeof item === 'object' && item.priority;
+
+                      return (
+                        <li key={i} style={{ margin: '8px 0', color: '#4B5563' }}>
+                          {text}
+                          {priority && (
+                            <span style={{
+                              fontSize: '0.75rem',
+                              marginLeft: 8,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              backgroundColor:
+                                priority === 'high' ? '#fee2e2' :
+                                priority === 'medium' ? '#fef3c7' :
+                                '#e0f2fe',
+                              color:
+                                priority === 'high' ? '#991b1b' :
+                                priority === 'medium' ? '#92400e' :
+                                '#1e40af'
+                            }}>
+                              {priority}
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
