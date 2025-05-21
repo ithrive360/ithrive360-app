@@ -605,7 +605,7 @@ function DashboardPage() {
       
       <div style={{ position: 'relative', textAlign: 'center', marginTop: 30 }}>
         <h3 style={{ display: 'inline-block', fontWeight: 600, margin: 0, position: 'relative' }}>
-          {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email || 'there'}
+          {greeting}, {profile?.user_name || 'there'}
           <span style={{
             position: 'absolute',
             left: '-72px', // 64px width + 8px gap
