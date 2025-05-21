@@ -628,28 +628,43 @@ function DashboardPage() {
         const isOpen = expandedRecCategory === category;
 
         return (
-          <div key={category} style={{ marginBottom: '1.25rem' }}>
+          <div key={category} style={{ marginBottom: '1.25rem' }} id={`rec-category-${category}`}>
             <div
-              onClick={(e) => {
-                if (!isOpen) {
+              onClick={() => {
+                if (expandedRecCategory === category) {
+                  // If already open, just close it
+                  setExpandedRecCategory(null);
+                } else {
+                  // If closed, open it and schedule scrolling
                   setExpandedRecCategory(category);
-                  setTimeout(() => {
-                    const element = e.currentTarget;
-                    if (!element) {
-                      console.error('Element not found for scrolling');
+                  
+                  // Use requestAnimationFrame to wait for DOM updates
+                  requestAnimationFrame(() => {
+                    // Find the target element using the ID we added
+                    const targetElement = document.getElementById(`rec-category-${category}`);
+                    if (!targetElement) {
+                      console.error(`Cannot find element with ID rec-category-${category}`);
                       return;
                     }
-                    // Dynamically calculate the header height
-                    const header = document.querySelector('div[style*="position: fixed"]');
-                    const headerHeight = header ? header.getBoundingClientRect().height : 60; // Fallback to 60px
-                    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                    
+                    // Get header height dynamically
+                    const header = document.querySelector('div[style*="position: fixed"][style*="top: 0"]');
+                    const headerHeight = header ? header.offsetHeight : 60;
+                    
+                    // Add some padding to avoid butting right against the header
+                    const paddingTop = 16;
+                    
+                    // Calculate the scroll position
+                    const elementRect = targetElement.getBoundingClientRect();
+                    const absoluteElementTop = elementRect.top + window.pageYOffset;
+                    const targetScrollPosition = absoluteElementTop - headerHeight - paddingTop;
+                    
+                    // Perform the smooth scroll
                     window.scrollTo({
-                      top: elementPosition - headerHeight,
-                      behavior: 'smooth',
+                      top: targetScrollPosition,
+                      behavior: 'smooth'
                     });
-                  }, 100); // Increased delay to ensure DOM updates
-                } else {
-                  setExpandedRecCategory(null);
+                  });
                 }
               }}
               style={{
@@ -724,12 +739,14 @@ function DashboardPage() {
                     {/* Column 3: Toggle */}
                     <div style={{ textAlign: 'center' }}>
                       <div
-                        onClick={() =>
+                        onClick={(e) => {
+                          // Prevent click from bubbling up to parent divs
+                          e.stopPropagation();
                           setActiveToggles(prev => ({
                             ...prev,
                             [rec.text]: !prev[rec.text]
-                          }))
-                        }
+                          }));
+                        }}
                         style={{
                           width: 36,
                           height: 20,
