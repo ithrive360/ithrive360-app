@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ScoreCardsDashboard({ scores }) {
   const [visibleInfo, setVisibleInfo] = useState(null);
+  const infoRefs = useRef({});
 
   const getColor = (score) => {
-    if (score === null || score === '--') return '#d1d5db'; // gray
-    if (score < 50) return '#ef4444'; // red
-    if (score < 75) return '#f59e0b'; // amber
-    return '#10b981'; // green
+    if (score === null || score === '--') return '#d1d5db';
+    if (score < 50) return '#ef4444';
+    if (score < 75) return '#f59e0b';
+    return '#10b981';
   };
 
   const scoreCards = [
@@ -31,6 +32,21 @@ export default function ScoreCardsDashboard({ scores }) {
     },
   ];
 
+  // Close popup on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        visibleInfo &&
+        infoRefs.current[visibleInfo] &&
+        !infoRefs.current[visibleInfo].contains(e.target)
+      ) {
+        setVisibleInfo(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [visibleInfo]);
+
   return (
     <div
       style={{
@@ -42,13 +58,14 @@ export default function ScoreCardsDashboard({ scores }) {
         maxWidth: 600,
         boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
         fontFamily: 'Arial, sans-serif',
+        position: 'relative',
       }}
     >
       {scoreCards.map((card) => (
-        <div key={card.key} style={{ marginBottom: '1.5rem' }}>
+        <div key={card.key} style={{ marginBottom: '1.5rem', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontWeight: 600 }}>{card.title}</span>
-            <span style={{ fontWeight: 700 }}>{card.score ?? '--'}/100</span>
+            <span style={{ fontWeight: 700 }}>{card.score}/100</span>
           </div>
           <div
             style={{
@@ -77,20 +94,30 @@ export default function ScoreCardsDashboard({ scores }) {
                 border: 'none',
                 color: '#6b7280',
                 cursor: 'pointer',
+                position: 'relative',
               }}
+              aria-label="More info"
             >
               ℹ️
             </button>
           </div>
+
           {visibleInfo === card.key && (
             <div
+              ref={(el) => (infoRefs.current[card.key] = el)}
               style={{
-                fontSize: '0.85rem',
-                marginTop: 4,
-                backgroundColor: '#f9fafb',
-                padding: '0.75rem',
-                borderRadius: 8,
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                zIndex: 100,
+                backgroundColor: '#fff',
+                padding: '1rem',
+                marginTop: '0.5rem',
                 border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                width: '250px',
+                fontSize: '0.9rem',
                 color: '#374151',
               }}
             >
