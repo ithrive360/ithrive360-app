@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState({ full_name: '', handle: '' }); // Default to empty strings
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -16,29 +16,38 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const getSessionAndProfile = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      const currentUser = session?.user;
-      setUser(currentUser);
+        const currentUser = session?.user;
+        setUser(currentUser);
 
-      if (!currentUser) return;
+        if (!currentUser) {
+          console.warn('No user session found');
+          return;
+        }
 
-      const { data, error } = await supabase
-        .from('user_profile')
-        .select('full_name, handle')
-        .eq('user_id', currentUser.id)
-        .single();
+        const { data, error } = await supabase
+          .from('user_profile')
+          .select('full_name, handle')
+          .eq('user_id', currentUser.id)
+          .single();
 
-      if (error) {
-        console.error('Failed to fetch user_profile:', error.message);
-        return;
+        if (error) {
+          console.error('Failed to fetch user_profile:', error.message);
+          // Set defaults if fetch fails
+          setProfile({ full_name: '', handle: '' });
+        } else {
+          setProfile(data || { full_name: '', handle: '' });
+          setEditedName(data?.full_name || '');
+          setEditedHandle(data?.handle || (data?.full_name?.split(' ')[0] || ''));
+        }
+      } catch (err) {
+        console.error('Error in getSessionAndProfile:', err.message);
+        setProfile({ full_name: '', handle: '' });
       }
-
-      setProfile(data || {});
-      setEditedName(data?.full_name || '');
-      setEditedHandle(data?.handle || data?.full_name?.split(' ')[0] || '');
     };
 
     getSessionAndProfile();
@@ -70,9 +79,7 @@ export default function ProfilePage() {
   if (!user) return <p>Please log in to view your profile.</p>;
 
   const firstInitial =
-    profile?.full_name && profile.full_name.length > 0
-      ? profile.full_name.trim()[0].toUpperCase()
-      : '?';
+    (isEditingName ? editedName : profile.full_name)?.trim()[0]?.toUpperCase() || '?';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '32px 24px', maxWidth: 600, margin: '0 auto', backgroundColor: 'white' }}>
