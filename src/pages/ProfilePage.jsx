@@ -119,18 +119,18 @@ export default function ProfilePage() {
         <div style={{ marginTop: 32 }}>
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 14, color: '#6B7280' }}>Full Name:</strong>
+              <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
               <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
             </div>
-            <div style={{ fontSize: 16, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{profile?.full_name || 'Not set'}</div>
+            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{profile?.full_name || 'Not set'}</div>
           </div>
 
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 14, color: '#6B7280' }}>User name:</strong>
+              <strong style={{ fontSize: 16, color: '#6B7280' }}>User name:</strong>
               <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
             </div>
-            <div style={{ fontSize: 16, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{firstName || 'Not set'}</div>
+            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{firstName || 'Not set'}</div>
           </div>
         </div>
       </div>
