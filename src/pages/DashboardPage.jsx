@@ -645,6 +645,21 @@ function DashboardPage() {
 
             {isOpen && (
             <div style={{ marginTop: 8 }}>
+              {/* Header Row */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
+                  gap: 12,
+                  alignItems: 'center',
+                  paddingBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 10, color: '#6B7280' }}>Action</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add to schedule</span>
+              </div>
+
               <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
                 {sorted.map((rec, i) => (
                   <li
@@ -655,15 +670,14 @@ function DashboardPage() {
                       display: 'grid',
                       gridTemplateColumns: '1fr auto auto',
                       gap: 12,
-                      alignItems: 'center',
+                      alignItems: 'start',
                     }}
                   >
-                    {/* Column 1: Action (left-aligned) */}
+                    {/* Column 1: Action */}
                     <div style={{ textAlign: 'left', color: '#374151' }}>{rec.text}</div>
 
                     {/* Column 2: Priority label */}
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: 10, color: '#6B7280', display: 'block', marginBottom: 2 }}>Priority</span>
+                    <div style={{ textAlign: 'center', marginTop: 2 }}>
                       <span
                         style={{
                           fontSize: 12,
@@ -685,7 +699,6 @@ function DashboardPage() {
 
                     {/* Column 3: Toggle */}
                     <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: 10, color: '#6B7280', display: 'block', marginBottom: 2 }}>Add to schedule</span>
                       <div
                         onClick={() =>
                           setActiveToggles(prev => ({
@@ -703,7 +716,8 @@ function DashboardPage() {
                           justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
                           padding: 2,
                           cursor: 'pointer',
-                          transition: 'all 0.2s ease'
+                          transition: 'all 0.2s ease',
+                          marginTop: 2,
                         }}
                       >
                         <div
