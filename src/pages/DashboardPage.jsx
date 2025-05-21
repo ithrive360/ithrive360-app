@@ -591,82 +591,139 @@ function DashboardPage() {
 
     {/* RECOMMENDATIONS CARD*/}
 
-    {isOpen && (
-      <div style={{ paddingLeft: 4, marginTop: 8 }}>
-        <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: '#4B5563' }}>Actions</p>
-        <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
-          {sorted.map((rec, i) => (
-            <li
-              key={i}
+    <div
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        margin: '2rem auto',
+        width: '90vw',
+        maxWidth: 600,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+        fontFamily: 'Arial, sans-serif',
+      }}
+    >
+      <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1rem', color: '#1F2937' }}>
+        Consolidated Recommendations
+      </h3>
+
+      {['Diet', 'Exercise', 'Lifestyle', 'Supplementation', 'Monitoring'].map((category) => {
+        const allRecs = areaScores.flatMap(area =>
+          (area.recommendations?.[category] || []).map(rec => ({
+            text: rec.text,
+            priority: rec.priority || 'medium',
+          }))
+        );
+
+        const deduped = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
+
+        // Sort by priority
+        const sorted = deduped.sort((a, b) => {
+          const order = { high: 0, medium: 1, low: 2 };
+          return order[a.priority] - order[b.priority];
+        });
+
+        if (!sorted.length) return null;
+
+        const isOpen = expandedRecCategory === category;
+
+        return (
+          <div key={category} style={{ marginBottom: '1.25rem' }}>
+            <div
+              onClick={() => setExpandedRecCategory(isOpen ? null : category)}
               style={{
-                marginBottom: 10,
-                color: '#374151',
-                fontSize: 14,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: 8
+                cursor: 'pointer',
+                marginBottom: 4,
               }}
             >
-              <span style={{ flex: 1, paddingRight: 12 }}>{rec.text}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {rec.priority && (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      backgroundColor:
-                        rec.priority === 'high' ? '#fee2e2' :
-                        rec.priority === 'medium' ? '#fef3c7' :
-                        '#e0f2fe',
-                      color:
-                        rec.priority === 'high' ? '#991b1b' :
-                        rec.priority === 'medium' ? '#92400e' :
-                        '#1e40af',
-                    }}
-                  >
-                    {rec.priority}
-                  </span>
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <label style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Add to schedule</label>
-                  <div
-                    onClick={() =>
-                      setActiveToggles(prev => ({
-                        ...prev,
-                        [rec.text]: !prev[rec.text]
-                      }))
-                    }
-                    style={{
-                      width: 36,
-                      height: 20,
-                      borderRadius: 9999,
-                      backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
-                      padding: 2,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div
+              <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{category}</h4>
+              {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+
+            {isOpen && (
+              <div style={{ paddingLeft: 4, marginTop: 8 }}>
+                <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: '#4B5563' }}>Actions</p>
+                <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
+                  {sorted.map((rec, i) => (
+                    <li
+                      key={i}
                       style={{
-                        width: 16,
-                        height: 16,
-                        backgroundColor: '#fff',
-                        borderRadius: '50%',
+                        marginBottom: 10,
+                        color: '#374151',
+                        fontSize: 14,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 8
                       }}
-                    />
-                  </div>
-                </div>
+                    >
+                      <span style={{ flex: 1, paddingRight: 12 }}>{rec.text}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {rec.priority && (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              backgroundColor:
+                                rec.priority === 'high' ? '#fee2e2' :
+                                rec.priority === 'medium' ? '#fef3c7' :
+                                '#e0f2fe',
+                              color:
+                                rec.priority === 'high' ? '#991b1b' :
+                                rec.priority === 'medium' ? '#92400e' :
+                                '#1e40af',
+                            }}
+                          >
+                            {rec.priority}
+                          </span>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          <label style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Add to schedule</label>
+                          <div
+                            onClick={() =>
+                              setActiveToggles(prev => ({
+                                ...prev,
+                                [rec.text]: !prev[rec.text]
+                              }))
+                            }
+                            style={{
+                              width: 36,
+                              height: 20,
+                              borderRadius: 9999,
+                              backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
+                              padding: 2,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 16,
+                                height: 16,
+                                backgroundColor: '#fff',
+                                borderRadius: '50%',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+            )}
+          </div>
+        );
+      })}
+    </div>
+
 
 
 
