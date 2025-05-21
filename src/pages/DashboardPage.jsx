@@ -236,7 +236,8 @@ function DashboardPage() {
 
       return {
         health_area_id: insight.health_area_id,
-        score: totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null
+        score: totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null,
+        recommendations: insight.recommendations_json || {}
       };
     });
 
@@ -585,6 +586,75 @@ function DashboardPage() {
       </div>
 
 <ScoreCardsDashboard scores={overallScores} />
+
+    {/* RECOMMENDATIONS CARD*/}
+    
+    {user && (
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          padding: '1.5rem',
+          margin: '2rem auto',
+          width: '90vw',
+          maxWidth: 600,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1rem', color: '#1F2937' }}>
+          Consolidated Recommendations
+        </h3>
+
+        {['Diet', 'Exercise', 'Lifestyle', 'Supplementation', 'Monitoring'].map((category) => {
+          const allRecs = areaScores.flatMap(area =>
+            (area.recommendations?.[category] || []).map(rec => ({
+              text: rec.text,
+              priority: rec.priority || 'medium',
+            }))
+          );
+
+          // Deduplicate by text content
+          const uniqueRecs = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
+
+          if (uniqueRecs.length === 0) return null;
+
+          return (
+            <div key={category} style={{ marginBottom: '1.25rem' }}>
+              <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: '#111827' }}>{category}</h4>
+              <ul style={{ paddingLeft: 20, margin: 0 }}>
+                {uniqueRecs.map((rec, i) => (
+                  <li key={i} style={{ marginBottom: 6, color: '#374151', fontSize: 14 }}>
+                    {rec.text}
+                    {rec.priority && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          marginLeft: 8,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          backgroundColor:
+                            rec.priority === 'high' ? '#fee2e2' :
+                            rec.priority === 'medium' ? '#fef3c7' :
+                            '#e0f2fe',
+                          color:
+                            rec.priority === 'high' ? '#991b1b' :
+                            rec.priority === 'medium' ? '#92400e' :
+                            '#1e40af',
+                        }}
+                      >
+                        {rec.priority}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
 
 {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
