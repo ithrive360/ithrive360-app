@@ -9,6 +9,11 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingHandle, setIsEditingHandle] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [editedHandle, setEditedHandle] = useState('');
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -17,24 +22,47 @@ export default function ProfilePage() {
       if (session?.user) {
         const { data } = await supabase
           .from('user_profile')
-          .select('full_name')
+          .select('full_name, handle')
           .eq('user_id', session.user.id)
           .single();
 
         setProfile(data || {});
+        setEditedName(data?.full_name || '');
+        setEditedHandle(data?.handle || (data?.full_name?.split(' ')[0] || ''));
       }
     };
 
     fetchUser();
   }, []);
 
+  const handleSave = async (field) => {
+    const updates = {};
+    if (field === 'name') {
+      updates.full_name = editedName;
+      setIsEditingName(false);
+    }
+    if (field === 'handle') {
+      updates.handle = editedHandle;
+      setIsEditingHandle(false);
+    }
+
+    const { error } = await supabase
+      .from('user_profile')
+      .update(updates)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setProfile((prev) => ({ ...prev, ...updates }));
+    }
+  };
+
   if (!user) return <p>Please log in to view your profile.</p>;
 
   const firstInitial = profile?.full_name ? profile.full_name.split(' ')[0][0].toUpperCase() : '?';
-  const firstName = profile?.full_name ? profile.full_name.split(' ')[0] : '';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '32px 24px', maxWidth: 600, margin: '0 auto', backgroundColor: 'white' }}>
+      {/* Top Bar */}
       <div
         style={{
           position: 'fixed',
@@ -69,6 +97,7 @@ export default function ProfilePage() {
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
+      {/* Sidebar Menu */}
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -79,7 +108,9 @@ export default function ProfilePage() {
         profile={profile}
       />
 
+      {/* Main Content */}
       <div style={{ marginTop: 80 }}>
+        {/* Avatar */}
         <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
           <div
             style={{
@@ -116,21 +147,56 @@ export default function ProfilePage() {
           </button>
         </div>
 
+        {/* Editable Fields */}
         <div style={{ marginTop: 32 }}>
+          {/* Full Name */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
-              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
+              {isEditingName ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => handleSave('name')} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={() => { setIsEditingName(false); setEditedName(profile.full_name); }} style={{ fontSize: 12 }}>Cancel</button>
+                </div>
+              ) : (
+                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingName(true)} />
+              )}
             </div>
-            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{profile?.full_name || 'Not set'}</div>
+            {isEditingName ? (
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
+              />
+            ) : (
+              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.full_name || 'Not set'}</div>
+            )}
           </div>
 
+          {/* Handle */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 16, color: '#6B7280' }}>User name:</strong>
-              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
+              <strong style={{ fontSize: 16, color: '#6B7280' }}>User Name:</strong>
+              {isEditingHandle ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => handleSave('handle')} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={() => { setIsEditingHandle(false); setEditedHandle(profile.handle || firstInitial); }} style={{ fontSize: 12 }}>Cancel</button>
+                </div>
+              ) : (
+                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingHandle(true)} />
+              )}
             </div>
-            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#6B7280' }}>{firstName || 'Not set'}</div>
+            {isEditingHandle ? (
+              <input
+                type="text"
+                value={editedHandle}
+                onChange={(e) => setEditedHandle(e.target.value)}
+                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
+              />
+            ) : (
+              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.handle || firstInitial}</div>
+            )}
           </div>
         </div>
       </div>
