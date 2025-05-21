@@ -10,7 +10,9 @@ export default function ProfilePage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingHandle, setIsEditingHandle] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [editedHandle, setEditedHandle] = useState('');
 
   useEffect(() => {
     const getSessionAndProfile = async () => {
@@ -69,6 +71,7 @@ export default function ProfilePage() {
 
         setProfile(data || { full_name: '' });
         setEditedName(data?.full_name || '');
+        setEditedHandle(data?.full_name?.split(' ')[0] || '');
       } catch (err) {
         console.error('Error in getSessionAndProfile:', err.message);
         setProfile({ full_name: '' });
@@ -78,9 +81,16 @@ export default function ProfilePage() {
     getSessionAndProfile();
   }, []);
 
-  const handleSave = async () => {
-    const updates = { full_name: editedName };
-    setIsEditingName(false);
+  const handleSave = async (field) => {
+    const updates = {};
+    if (field === 'name') {
+      updates.full_name = editedName;
+      setIsEditingName(false);
+    } else if (field === 'handle') {
+      // Optionally update full_name to start with editedHandle if you want consistency
+      updates.full_name = editedHandle + (editedName.includes(' ') ? editedName.split(' ').slice(1).join(' ') : '');
+      setIsEditingHandle(false);
+    }
 
     const { error } = await supabase
       .from('user_profile')
@@ -194,7 +204,7 @@ export default function ProfilePage() {
               <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
               {isEditingName ? (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={handleSave} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={() => handleSave('name')} style={{ fontSize: 12 }}>Save</button>
                   <button onClick={() => { setIsEditingName(false); setEditedName(profile.full_name); }} style={{ fontSize: 12 }}>Cancel</button>
                 </div>
               ) : (
@@ -210,6 +220,31 @@ export default function ProfilePage() {
               />
             ) : (
               <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.full_name || 'Not set'}</div>
+            )}
+          </div>
+
+          {/* User Name (First Name) */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: 16, color: '#6B7280' }}>User Name:</strong>
+              {isEditingHandle ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => handleSave('handle')} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={() => { setIsEditingHandle(false); setEditedHandle(profile.full_name?.split(' ')[0] || ''); }} style={{ fontSize: 12 }}>Cancel</button>
+                </div>
+              ) : (
+                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingHandle(true)} />
+              )}
+            </div>
+            {isEditingHandle ? (
+              <input
+                type="text"
+                value={editedHandle}
+                onChange={(e) => setEditedHandle(e.target.value)}
+                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
+              />
+            ) : (
+              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile.full_name?.split(' ')[0] || 'Not set'}</div>
             )}
           </div>
         </div>
