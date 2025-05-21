@@ -16,19 +16,19 @@ export default function ScoreCardsDashboard({ scores }) {
       key: 'general',
       score: scores?.general ?? '--',
       title: 'Overall Health',
-      description: 'Your health score is calculated based on your DNA, blood tests, and integrated fitness data. Keep up the great work!',
+      description: 'This score reflects your current health status based on a composite of cardiovascular, metabolic, nutritional, and hormonal markers. It combines both DNA traits and blood test results to provide a balanced snapshot of your overall wellbeing.',
     },
     {
       key: 'longevity',
       score: scores?.longevity ?? '--',
       title: 'Longevity',
-      description: 'This score reflects long-term health and resilience based on aging, immunity, and inflammation markers.',
+      description: 'This score captures your long-term health potential by integrating inflammation markers, immune balance, detox efficiency, and DNA traits related to cellular aging and disease resistance.',
     },
     {
       key: 'performance',
       score: scores?.performance ?? '--',
       title: 'Performance & Recovery',
-      description: 'How well your body recovers from stress and performs under demand. Informed by hormones, recovery markers, and more.',
+      description: 'This score evaluates your body’s ability to recover from stress and perform at its best, using markers like testosterone, cortisol, vitamin D, and key inflammation indicators — combined with DNA traits linked to muscle recovery and fatigue resistance.',
     },
   ];
 
