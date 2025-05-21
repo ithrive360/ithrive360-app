@@ -6,54 +6,81 @@ import logo from '../assets/logo.png';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState({ full_name: '' }); // Default to empty string
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingHandle, setIsEditingHandle] = useState(false);
   const [editedName, setEditedName] = useState('');
-  const [editedHandle, setEditedHandle] = useState('');
 
   useEffect(() => {
     const getSessionAndProfile = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      const currentUser = session?.user;
-      setUser(currentUser);
+        const currentUser = session?.user;
+        setUser(currentUser);
 
-      if (!currentUser) return;
+        if (!currentUser) {
+          console.warn('No user session found');
+          return;
+        }
 
-      const { data, error } = await supabase
-        .from('user_profile')
-        .select('full_name, handle')
-        .eq('user_id', currentUser.id)
-        .single();
+        // Check if a profile exists; if not, create one
+        let { data, error } = await supabase
+          .from('user_profile')
+          .select('full_name')
+          .eq('user_id', currentUser.id)
+          .single();
 
-      if (error) {
-        console.error('Failed to fetch user_profile:', error.message);
-        return;
+        if (error && error.code === 'PGRST116') {
+          // No row found, insert a new profile
+          console.log('No profile found, creating a new one...');
+          const { error: insertError } = await supabase
+            .from('user_profile')
+            .insert({ user_id: currentUser.id, full_name: '', email: currentUser.email });
+
+          if (insertError) {
+            console.error('Failed to create user_profile:', insertError.message);
+            setProfile({ full_name: '' });
+            return;
+          }
+
+          // Fetch the newly created profile
+          const { data: newData, error: fetchError } = await supabase
+            .from('user_profile')
+            .select('full_name')
+            .eq('user_id', currentUser.id)
+            .single();
+
+          if (fetchError) {
+            console.error('Failed to fetch new user_profile:', fetchError.message);
+            setProfile({ full_name: '' });
+            return;
+          }
+
+          data = newData;
+        } else if (error) {
+          console.error('Failed to fetch user_profile:', error.message);
+          setProfile({ full_name: '' });
+          return;
+        }
+
+        setProfile(data || { full_name: '' });
+        setEditedName(data?.full_name || '');
+      } catch (err) {
+        console.error('Error in getSessionAndProfile:', err.message);
+        setProfile({ full_name: '' });
       }
-
-      setProfile(data || {});
-      setEditedName(data?.full_name || '');
-      setEditedHandle(data?.handle || data?.full_name?.split(' ')[0] || '');
     };
 
     getSessionAndProfile();
   }, []);
 
-  const handleSave = async (field) => {
-    const updates = {};
-    if (field === 'name') {
-      updates.full_name = editedName;
-      setIsEditingName(false);
-    }
-    if (field === 'handle') {
-      updates.handle = editedHandle;
-      setIsEditingHandle(false);
-    }
+  const handleSave = async () => {
+    const updates = { full_name: editedName };
+    setIsEditingName(false);
 
     const { error } = await supabase
       .from('user_profile')
@@ -70,9 +97,7 @@ export default function ProfilePage() {
   if (!user) return <p>Please log in to view your profile.</p>;
 
   const firstInitial =
-    profile?.full_name && profile.full_name.length > 0
-      ? profile.full_name.trim()[0].toUpperCase()
-      : '?';
+    (isEditingName ? editedName : profile.full_name)?.trim()[0]?.toUpperCase() || '?';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '32px 24px', maxWidth: 600, margin: '0 auto', backgroundColor: 'white' }}>
@@ -169,7 +194,7 @@ export default function ProfilePage() {
               <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
               {isEditingName ? (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => handleSave('name')} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={handleSave} style={{ fontSize: 12 }}>Save</button>
                   <button onClick={() => { setIsEditingName(false); setEditedName(profile.full_name); }} style={{ fontSize: 12 }}>Cancel</button>
                 </div>
               ) : (
@@ -185,31 +210,6 @@ export default function ProfilePage() {
               />
             ) : (
               <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.full_name || 'Not set'}</div>
-            )}
-          </div>
-
-          {/* Handle */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 16, color: '#6B7280' }}>User Name:</strong>
-              {isEditingHandle ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => handleSave('handle')} style={{ fontSize: 12 }}>Save</button>
-                  <button onClick={() => { setIsEditingHandle(false); setEditedHandle(profile.handle || firstInitial); }} style={{ fontSize: 12 }}>Cancel</button>
-                </div>
-              ) : (
-                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingHandle(true)} />
-              )}
-            </div>
-            {isEditingHandle ? (
-              <input
-                type="text"
-                value={editedHandle}
-                onChange={(e) => setEditedHandle(e.target.value)}
-                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
-              />
-            ) : (
-              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.handle || firstInitial}</div>
             )}
           </div>
         </div>
