@@ -15,24 +15,33 @@ export default function ProfilePage() {
   const [editedHandle, setEditedHandle] = useState('');
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+    const getSessionAndProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (session?.user) {
-        const { data } = await supabase
-          .from('user_profile')
-          .select('full_name, handle')
-          .eq('user_id', session.user.id)
-          .single();
+      const currentUser = session?.user;
+      setUser(currentUser);
 
-        setProfile(data || {});
-        setEditedName(data?.full_name || '');
-        setEditedHandle(data?.handle || (data?.full_name?.split(' ')[0] || ''));
+      if (!currentUser) return;
+
+      const { data, error } = await supabase
+        .from('user_profile')
+        .select('full_name, handle')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (error) {
+        console.error('Failed to fetch user_profile:', error.message);
+        return;
       }
+
+      setProfile(data || {});
+      setEditedName(data?.full_name || '');
+      setEditedHandle(data?.handle || data?.full_name?.split(' ')[0] || '');
     };
 
-    fetchUser();
+    getSessionAndProfile();
   }, []);
 
   const handleSave = async (field) => {
@@ -53,12 +62,17 @@ export default function ProfilePage() {
 
     if (!error) {
       setProfile((prev) => ({ ...prev, ...updates }));
+    } else {
+      console.error('Failed to save updates:', error.message);
     }
   };
 
   if (!user) return <p>Please log in to view your profile.</p>;
 
-  const firstInitial = profile?.full_name ? profile.full_name.split(' ')[0][0].toUpperCase() : '?';
+  const firstInitial =
+    profile?.full_name && profile.full_name.length > 0
+      ? profile.full_name.trim()[0].toUpperCase()
+      : '?';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '32px 24px', maxWidth: 600, margin: '0 auto', backgroundColor: 'white' }}>
