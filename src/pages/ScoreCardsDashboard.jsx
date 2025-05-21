@@ -62,7 +62,7 @@ export default function ScoreCardsDashboard({ scores }) {
       }}
     >
       {scoreCards.map((card) => (
-        <div key={card.key} style={{ marginBottom: '1.5rem', position: 'relative' }}>
+        <div key={card.key} style={{ marginBottom: index === scoreCards.length - 1 ? 0 : '1.5rem', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
             <span style={{ fontWeight: 600 }}>{card.title}</span>
             <span style={{ fontWeight: 700 }}>{card.score}/100</span>
