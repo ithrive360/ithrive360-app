@@ -651,18 +651,19 @@ function DashboardPage() {
                     key={i}
                     style={{
                       marginBottom: 12,
-                      color: '#374151',
                       fontSize: 14,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto auto',
                       gap: 12,
+                      alignItems: 'center',
                     }}
                   >
-                    <div style={{ flex: 1, paddingLeft: 8 }}>{rec.text}</div>
+                    {/* Column 1: Action (left-aligned) */}
+                    <div style={{ textAlign: 'left', color: '#374151' }}>{rec.text}</div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
-                      <label style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Priority</label>
+                    {/* Column 2: Priority label */}
+                    <div style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: 10, color: '#6B7280', display: 'block', marginBottom: 2 }}>Priority</span>
                       <span
                         style={{
                           fontSize: 12,
@@ -680,8 +681,11 @@ function DashboardPage() {
                       >
                         {rec.priority}
                       </span>
+                    </div>
 
-                      <label style={{ fontSize: 10, color: '#6B7280', marginTop: 8 }}>Add to schedule</label>
+                    {/* Column 3: Toggle */}
+                    <div style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: 10, color: '#6B7280', display: 'block', marginBottom: 2 }}>Add to schedule</span>
                       <div
                         onClick={() =>
                           setActiveToggles(prev => ({
@@ -717,7 +721,6 @@ function DashboardPage() {
               </ul>
             </div>
           )}
-
           </div>
         );
       })}
