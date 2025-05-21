@@ -41,7 +41,6 @@ function DashboardPage() {
   const [expandedRecCategory, setExpandedRecCategory] = useState(null);
   const [activeToggles, setActiveToggles] = useState({}); // key: rec.text, value: true|false
   const [recommendationData, setRecommendationData] = useState({});
-
   const navigate = useNavigate();
 
   // Utility function to wrap a promise with a timeout and abort support
@@ -270,12 +269,12 @@ function DashboardPage() {
     try {
       const { data, error } = await supabase
         .from('user_recommendation')
-        .select('category, recommendation, priority')
-        .eq('user_id', userId);
+        .select('category, recommendation, priority, is_selected');
 
       if (error) throw error;
 
       const grouped = {};
+      const toggles = {};
 
       for (const rec of data) {
         const cat = rec.category;
@@ -284,13 +283,17 @@ function DashboardPage() {
           text: rec.recommendation,
           priority: rec.priority || 'medium',
         });
+
+        toggles[rec.recommendation] = rec.is_selected ?? false;
       }
 
       setRecommendationData(grouped);
+      setActiveToggles(toggles);
     } catch (err) {
       console.error('Failed to load user_recommendation:', err.message);
     }
   };
+
 
   const handleLogout = async () => {
     if (isProcessing) return;
