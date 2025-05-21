@@ -116,7 +116,7 @@ export default function ScoreCardsDashboard({ scores }) {
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                width: '250px',
+                width: '350px',
                 fontSize: '0.9rem',
                 color: '#374151',
               }}
