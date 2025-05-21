@@ -5,8 +5,8 @@ export default function ScoreCardsDashboard({ scores }) {
 
   const getColor = (score) => {
     if (score === null || score === '--') return '#d1d5db'; // gray
-    if (score < 60) return '#ef4444'; // red
-    if (score < 80) return '#f59e0b'; // amber
+    if (score < 50) return '#ef4444'; // red
+    if (score < 75) return '#f59e0b'; // amber
     return '#10b981'; // green
   };
 
