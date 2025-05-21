@@ -655,7 +655,7 @@ function DashboardPage() {
                   paddingBottom: 8,
                 }}
               >
-                <span style={{ fontSize: 10, color: '#6B7280' }}>Action</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left' }}>Action</span>
                 <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
                 <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
               </div>
