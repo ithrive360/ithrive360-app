@@ -634,7 +634,13 @@ function DashboardPage() {
                 if (!isOpen) {
                   setExpandedRecCategory(category);
                   setTimeout(() => {
-                    e.currentTarget?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const element = e.currentTarget;
+                    const headerHeight = 60; // Adjust based on your fixed header height
+                    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                    window.scrollTo({
+                      top: elementPosition - headerHeight,
+                      behavior: 'smooth',
+                    });
                   }, 10);
                 } else {
                   setExpandedRecCategory(null);
@@ -656,19 +662,18 @@ function DashboardPage() {
             <div style={{ marginTop: 8 }}>
               {/* Header Row */}
               <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto auto',
-                gap: 12,
-                alignItems: 'start',
-                paddingBottom: 8,
-              }}
-            >
-              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left', alignSelf: 'start' }}>Action</span>
-              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center', lineHeight: '20px' }}>Priority</span>
-              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center', lineHeight: '20px' }}>Add</span>
-            </div>
-
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 80px 50px', // Match the column widths to the list items
+                  gap: 12,
+                  alignItems: 'center',
+                  paddingBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left' }}>Action</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
+              </div>
 
               <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
                 {sorted.map((rec, i) => (
@@ -678,16 +683,16 @@ function DashboardPage() {
                       marginBottom: 12,
                       fontSize: 14,
                       display: 'grid',
-                      gridTemplateColumns: '1fr auto auto',
+                      gridTemplateColumns: '1fr 80px 50px', // Match the header column widths
                       gap: 12,
-                      alignItems: 'start',
+                      alignItems: 'center', // Center vertically
                     }}
                   >
                     {/* Column 1: Action */}
                     <div style={{ textAlign: 'left', color: '#374151' }}>{rec.text}</div>
 
                     {/* Column 2: Priority label */}
-                    <div style={{ textAlign: 'center', marginTop: 2 }}>
+                    <div style={{ textAlign: 'center' }}>
                       <span
                         style={{
                           fontSize: 12,
@@ -701,6 +706,9 @@ function DashboardPage() {
                             rec.priority === 'high' ? '#991b1b' :
                             rec.priority === 'medium' ? '#92400e' :
                             '#1e40af',
+                          display: 'inline-block', // Ensure the span takes up the full width
+                          minWidth: '50px', // Ensure consistent width for alignment
+                          textAlign: 'center',
                         }}
                       >
                         {rec.priority}
@@ -727,7 +735,7 @@ function DashboardPage() {
                           padding: 2,
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
-                          marginTop: 2,
+                          margin: '0 auto', // Center the toggle in the column
                         }}
                       >
                         <div
