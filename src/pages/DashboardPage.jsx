@@ -644,81 +644,80 @@ function DashboardPage() {
             </div>
 
             {isOpen && (
-              <div style={{ paddingLeft: 4, marginTop: 8 }}>
-                <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: '#4B5563' }}>Actions</p>
-                <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
-                  {sorted.map((rec, i) => (
-                    <li
-                      key={i}
-                      style={{
-                        marginBottom: 10,
-                        color: '#374151',
-                        fontSize: 14,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 8
-                      }}
-                    >
-                      <span style={{ flex: 1, paddingRight: 12 }}>{rec.text}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {rec.priority && (
-                          <span
-                            style={{
-                              fontSize: 12,
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              backgroundColor:
-                                rec.priority === 'high' ? '#fee2e2' :
-                                rec.priority === 'medium' ? '#fef3c7' :
-                                '#e0f2fe',
-                              color:
-                                rec.priority === 'high' ? '#991b1b' :
-                                rec.priority === 'medium' ? '#92400e' :
-                                '#1e40af',
-                            }}
-                          >
-                            {rec.priority}
-                          </span>
-                        )}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                          <label style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Add to schedule</label>
-                          <div
-                            onClick={() =>
-                              setActiveToggles(prev => ({
-                                ...prev,
-                                [rec.text]: !prev[rec.text]
-                              }))
-                            }
-                            style={{
-                              width: 36,
-                              height: 20,
-                              borderRadius: 9999,
-                              backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
-                              padding: 2,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 16,
-                                height: 16,
-                                backgroundColor: '#fff',
-                                borderRadius: '50%',
-                              }}
-                            />
-                          </div>
-                        </div>
+            <div style={{ marginTop: 8 }}>
+              <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
+                {sorted.map((rec, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      marginBottom: 12,
+                      color: '#374151',
+                      fontSize: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ flex: 1, paddingLeft: 8 }}>{rec.text}</div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
+                      <label style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Priority</label>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          backgroundColor:
+                            rec.priority === 'high' ? '#fee2e2' :
+                            rec.priority === 'medium' ? '#fef3c7' :
+                            '#e0f2fe',
+                          color:
+                            rec.priority === 'high' ? '#991b1b' :
+                            rec.priority === 'medium' ? '#92400e' :
+                            '#1e40af',
+                        }}
+                      >
+                        {rec.priority}
+                      </span>
+
+                      <label style={{ fontSize: 10, color: '#6B7280', marginTop: 8 }}>Add to schedule</label>
+                      <div
+                        onClick={() =>
+                          setActiveToggles(prev => ({
+                            ...prev,
+                            [rec.text]: !prev[rec.text]
+                          }))
+                        }
+                        style={{
+                          width: 36,
+                          height: 20,
+                          borderRadius: 9999,
+                          backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
+                          padding: 2,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 16,
+                            height: 16,
+                            backgroundColor: '#fff',
+                            borderRadius: '50%',
+                          }}
+                        />
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           </div>
         );
       })}
