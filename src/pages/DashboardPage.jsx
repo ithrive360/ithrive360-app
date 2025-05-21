@@ -657,7 +657,7 @@ function DashboardPage() {
               >
                 <span style={{ fontSize: 10, color: '#6B7280' }}>Action</span>
                 <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add to schedule</span>
+                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
               </div>
 
               <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
