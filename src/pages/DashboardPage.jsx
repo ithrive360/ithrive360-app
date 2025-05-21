@@ -630,7 +630,16 @@ function DashboardPage() {
         return (
           <div key={category} style={{ marginBottom: '1.25rem' }}>
             <div
-              onClick={() => setExpandedRecCategory(isOpen ? null : category)}
+              onClick={(e) => {
+                if (!isOpen) {
+                  setExpandedRecCategory(category);
+                  setTimeout(() => {
+                    e.currentTarget?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 10);
+                } else {
+                  setExpandedRecCategory(null);
+                }
+              }}
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -647,18 +656,19 @@ function DashboardPage() {
             <div style={{ marginTop: 8 }}>
               {/* Header Row */}
               <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto auto',
-                  gap: 12,
-                  alignItems: 'center',
-                  paddingBottom: 8,
-                }}
-              >
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left' }}>Action</span>
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
-              </div>
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto auto',
+                gap: 12,
+                alignItems: 'start',
+                paddingBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left', alignSelf: 'start' }}>Action</span>
+              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center', alignSelf: 'start' }}>Priority</span>
+              <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center', alignSelf: 'start' }}>Add</span>
+            </div>
+
 
               <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
                 {sorted.map((rec, i) => (
