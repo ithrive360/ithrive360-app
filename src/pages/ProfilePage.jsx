@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Pencil } from 'lucide-react';
 import SidebarMenu from './SidebarMenu';
 import logo from '../assets/logo.png';
 
@@ -16,8 +16,8 @@ export default function ProfilePage() {
 
       if (session?.user) {
         const { data } = await supabase
-          .from('user_characteristics')
-          .select('*')
+          .from('user_profile')
+          .select('full_name')
           .eq('user_id', session.user.id)
           .single();
 
@@ -29,6 +29,9 @@ export default function ProfilePage() {
   }, []);
 
   if (!user) return <p>Please log in to view your profile.</p>;
+
+  const firstInitial = profile?.full_name ? profile.full_name.split(' ')[0][0].toUpperCase() : '?';
+  const firstName = profile?.full_name ? profile.full_name.split(' ')[0] : '';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '32px 24px', maxWidth: 600, margin: '0 auto', backgroundColor: 'white' }}>
@@ -76,8 +79,8 @@ export default function ProfilePage() {
         profile={profile}
       />
 
-      <div style={{ marginTop: 80, textAlign: 'center' }}>
-        <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div style={{ marginTop: 80 }}>
+        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
           <div
             style={{
               width: 96,
@@ -92,13 +95,14 @@ export default function ProfilePage() {
               fontWeight: 600,
             }}
           >
-            {profile?.full_name ? profile.full_name[0].toUpperCase() : '?'}
+            {firstInitial}
           </div>
           <button
             style={{
               position: 'absolute',
-              bottom: 0,
-              right: 0,
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
               backgroundColor: '#3ab3a1',
               border: 'none',
               color: 'white',
@@ -112,15 +116,21 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        <div style={{ marginTop: 24 }}>
-          <div style={{ marginBottom: 16 }}>
-            <strong style={{ display: 'block', fontSize: 14, color: '#6B7280' }}>Full Name</strong>
-            <div style={{ fontSize: 16, fontWeight: 500 }}>{profile?.full_name || 'Not set'}</div>
+        <div style={{ marginTop: 32 }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: 14, color: '#6B7280' }}>Full Name</strong>
+              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 500, marginTop: 4 }}>{profile?.full_name || 'Not set'}</div>
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <strong style={{ display: 'block', fontSize: 14, color: '#6B7280' }}>Handle</strong>
-            <div style={{ fontSize: 16, fontWeight: 500 }}>{profile?.handle || 'Not set'}</div>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: 14, color: '#6B7280' }}>Handle</strong>
+              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} />
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 500, marginTop: 4 }}>{firstName || 'Not set'}</div>
           </div>
         </div>
       </div>
