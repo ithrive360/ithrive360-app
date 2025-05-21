@@ -7,6 +7,7 @@ import { uploadAndParseBlood } from '../utils/uploadAndParseBlood';
 import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import { generateAllHealthInsights } from '../utils/generateAllHealthInsights';
+import { importUserRecommendations } from '../utils/importRecommendations'; //REMOVE AFTER RECOMMENDATION ARE DONE VIA GPT
 import SidebarMenu from './SidebarMenu';
 import { Menu, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Lottie from 'lottie-react';
@@ -806,6 +807,27 @@ function DashboardPage() {
           {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
         </div>
       </div> */}
+
+      <button
+      onClick={async () => {
+        const result = await importUserRecommendations(user?.id);
+        alert(result.success ? `Imported ${result.count} recommendations.` : result.message);
+      }}
+      style={{
+        backgroundColor: '#10B981',
+        color: 'white',
+        padding: '10px 16px',
+        fontSize: 14,
+        fontWeight: 600,
+        borderRadius: 8,
+        marginBottom: 24,
+        border: 'none',
+        cursor: 'pointer'
+      }}
+    >
+      Import Recommendations from Insights
+    </button>
+
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
