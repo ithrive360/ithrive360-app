@@ -8,7 +8,7 @@ import { initUserProfile } from '../utils/initUserProfile';
 import { generateHealthInsight } from '../utils/generateHealthInsight';
 import { generateAllHealthInsights } from '../utils/generateAllHealthInsights';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Lottie from 'lottie-react';
 import ScoreCardsDashboard from './ScoreCardsDashboard';
 import logo from '../assets/logo.png';
