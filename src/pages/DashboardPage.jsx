@@ -763,14 +763,31 @@ function DashboardPage() {
                       {/* Column 3: Toggle */}
                       <div style={{ textAlign: 'center' }}>
                         <div
-                          onClick={(e) => {
-                            // Prevent click from bubbling up to parent divs
-                            e.stopPropagation();
-                            setActiveToggles(prev => ({
-                              ...prev,
-                              [rec.text]: !prev[rec.text]
-                            }));
-                          }}
+                          onClick={async (e) => {
+                          e.stopPropagation(); // Prevent section from toggling open/closed
+
+                          const newState = !activeToggles[rec.text];
+
+                          // 1. Update local UI
+                          setActiveToggles(prev => ({
+                            ...prev,
+                            [rec.text]: newState
+                          }));
+
+                          // 2. Persist to Supabase
+                          const { error } = await supabase
+                            .from('user_recommendation')
+                            .update({ is_selected: newState })
+                            .eq('user_id', user.id)
+                            .eq('recommendation', rec.text)
+                            .eq('category', category);
+
+                          if (error) {
+                            console.error('Failed to update is_selected:', error.message);
+                            alert('Failed to save change. Try again.');
+                          }
+                        }}
+
                           style={{
                             width: 36,
                             height: 20,
