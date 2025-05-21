@@ -699,7 +699,17 @@ function DashboardPage() {
                   marginBottom: 4,
                 }}
               >
-                <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{category}</h4>
+                {(() => {
+                  const high = allRecs.filter(r => r.priority === 'high').length;
+                  const medium = allRecs.filter(r => r.priority === 'medium').length;
+                  const low = allRecs.filter(r => r.priority === 'low').length;
+                  return (
+                    <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>
+                      {category} ({high} high, {medium} medium, {low} low)
+                    </h4>
+                  );
+                })()}
+
                 {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </div>
 
