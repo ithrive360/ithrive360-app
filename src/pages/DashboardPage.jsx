@@ -40,6 +40,7 @@ function DashboardPage() {
   const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null });
   const [expandedRecCategory, setExpandedRecCategory] = useState(null);
   const [activeToggles, setActiveToggles] = useState({}); // key: rec.text, value: true|false
+  const [recommendationData, setRecommendationData] = useState({});
 
   const navigate = useNavigate();
 
@@ -142,7 +143,8 @@ function DashboardPage() {
 
         if (user) {
           await fetchUserData();
-          await fetchAreaScores(user.id);  // 👈 Add this here
+          await fetchAreaScores(user.id);
+          await fetchUserRecommendations(user.id);
         } else {
           setLoading(false);
         }
@@ -159,7 +161,8 @@ function DashboardPage() {
         try {
           if (session?.user) {
             await fetchUserData();
-            await fetchAreaScores(session.user.id);  // 👈 Also add here
+            await fetchAreaScores(session.user.id);
+            await fetchUserRecommendations(session.user.id);
           }
         } catch (err) {
           console.error('Auth state change error:', err.message);
@@ -172,97 +175,122 @@ function DashboardPage() {
     };
   }, []);
 
-
   const fetchAreaScores = async (userId) => {
-  try {
-    const { data: insights, error } = await supabase
-      .from('user_health_insight')
-      .select('health_area_id, findings_json, recommendations_json')
-      .eq('user_id', userId);
+    try {
+      const { data: insights, error } = await supabase
+        .from('user_health_insight')
+        .select('health_area_id, findings_json, recommendations_json')
+        .eq('user_id', userId);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    // Pull weights
-    const { data: bloodWeights } = await supabase
-      .from('blood_marker_health_area')
-      .select('blood_marker_id, health_area_id, importance_weight');
-    const { data: bloodRefs } = await supabase
-      .from('blood_marker_reference')
-      .select('blood_marker_id, marker_name');
+      // Pull weights
+      const { data: bloodWeights } = await supabase
+        .from('blood_marker_health_area')
+        .select('blood_marker_id, health_area_id, importance_weight');
+      const { data: bloodRefs } = await supabase
+        .from('blood_marker_reference')
+        .select('blood_marker_id, marker_name');
 
-    const { data: dnaWeights } = await supabase
-      .from('dna_marker_health_area')
-      .select('dna_id, health_area_id, importance_weight');
-    const { data: dnaRefs } = await supabase
-      .from('dna_marker_reference')
-      .select('dna_id, trait');
+      const { data: dnaWeights } = await supabase
+        .from('dna_marker_health_area')
+        .select('dna_id, health_area_id, importance_weight');
+      const { data: dnaRefs } = await supabase
+        .from('dna_marker_reference')
+        .select('dna_id, trait');
 
-    const bloodWeightMap = {};
-    for (const ref of bloodRefs) {
-      const key = `${ref.marker_name}|${ref.blood_marker_id}`;
-      bloodWeightMap[key] = bloodWeights.find(
-        w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id
-      )?.importance_weight || 1;
-    }
-
-    const dnaWeightMap = {};
-    for (const ref of dnaRefs) {
-      const key = `${ref.trait}|${ref.dna_id}`;
-      dnaWeightMap[key] = dnaWeights.find(
-        w => w.dna_id === ref.dna_id && w.health_area_id
-      )?.importance_weight || 1;
-    }
-
-    const scores = insights.map(insight => {
-      let totalWeighted = 0;
-      let totalWeight = 0;
-
-      for (const m of insight.findings_json.blood_markers || []) {
-        const weight = bloodWeights.find(w =>
-          bloodRefs.find(r => r.marker_name === m.marker_name && r.blood_marker_id === w.blood_marker_id) &&
-          w.health_area_id === insight.health_area_id
+      const bloodWeightMap = {};
+      for (const ref of bloodRefs) {
+        const key = `${ref.marker_name}|${ref.blood_marker_id}`;
+        bloodWeightMap[key] = bloodWeights.find(
+          w => w.blood_marker_id === ref.blood_marker_id && w.health_area_id
         )?.importance_weight || 1;
-        const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
-        totalWeighted += weight * score;
-        totalWeight += weight;
       }
 
-      for (const t of insight.findings_json.dna_traits || []) {
-        const weight = dnaWeights.find(w =>
-          dnaRefs.find(r => r.trait === t.trait_name && r.dna_id === w.dna_id) &&
-          w.health_area_id === insight.health_area_id
+      const dnaWeightMap = {};
+      for (const ref of dnaRefs) {
+        const key = `${ref.trait}|${ref.dna_id}`;
+        dnaWeightMap[key] = dnaWeights.find(
+          w => w.dna_id === ref.dna_id && w.health_area_id
         )?.importance_weight || 1;
-        const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
-        totalWeighted += weight * score;
-        totalWeight += weight;
       }
 
-      return {
-        health_area_id: insight.health_area_id,
-        score: totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null,
-        recommendations: insight.recommendations_json || {}
+      const scores = insights.map(insight => {
+        let totalWeighted = 0;
+        let totalWeight = 0;
+
+        for (const m of insight.findings_json.blood_markers || []) {
+          const weight = bloodWeights.find(w =>
+            bloodRefs.find(r => r.marker_name === m.marker_name && r.blood_marker_id === w.blood_marker_id) &&
+            w.health_area_id === insight.health_area_id
+          )?.importance_weight || 1;
+          const score = m.category === 'strength' ? 1 : m.category === 'warning' ? 0.5 : 0;
+          totalWeighted += weight * score;
+          totalWeight += weight;
+        }
+
+        for (const t of insight.findings_json.dna_traits || []) {
+          const weight = dnaWeights.find(w =>
+            dnaRefs.find(r => r.trait === t.trait_name && r.dna_id === w.dna_id) &&
+            w.health_area_id === insight.health_area_id
+          )?.importance_weight || 1;
+          const score = t.category === 'strength' ? 1 : t.category === 'warning' ? 0.5 : 0;
+          totalWeighted += weight * score;
+          totalWeight += weight;
+        }
+
+        return {
+          health_area_id: insight.health_area_id,
+          score: totalWeight > 0 ? Math.round((totalWeighted / totalWeight) * 100) : null,
+          recommendations: insight.recommendations_json || {}
+        };
+      });
+
+      setAreaScores(scores);
+
+      // === Calculate grouped scores ===
+      const getGroupAvg = (ids) => {
+        const filtered = scores.filter(s => ids.includes(s.health_area_id));
+        const valid = filtered.filter(s => s.score !== null);
+        const avg = valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
+        return avg;
       };
-    });
 
-    setAreaScores(scores);
+      setOverallScores({
+        general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
+        performance: getGroupAvg(['HA005', 'HA006']),
+        longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
+      });
+    } catch (e) {
+      console.error('❌ Error calculating overall scores:', e);
+    }
+  };
 
-    // === Calculate grouped scores ===
-    const getGroupAvg = (ids) => {
-      const filtered = scores.filter(s => ids.includes(s.health_area_id));
-      const valid = filtered.filter(s => s.score !== null);
-      const avg = valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
-      return avg;
-    };
+  const fetchUserRecommendations = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_recommendation')
+        .select('category, recommendation, priority')
+        .eq('user_id', userId);
 
-    setOverallScores({
-      general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
-      performance: getGroupAvg(['HA005', 'HA006']),
-      longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
-    });
-  } catch (e) {
-    console.error('❌ Error calculating overall scores:', e);
-  }
-};
+      if (error) throw error;
+
+      const grouped = {};
+
+      for (const rec of data) {
+        const cat = rec.category;
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({
+          text: rec.recommendation,
+          priority: rec.priority || 'medium',
+        });
+      }
+
+      setRecommendationData(grouped);
+    } catch (err) {
+      console.error('Failed to load user_recommendation:', err.message);
+    }
+  };
 
   const handleLogout = async () => {
     if (isProcessing) return;
@@ -588,246 +616,237 @@ function DashboardPage() {
         </h3>
       </div>
 
-<ScoreCardsDashboard scores={overallScores} />
+      <ScoreCardsDashboard scores={overallScores} />
 
-    {/* RECOMMENDATIONS CARD*/}
+      {/* RECOMMENDATIONS CARD*/}
 
-    <div
-      style={{
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: '1.5rem',
-        margin: '2rem auto',
-        width: '90vw',
-        maxWidth: 600,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-        fontFamily: 'Arial, sans-serif',
-      }}
-    >
-      <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1rem', color: '#1F2937' }}>
-        Consolidated Recommendations
-      </h3>
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 16,
+          padding: '1.5rem',
+          margin: '2rem auto',
+          width: '90vw',
+          maxWidth: 600,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1rem', color: '#1F2937' }}>
+          Consolidated Recommendations
+        </h3>
 
-      {['Diet', 'Exercise', 'Lifestyle', 'Supplementation', 'Monitoring'].map((category) => {
-        const allRecs = areaScores.flatMap(area =>
-          (area.recommendations?.[category] || []).map(rec => ({
-            text: rec.text,
-            priority: rec.priority || 'medium',
-          }))
-        );
+        {['Diet', 'Exercise', 'Lifestyle', 'Supplementation', 'Monitoring'].map((category) => {
+          const allRecs = recommendationData[category] || [];
 
-        const deduped = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
+          const deduped = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
 
-        // Sort by priority
-        const sorted = deduped.sort((a, b) => {
-          const order = { high: 0, medium: 1, low: 2 };
-          return order[a.priority] - order[b.priority];
-        });
+          // Sort by priority
+          const sorted = deduped.sort((a, b) => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[a.priority] - order[b.priority];
+          });
 
-        if (!sorted.length) return null;
+          if (!sorted.length) return null;
 
-        const isOpen = expandedRecCategory === category;
+          const isOpen = expandedRecCategory === category;
 
-        return (
-          <div key={category} style={{ marginBottom: '1.25rem' }} id={`rec-category-${category}`}>
-            <div
-              onClick={() => {
-                if (expandedRecCategory === category) {
-                  // If already open, just close it
-                  setExpandedRecCategory(null);
-                } else {
-                  // If closed, open it and schedule scrolling
-                  setExpandedRecCategory(category);
-                  
-                  // Use requestAnimationFrame to wait for DOM updates
-                  requestAnimationFrame(() => {
-                    // Find the target element using the ID we added
-                    const targetElement = document.getElementById(`rec-category-${category}`);
-                    if (!targetElement) {
-                      console.error(`Cannot find element with ID rec-category-${category}`);
-                      return;
-                    }
-                    
-                    // Get header height dynamically
-                    const header = document.querySelector('div[style*="position: fixed"][style*="top: 0"]');
-                    const headerHeight = header ? header.offsetHeight : 60;
-                    
-                    // Add some padding to avoid butting right against the header
-                    const paddingTop = 16;
-                    
-                    // Calculate the scroll position
-                    const elementRect = targetElement.getBoundingClientRect();
-                    const absoluteElementTop = elementRect.top + window.pageYOffset;
-                    const targetScrollPosition = absoluteElementTop - headerHeight - paddingTop;
-                    
-                    // Perform the smooth scroll
-                    window.scrollTo({
-                      top: targetScrollPosition,
-                      behavior: 'smooth'
-                    });
-                  });
-                }
-              }}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-                marginBottom: 4,
-              }}
-            >
-              <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{category}</h4>
-              {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </div>
-
-            {isOpen && (
-            <div style={{ marginTop: 8 }}>
-              {/* Header Row */}
+          return (
+            <div key={category} style={{ marginBottom: '1.25rem' }} id={`rec-category-${category}`}>
               <div
+                onClick={() => {
+                  if (expandedRecCategory === category) {
+                    // If already open, just close it
+                    setExpandedRecCategory(null);
+                  } else {
+                    // If closed, open it and schedule scrolling
+                    setExpandedRecCategory(category);
+                    
+                    // Use requestAnimationFrame to wait for DOM updates
+                    requestAnimationFrame(() => {
+                      // Find the target element using the ID we added
+                      const targetElement = document.getElementById(`rec-category-${category}`);
+                      if (!targetElement) {
+                        console.error(`Cannot find element with ID rec-category-${category}`);
+                        return;
+                      }
+                      
+                      // Get header height dynamically
+                      const header = document.querySelector('div[style*="position: fixed"][style*="top: 0"]');
+                      const headerHeight = header ? header.offsetHeight : 60;
+                      
+                      // Add some padding to avoid butting right against the header
+                      const paddingTop = 16;
+                      
+                      // Calculate the scroll position
+                      const elementRect = targetElement.getBoundingClientRect();
+                      const absoluteElementTop = elementRect.top + window.pageYOffset;
+                      const targetScrollPosition = absoluteElementTop - headerHeight - paddingTop;
+                      
+                      // Perform the smooth scroll
+                      window.scrollTo({
+                        top: targetScrollPosition,
+                        behavior: 'smooth'
+                      });
+                    });
+                  }
+                }}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 80px 50px', // Match the column widths to the list items
-                  gap: 12,
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  paddingBottom: 8,
+                  cursor: 'pointer',
+                  marginBottom: 4,
                 }}
               >
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left' }}>Action</span>
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
-                <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
+                <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{category}</h4>
+                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </div>
 
-              <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
-                {sorted.map((rec, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      marginBottom: 12,
-                      fontSize: 14,
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 80px 50px', // Match the header column widths
-                      gap: 12,
-                      alignItems: 'center', // Center vertically
-                    }}
-                  >
-                    {/* Column 1: Action */}
-                    <div style={{ textAlign: 'left', color: '#374151' }}>{rec.text}</div>
+              {isOpen && (
+              <div style={{ marginTop: 8 }}>
+                {/* Header Row */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 80px 50px', // Match the column widths to the list items
+                    gap: 12,
+                    alignItems: 'center',
+                    paddingBottom: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'left' }}>Action</span>
+                  <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Priority</span>
+                  <span style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }}>Add</span>
+                </div>
 
-                    {/* Column 2: Priority label */}
-                    <div style={{ textAlign: 'center' }}>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          backgroundColor:
-                            rec.priority === 'high' ? '#fee2e2' :
-                            rec.priority === 'medium' ? '#fef3c7' :
-                            '#e0f2fe',
-                          color:
-                            rec.priority === 'high' ? '#991b1b' :
-                            rec.priority === 'medium' ? '#92400e' :
-                            '#1e40af',
-                          display: 'inline-block', // Ensure the span takes up the full width
-                          minWidth: '50px', // Ensure consistent width for alignment
-                          textAlign: 'center',
-                        }}
-                      >
-                        {rec.priority}
-                      </span>
-                    </div>
+                <ul style={{ paddingLeft: 0, listStyleType: 'none', margin: 0 }}>
+                  {sorted.map((rec, i) => (
+                    <li
+                      key={i}
+                      style={{
+                        marginBottom: 12,
+                        fontSize: 14,
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 80px 50px', // Match the header column widths
+                        gap: 12,
+                        alignItems: 'center', // Center vertically
+                      }}
+                    >
+                      {/* Column 1: Action */}
+                      <div style={{ textAlign: 'left', color: '#374151' }}>{rec.text}</div>
 
-                    {/* Column 3: Toggle */}
-                    <div style={{ textAlign: 'center' }}>
-                      <div
-                        onClick={(e) => {
-                          // Prevent click from bubbling up to parent divs
-                          e.stopPropagation();
-                          setActiveToggles(prev => ({
-                            ...prev,
-                            [rec.text]: !prev[rec.text]
-                          }));
-                        }}
-                        style={{
-                          width: 36,
-                          height: 20,
-                          borderRadius: 9999,
-                          backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
-                          padding: 2,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          margin: '0 auto', // Center the toggle in the column
-                        }}
-                      >
-                        <div
+                      {/* Column 2: Priority label */}
+                      <div style={{ textAlign: 'center' }}>
+                        <span
                           style={{
-                            width: 16,
-                            height: 16,
-                            backgroundColor: '#fff',
-                            borderRadius: '50%',
+                            fontSize: 12,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            backgroundColor:
+                              rec.priority === 'high' ? '#fee2e2' :
+                              rec.priority === 'medium' ? '#fef3c7' :
+                              '#e0f2fe',
+                            color:
+                              rec.priority === 'high' ? '#991b1b' :
+                              rec.priority === 'medium' ? '#92400e' :
+                              '#1e40af',
+                            display: 'inline-block', // Ensure the span takes up the full width
+                            minWidth: '50px', // Ensure consistent width for alignment
+                            textAlign: 'center',
                           }}
-                        />
+                        >
+                          {rec.priority}
+                        </span>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+
+                      {/* Column 3: Toggle */}
+                      <div style={{ textAlign: 'center' }}>
+                        <div
+                          onClick={(e) => {
+                            // Prevent click from bubbling up to parent divs
+                            e.stopPropagation();
+                            setActiveToggles(prev => ({
+                              ...prev,
+                              [rec.text]: !prev[rec.text]
+                            }));
+                          }}
+                          style={{
+                            width: 36,
+                            height: 20,
+                            borderRadius: 9999,
+                            backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
+                            padding: 2,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            margin: '0 auto', // Center the toggle in the column
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 16,
+                              height: 16,
+                              backgroundColor: '#fff',
+                              borderRadius: '50%',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             </div>
-          )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
 
+      {/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
 
-
-
-{/* 🔒 TEMPORARILY DISABLING DNA & BLOOD UPLOAD CARDS DURING MIGRATION */}
-
-{/*       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
-        <div className="card">
-          <h3>DNA Data</h3>
-          <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <label className="btn btn-primary">
-            Upload DNA
-            <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} disabled={isProcessing} />
-          </label>
-          {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
-        </div>
-        <div className="card">
-          <h3>Blood Test</h3>
-          <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-          <label className="btn btn-primary">
-            Upload Blood
-            <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} disabled={isProcessing} />
-          </label>
-          {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
-        </div>
-      </div> */}
+      {/*       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
+              <div className="card">
+                <h3>DNA Data</h3>
+                <p>Status: {profile?.dna_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+                <label className="btn btn-primary">
+                  Upload DNA
+                  <input type="file" accept=".txt" onChange={handleDNAUpload} style={{ display: 'none' }} disabled={isProcessing} />
+                </label>
+                {message && <p style={{ marginTop: '0.5rem' }}>{message}</p>}
+              </div>
+              <div className="card">
+                <h3>Blood Test</h3>
+                <p>Status: {profile?.blood_uploaded ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+                <label className="btn btn-primary">
+                  Upload Blood
+                  <input type="file" accept=".csv" onChange={handleBloodUpload} style={{ display: 'none' }} disabled={isProcessing} />
+                </label>
+                {bloodMessage && <p style={{ marginTop: '0.5rem' }}>{bloodMessage}</p>}
+              </div>
+            </div> */}
 
       <button
-      onClick={async () => {
-        const result = await importUserRecommendations(user?.id);
-        alert(result.success ? `Imported ${result.count} recommendations.` : result.message);
-      }}
-      style={{
-        backgroundColor: '#10B981',
-        color: 'white',
-        padding: '10px 16px',
-        fontSize: 14,
-        fontWeight: 600,
-        borderRadius: 8,
-        marginBottom: 24,
-        border: 'none',
-        cursor: 'pointer'
-      }}
-    >
-      Import Recommendations from Insights
-    </button>
-
+        onClick={async () => {
+          const result = await importUserRecommendations(user?.id);
+          alert(result.success ? `Imported ${result.count} recommendations.` : result.message);
+        }}
+        style={{
+          backgroundColor: '#10B981',
+          color: 'white',
+          padding: '10px 16px',
+          fontSize: 14,
+          fontWeight: 600,
+          borderRadius: 8,
+          marginBottom: 24,
+          border: 'none',
+          cursor: 'pointer'
+        }}
+      >
+        Import Recommendations from Insights
+      </button>
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
