@@ -8,6 +8,7 @@ import CardiovascularInsightsPage from './pages/CardiovascularInsightsPage';
 import Allinsights from './pages/Allinsights'; // ✅ import your new insights page
 import UploadPage from './pages/Upload';
 import './App.css';
+import ProfilePage from './pages/ProfilePage'; 
 
 function App() {
   const [user, setUser] = useState(null);
@@ -43,6 +44,7 @@ function App() {
         <Route path="/insights/cardiovascular" element={<CardiovascularInsightsPage />} />
         <Route path="/insights/all" element={user ? <Allinsights /> : <Navigate to="/" replace />} /> {/* ✅ new route */}
         <Route path="/upload" element={user ? <UploadPage /> : <Navigate to="/" replace />} />
+        <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

@@ -13,7 +13,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
   }, [isOpen]);
 
   const menuItems = [
-    { icon: <User size={20} />, label: 'My Profile', action: () => {} },    
+    { icon: <User size={20} />, label: 'My Profile', action: () => navigate('/profile') },
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/dashboard') },
     { icon: <NotebookTabs size={20} />, label: 'All Insights', action: () => navigate('/insights/all') },
     { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => navigate('/upload') },
