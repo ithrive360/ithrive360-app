@@ -174,7 +174,7 @@ function DashboardPage() {
   try {
     const { data: insights, error } = await supabase
       .from('user_health_insight')
-      .select('health_area_id, findings_json')
+      .select('health_area_id, findings_json, recommendations_json')
       .eq('user_id', userId);
 
     if (error) throw error;
@@ -588,7 +588,7 @@ function DashboardPage() {
 <ScoreCardsDashboard scores={overallScores} />
 
     {/* RECOMMENDATIONS CARD*/}
-    
+
     {user && (
       <div
         style={{
