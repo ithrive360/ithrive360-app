@@ -37,6 +37,8 @@ function DashboardPage() {
   const [selectedHealthArea, setSelectedHealthArea] = useState('HA002');
   const [areaScores, setAreaScores] = useState([]); // Holds all per-HA scores
   const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null });
+  const [expandedRecCategory, setExpandedRecCategory] = useState(null);
+  const [activeToggles, setActiveToggles] = useState({}); // key: rec.text, value: true|false
 
   const navigate = useNavigate();
 
@@ -614,41 +616,91 @@ function DashboardPage() {
             }))
           );
 
-          // Deduplicate by text content
-          const uniqueRecs = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
+          const deduped = Array.from(new Map(allRecs.map(r => [r.text, r])).values());
 
-          if (uniqueRecs.length === 0) return null;
+          // Sort by priority
+          const sorted = deduped.sort((a, b) => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[a.priority] - order[b.priority];
+          });
+
+          if (!sorted.length) return null;
+
+          const isOpen = expandedRecCategory === category;
 
           return (
             <div key={category} style={{ marginBottom: '1.25rem' }}>
-              <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: '#111827' }}>{category}</h4>
-              <ul style={{ paddingLeft: 20, margin: 0 }}>
-                {uniqueRecs.map((rec, i) => (
-                  <li key={i} style={{ marginBottom: 6, color: '#374151', fontSize: 14 }}>
-                    {rec.text}
-                    {rec.priority && (
-                      <span
-                        style={{
-                          fontSize: 12,
-                          marginLeft: 8,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          backgroundColor:
-                            rec.priority === 'high' ? '#fee2e2' :
-                            rec.priority === 'medium' ? '#fef3c7' :
-                            '#e0f2fe',
-                          color:
-                            rec.priority === 'high' ? '#991b1b' :
-                            rec.priority === 'medium' ? '#92400e' :
-                            '#1e40af',
-                        }}
-                      >
-                        {rec.priority}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div
+                onClick={() =>
+                  setExpandedRecCategory(isOpen ? null : category)
+                }
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  marginBottom: 4,
+                }}
+              >
+                <h4 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{category}</h4>
+                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </div>
+
+              {isOpen && (
+                <ul style={{ paddingLeft: 16, marginTop: 8 }}>
+                  {sorted.map((rec, i) => (
+                    <li key={i} style={{ marginBottom: 8, color: '#374151', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ flex: 1 }}>{rec.text}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {rec.priority && (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              backgroundColor:
+                                rec.priority === 'high' ? '#fee2e2' :
+                                rec.priority === 'medium' ? '#fef3c7' :
+                                '#e0f2fe',
+                              color:
+                                rec.priority === 'high' ? '#991b1b' :
+                                rec.priority === 'medium' ? '#92400e' :
+                                '#1e40af',
+                            }}
+                          >
+                            {rec.priority}
+                          </span>
+                        )}
+                        <div
+                          onClick={() => setActiveToggles(prev => ({
+                            ...prev,
+                            [rec.text]: !prev[rec.text]
+                          }))}
+                          style={{
+                            width: 36,
+                            height: 20,
+                            borderRadius: 9999,
+                            backgroundColor: activeToggles[rec.text] ? '#10B981' : '#EF4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: activeToggles[rec.text] ? 'flex-end' : 'flex-start',
+                            padding: 2,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <div style={{
+                            width: 16,
+                            height: 16,
+                            backgroundColor: '#fff',
+                            borderRadius: '50%',
+                          }} />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           );
         })}
