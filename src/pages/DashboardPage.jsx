@@ -611,6 +611,9 @@ function DashboardPage() {
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Quick Actions</h2>
+
+        {/* COMMENTING OUT LEGACY BUTTONS
+
         <button className="btn btn-primary" disabled={isProcessing}>
           Start New Report
         </button>
@@ -632,6 +635,8 @@ function DashboardPage() {
         <button className="btn btn-primary" disabled={isProcessing}>
           Recommendations
         </button>
+        */}
+
         <div style={{ marginTop: '1rem' }}>
           <label htmlFor="healthAreaSelect" style={{ marginRight: '0.5rem' }}>
             Select Health Area for Test:
