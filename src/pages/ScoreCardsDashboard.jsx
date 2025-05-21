@@ -1,84 +1,102 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function ScoreCardsDashboard({ scores }) {
+  const [visibleInfo, setVisibleInfo] = useState(null);
+
+  const getColor = (score) => {
+    if (score === null || score === '--') return '#d1d5db'; // gray
+    if (score < 60) return '#ef4444'; // red
+    if (score < 80) return '#f59e0b'; // amber
+    return '#10b981'; // green
+  };
+
   const scoreCards = [
     {
+      key: 'general',
       score: scores?.general ?? '--',
       title: 'Overall Health',
-      description: `Based on your overall health test, your score is ${scores?.general ?? '--'} and considered good.`,
-      color: '#4f46e5',
+      description: 'Your health score is calculated based on your DNA, blood tests, and integrated fitness data. Keep up the great work!',
     },
     {
+      key: 'longevity',
       score: scores?.longevity ?? '--',
       title: 'Longevity',
-      description: `Your score reflects long-term health and risk resilience based on blood and DNA data.`,
-      color: '#3ab3a1',
+      description: 'This score reflects long-term health and resilience based on aging, immunity, and inflammation markers.',
     },
     {
+      key: 'performance',
       score: scores?.performance ?? '--',
       title: 'Performance & Recovery',
-      description: `Optimised recovery, energy and performance markers place you in an excellent range.`,
-      color: '#8b5cf6',
+      description: 'How well your body recovers from stress and performs under demand. Informed by hormones, recovery markers, and more.',
     },
   ];
 
   return (
-        <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        padding: '1rem',
+    <div
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        margin: '1rem auto',
+        width: '90vw',
+        maxWidth: 600,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
         fontFamily: 'Arial, sans-serif',
-        width: '100vw',               // Fill viewport width
-        maxWidth: '100%',             // Prevent max-width clipping
-        boxSizing: 'border-box',      // Ensure padding is respected
-        }}>
-
-      {scoreCards.map((card, index) => (
-        <div key={index} style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '12px',
-          padding: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          gap: '1.25rem',
-          width: '90%', // Set to 90% of the total width
-          margin: '0 auto',
-        }}>
-          <div style={{ width: 64, height: 64, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="48"
-              height="48"
-              fill={card.color}
-              stroke="none"
-              style={{ margin: 'auto' }}
+      }}
+    >
+      {scoreCards.map((card) => (
+        <div key={card.key} style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontWeight: 600 }}>{card.title}</span>
+            <span style={{ fontWeight: 700 }}>{card.score ?? '--'}/100</span>
+          </div>
+          <div
+            style={{
+              height: 10,
+              borderRadius: 8,
+              backgroundColor: '#e5e7eb',
+              overflow: 'hidden',
+              marginBottom: 4,
+            }}
+          >
+            <div
+              style={{
+                width: typeof card.score === 'number' ? `${card.score}%` : '0%',
+                height: '100%',
+                backgroundColor: getColor(card.score),
+                transition: 'width 0.5s ease',
+              }}
+            ></div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <button
+              onClick={() => setVisibleInfo(visibleInfo === card.key ? null : card.key)}
+              style={{
+                fontSize: '0.8rem',
+                background: 'none',
+                border: 'none',
+                color: '#6b7280',
+                cursor: 'pointer',
+              }}
             >
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-              <text
-                x="12"
-                y="13.5"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize="10"
-                fontWeight="bold"
-                fill="#fff"
-              >
-                {card.score}
-              </text>
-            </svg>
+              ℹ️
+            </button>
           </div>
-          <div style={{
-            flex: 1,
-            textAlign: 'left',
-            display: 'flex',
-            alignItems: 'center',
-            minHeight: '64px',
-          }}>
-            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1F2937' }}>{card.title}</h4>
-          </div>
+          {visibleInfo === card.key && (
+            <div
+              style={{
+                fontSize: '0.85rem',
+                marginTop: 4,
+                backgroundColor: '#f9fafb',
+                padding: '0.75rem',
+                borderRadius: 8,
+                border: '1px solid #e5e7eb',
+                color: '#374151',
+              }}
+            >
+              {card.description}
+            </div>
+          )}
         </div>
       ))}
     </div>
