@@ -320,47 +320,58 @@ export default function CardiovascularInsightsPage() {
         </div>
       </div>
 
-<div
-  style={{
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    border: '1px solid #E5E7EB',
-    borderRadius: 12,
-    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-  }}
->
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', margin: 0 }}>Health Score</h3>
-        <span style={{ fontSize: 16, fontWeight: 700, color: '#1F2937' }}>{healthScore ?? '--'} / 100</span>
-      </div>
       <div
         style={{
-          height: 10,
-          borderRadius: 8,
-          backgroundColor: '#E5E7EB',
-          overflow: 'hidden',
-          marginBottom: 8,
+          marginBottom: 24,
+          padding: 16,
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          borderRadius: 12,
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
         }}
       >
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', margin: 0 }}>Health Score</h3>
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#1F2937' }}>
+            {healthScore ?? '--'} / 100
+          </span>
+        </div>
+
         <div
           style={{
-            width: `${healthScore ?? 0}%`,
-            height: '100%',
-            backgroundColor:
-              healthScore < 50
-                ? '#EF4444'
-                : healthScore < 75
-                ? '#F59E0B'
-                : '#10B981',
-            transition: 'width 0.5s ease',
+            height: 10,
+            borderRadius: 8,
+            backgroundColor: '#E5E7EB',
+            overflow: 'hidden',
+            marginBottom: 8,
           }}
-        />
+        >
+          <div
+            style={{
+              width: `${healthScore ?? 0}%`,
+              height: '100%',
+              backgroundColor:
+                healthScore < 50
+                  ? '#EF4444'
+                  : healthScore < 75
+                  ? '#F59E0B'
+                  : '#10B981',
+              transition: 'width 0.5s ease',
+            }}
+          />
+        </div>
+
+        <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>
+          Based on {bloodStats.total} blood markers and {dnaStats.total} genetic traits
+        </p>
+
+        {data?.summary && (
+          <p style={{ fontSize: 14, color: '#374151', marginTop: 12 }}>
+            {data.summary}
+          </p>
+        )}
       </div>
-      <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>
-        Based on {bloodStats.total} blood markers and {dnaStats.total} genetic traits
-      </p>
-    </div>
+
 
 
       <div style={{ display: 'flex', width: '100%', maxWidth: '1100px', margin: '0 auto 24px', gap: 0 }}>
