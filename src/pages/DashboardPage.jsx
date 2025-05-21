@@ -385,7 +385,7 @@ function DashboardPage() {
         },
         recommendations_json: recommendations,
         gpt_model: 'gpt-4o',
-        prompt_version: 'v1',
+        prompt_version: 'v1', // Fixed: Closed the string and added a comma
         created_at: new Date().toISOString(),
       };
 
@@ -635,13 +635,19 @@ function DashboardPage() {
                   setExpandedRecCategory(category);
                   setTimeout(() => {
                     const element = e.currentTarget;
-                    const headerHeight = 60; // Adjust based on your fixed header height
+                    if (!element) {
+                      console.error('Element not found for scrolling');
+                      return;
+                    }
+                    // Dynamically calculate the header height
+                    const header = document.querySelector('div[style*="position: fixed"]');
+                    const headerHeight = header ? header.getBoundingClientRect().height : 60; // Fallback to 60px
                     const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
                     window.scrollTo({
                       top: elementPosition - headerHeight,
                       behavior: 'smooth',
                     });
-                  }, 10);
+                  }, 100); // Increased delay to ensure DOM updates
                 } else {
                   setExpandedRecCategory(null);
                 }

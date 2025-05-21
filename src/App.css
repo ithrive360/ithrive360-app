@@ -169,3 +169,7 @@ a.btn,
   z-index: 0; /* Ensure the dashboard content stays under floating buttons */
 }
 
+body:has(.dashboard) {
+  display: block;
+  min-height: 100vh;
+}
