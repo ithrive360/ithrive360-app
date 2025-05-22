@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X, ScanBarcode, Camera } from 'lucide-react';
 import logo from '../assets/logo.png';
-import { launchBarcodeScanner } from '../utils/barcodeScanner';
+//import { launchBarcodeScanner } from '../utils/barcodeScanner';
 import { launchPhotoRecognizer } from '../utils/photoRecognizer';
 
 function FoodTracking() {
@@ -33,11 +33,14 @@ function FoodTracking() {
     fetchProfile();
   }, []);
 
+  {/*
   const handleBarcodeScan = async () => {
     const result = await launchBarcodeScanner();
     if (result?.code) setScannedBarcode(result.code);
   };
 
+  */}
+  
   const handleMealPhoto = async () => {
     const result = await launchPhotoRecognizer();
     if (result?.label) setRecognizedMeal(result.label);
@@ -114,7 +117,7 @@ function FoodTracking() {
         {/* Barcode Scan */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button
-            onClick={handleBarcodeScan}
+            onClick={''}
             style={{
               display: 'flex',
               alignItems: 'center',
