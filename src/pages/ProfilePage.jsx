@@ -14,8 +14,8 @@ const avatarFiles = [
   'ninja_6740968.png',
   'old-woman_9308303.png',
   'rapper_1864437.png',
-  'sloth_3309426.png',
-  'spanish_4964248.png',
+  'sloth_3309246.png',
+  'spanish_496424.png',
   'programmer_1413300.png'
 ];
 
