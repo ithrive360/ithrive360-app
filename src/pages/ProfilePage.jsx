@@ -249,7 +249,7 @@ export default function ProfilePage() {
               })}
             </div>
             <button onClick={() => setShowAvatarPicker(false)} style={{
-              backgroundColor: '#e5e7eb', color: '#111827',
+              backgroundColor: '#e0f7f4', color: '#111827',
               border: 'none', padding: '8px 14px',
               borderRadius: 6, cursor: 'pointer', fontWeight: 500
             }}>
