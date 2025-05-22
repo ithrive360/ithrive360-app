@@ -1,31 +1,64 @@
 import { useEffect } from 'react';
-import { X, LayoutDashboard, UploadCloud, TrendingUp, Settings, User, HelpCircle, LogOut, Soup, NotebookTabs } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import {
+  X, LayoutDashboard, UploadCloud, TrendingUp, Settings,
+  User, HelpCircle, LogOut, Soup, NotebookTabs
+} from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
-  
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = 'auto';
+    document.body.style.overflow = isOpen ? 'hidden' : 'auto';
     return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
 
   const menuItems = [
-    { icon: <User size={20} />, label: 'My Profile', action: () => navigate('/profile') },
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', action: () => navigate('/dashboard') },
-    { icon: <NotebookTabs size={20} />, label: 'All Insights', action: () => navigate('/insights/all') },
-    { icon: <UploadCloud size={20} />, label: 'Upload Results', action: () => navigate('/upload') },
-    { icon: <Soup size={20} />, label: 'Track Diet', action: () => {} },
-    { icon: <TrendingUp size={20} />, label: 'Track Progress', action: () => {} },
-    { icon: <Settings size={20} />, label: 'Settings', action: () => {} },
-    { icon: <HelpCircle size={20} />, label: 'Help Center', action: () => {} },
+    {
+      icon: <User size={20} />,
+      label: 'My Profile',
+      path: '/profile'
+    },
+    {
+      icon: <LayoutDashboard size={20} />,
+      label: 'Dashboard',
+      path: '/dashboard'
+    },
+    {
+      icon: <NotebookTabs size={20} />,
+      label: 'All Insights',
+      path: '/insights/all'
+    },
+    {
+      icon: <UploadCloud size={20} />,
+      label: 'Upload Results',
+      path: '/upload'
+    },
+    {
+      icon: <Soup size={20} />,
+      label: 'Track Diet',
+      path: '/track-diet'
+    },
+    {
+      icon: <TrendingUp size={20} />,
+      label: 'Track Progress',
+      path: '/track-progress'
+    },
+    {
+      icon: <Settings size={20} />,
+      label: 'Settings',
+      path: '/settings'
+    },
+    {
+      icon: <HelpCircle size={20} />,
+      label: 'Help Center',
+      path: '/help'
+    }
   ];
 
   return (
     <>
-      {/* Overlay */}
       {isOpen && (
         <div
           onClick={onClose}
@@ -41,7 +74,6 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
         />
       )}
 
-      {/* Floating Menu Card */}
       <div
         className="sidebar-menu"
         style={{
@@ -60,60 +92,57 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
           padding: '24px 16px'
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 24
-          }}
-        >
+        {/* Header with Avatar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt="Avatar"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '2px solid #e5e7eb'
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                backgroundColor: '#e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 600,
-                fontSize: 16,
-                color: '#3ab3a1',
-                textTransform: 'uppercase'
-              }}
-            >
-              {profile?.full_name?.charAt(0) || 'U'}
-            </div>
-          )}
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #e5e7eb'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: '#e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: '#3ab3a1',
+                  textTransform: 'uppercase'
+                }}
+              >
+                {profile?.full_name?.charAt(0) || 'U'}
+              </div>
+            )}
 
             <div>
               <div style={{ fontWeight: 700, fontSize: 18, color: '#1F2937' }}>
                 {profile?.full_name || 'User'}
               </div>
             </div>
-
           </div>
         </div>
 
-        {menuItems.map(({ icon, label, action }, idx) => (
+        {/* Menu Items */}
+        {menuItems.map(({ icon, label, path }, idx) => (
           <button
             key={idx}
-            onClick={action}
+            onClick={() => {
+              if (location.pathname !== path) navigate(path);
+              onClose();
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -133,6 +162,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
           </button>
         ))}
 
+        {/* Logout Button */}
         <div style={{ marginTop: 'auto', paddingTop: 64 }}>
           <button
             onClick={onLogout}
