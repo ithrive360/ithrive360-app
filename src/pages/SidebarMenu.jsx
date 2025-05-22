@@ -69,6 +69,19 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt="Avatar"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid #e5e7eb'
+              }}
+            />
+          ) : (
             <div
               style={{
                 width: 36,
@@ -86,6 +99,8 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
             >
               {profile?.full_name?.charAt(0) || 'U'}
             </div>
+          )}
+
             <div>
               <div style={{ fontWeight: 700, fontSize: 18, color: '#1F2937' }}>
                 {profile?.full_name || 'User'}
