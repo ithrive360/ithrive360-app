@@ -84,12 +84,20 @@ export default function ProfilePage() {
       .eq('user_id', user.id);
 
     if (!error) {
+      const { data: refreshedProfile } = await supabase
+        .from('user_profile')
+        .select('full_name, user_name, avatar_url')
+        .eq('user_id', user.id)
+        .single();
+
+      setProfile(refreshedProfile || {});
       setAvatarUrl(url);
       setShowAvatarPicker(false);
     } else {
       console.error('Failed to update avatar:', error.message);
     }
   };
+
 
   const firstInitial = profile?.full_name?.trim()?.[0]?.toUpperCase() || '?';
 
