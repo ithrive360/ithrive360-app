@@ -37,8 +37,8 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
     },
     {
       icon: <Soup size={20} />,
-      label: 'Track Diet',
-      path: '/track-diet'
+      label: 'Food Tracker',
+      path: '/food'
     },
     {
       icon: <TrendingUp size={20} />,
