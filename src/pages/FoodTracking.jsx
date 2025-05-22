@@ -1,101 +1,53 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import SidebarMenu from './SidebarMenu';
-import Lottie from 'lottie-react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera, Pencil } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 function FoodTracking() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [greeting, setGreeting] = useState('');
-  const [timeAnimation, setTimeAnimation] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const [meals, setMeals] = useState({
-    breakfast: { description: '', photo: null },
-    lunch: { description: '', photo: null },
-    dinner: { description: '', photo: null },
-  });
-
-  const fetchUserProfile = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    setUser(user);
-
-    const { data: profileData } = await supabase
-      .from('user_profile')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    setProfile(profileData || null);
-
-    const hour = new Date().getHours();
-    let greetingText = '';
-    let iconPath = '';
-    if (hour < 12) {
-      greetingText = 'Good morning';
-      iconPath = '/icons/morning.json';
-    } else if (hour < 18) {
-      greetingText = 'Good afternoon';
-      iconPath = '/icons/afternoon.json';
-    } else {
-      greetingText = 'Good evening';
-      iconPath = '/icons/evening.json';
-    }
-    setGreeting(greetingText);
-
-    try {
-      const res = await fetch(iconPath);
-      const anim = await res.json();
-      setTimeAnimation(anim);
-    } catch {
-      setTimeAnimation(null);
-    }
-
-    setLoading(false);
-  };
+  const [manualEntry, setManualEntry] = useState('');
+  const [cameraPhoto, setCameraPhoto] = useState(null);
+  const [barcode, setBarcode] = useState('');
 
   useEffect(() => {
-    fetchUserProfile();
+    const fetchProfile = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+      setUser(user);
+
+      const { data: profileData } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      setProfile(profileData);
+    };
+
+    fetchProfile();
   }, []);
 
-  const handleFileChange = (e, meal) => {
+  const handleCameraUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setMeals((prev) => ({
-        ...prev,
-        [meal]: {
-          ...prev[meal],
-          photo: URL.createObjectURL(file),
-        },
-      }));
-    }
+    if (file) setCameraPhoto(URL.createObjectURL(file));
   };
 
-  const handleDescriptionChange = (e, meal) => {
-    setMeals((prev) => ({
-      ...prev,
-      [meal]: {
-        ...prev[meal],
-        description: e.target.value,
-      },
-    }));
+  const handleSave = () => {
+    alert('🔒 Save functionality coming soon:\n' +
+      `Barcode: ${barcode}\n` +
+      `Manual Text: ${manualEntry}\n` +
+      `Photo: ${cameraPhoto ? 'Yes' : 'No'}`);
   };
 
-  if (loading) return <p>Loading...</p>;
   if (!user) return <p>You must be logged in to view this page.</p>;
 
   return (
     <div className="dashboard">
+      {/* Top Bar */}
       <div
         style={{
           position: 'fixed',
@@ -133,26 +85,9 @@ function FoodTracking() {
 
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} profile={profile} />
 
-      <div style={{ height: 20 }} />
+      <div style={{ height: 64 }} />
 
-      <div style={{ position: 'relative', textAlign: 'center', marginTop: 30 }}>
-        <h3 style={{ display: 'inline-block', fontWeight: 600, margin: 0, position: 'relative' }}>
-          {greeting}, {profile?.user_name || 'there'}
-          <span
-            style={{
-              position: 'absolute',
-              left: '-72px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: 64,
-              height: 64,
-            }}
-          >
-            <Lottie animationData={timeAnimation} loop autoplay />
-          </span>
-        </h3>
-      </div>
-
+      {/* Main Card */}
       <div
         style={{
           backgroundColor: '#fff',
@@ -165,44 +100,72 @@ function FoodTracking() {
           fontFamily: 'Arial, sans-serif',
         }}
       >
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1.5rem', color: '#1F2937' }}>
-          Today's Meals (Upload & Describe)
-        </h3>
+        <h2 style={{ fontSize: 22, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
+          🍽️ Food Tracker
+        </h2>
 
-        {['breakfast', 'lunch', 'dinner'].map((meal) => (
-          <div key={meal} style={{ marginBottom: '1.5rem' }}>
-            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 8 }}>
-              {meal.charAt(0).toUpperCase() + meal.slice(1)}
-            </label>
+        {/* Barcode Entry */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <ScanBarcode size={18} /> Enter Barcode
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. 5059604645433"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid #ccc',
+            }}
+          />
+        </div>
 
-            {meals[meal].photo ? (
-              <img
-                src={meals[meal].photo}
-                alt={`${meal}`}
-                style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }}
-              />
-            ) : (
-              <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, meal)} />
-            )}
-
-            <textarea
-              placeholder="Describe your meal..."
-              value={meals[meal].description}
-              onChange={(e) => handleDescriptionChange(e, meal)}
-              style={{
-                width: '100%',
-                padding: 8,
-                borderRadius: 8,
-                border: '1px solid #ccc',
-                marginTop: 8,
-              }}
-              rows={2}
+        {/* Camera Upload */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <Camera size={18} /> Upload Meal Photo
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleCameraUpload}
+          />
+          {cameraPhoto && (
+            <img
+              src={cameraPhoto}
+              alt="meal"
+              style={{ width: '100%', marginTop: 10, borderRadius: 8, objectFit: 'cover' }}
             />
-          </div>
-        ))}
+          )}
+        </div>
 
+        {/* Manual Entry */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <Pencil size={18} /> Describe Manually
+          </label>
+          <textarea
+            rows={3}
+            placeholder="e.g. Chicken salad with olive oil, avocado and sweet potato"
+            value={manualEntry}
+            onChange={(e) => setManualEntry(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid #ccc',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+
+        {/* Save Button */}
         <button
-          onClick={() => alert('🔒 Saving logic coming soon')}
+          onClick={handleSave}
           style={{
             backgroundColor: '#3ab3a1',
             color: 'white',
@@ -215,7 +178,7 @@ function FoodTracking() {
             width: '100%',
           }}
         >
-          Save Meals
+          Save Entry
         </button>
       </div>
     </div>
