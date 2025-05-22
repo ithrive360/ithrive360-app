@@ -142,7 +142,7 @@ html, body, #root {
   }
 }
 
-/* ✅ Disable text selection inside dashboard except for inputs/textareas */
+/* ✅ Disable text selection inside dashboard except for inputs/textareas 
 .dashboard {
   user-select: none;
 }
@@ -152,7 +152,9 @@ html, body, #root {
   user-select: text;
 }
 
-/* ✅ Prevent all button text selection everywhere 
+*/
+
+/* ✅ Prevent all button text selection everywhere */
 button,
 .btn,
 a.btn,
@@ -163,8 +165,6 @@ a.btn,
   position: fixed;
   z-index: 1000;
 }
-
-*/
 
 .dashboard {
   position: relative; /* This enables z-index control */
