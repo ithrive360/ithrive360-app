@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, ScanBarcode, Camera, Pencil } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera } from 'lucide-react';
 import logo from '../assets/logo.png';
+import { launchBarcodeScanner } from '../utils/barcodeScanner';
+import { launchPhotoRecognizer } from '../utils/photoRecognizer';
 
 function FoodTracking() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [manualEntry, setManualEntry] = useState('');
-  const [cameraPhoto, setCameraPhoto] = useState(null);
-  const [barcode, setBarcode] = useState('');
+  const [scannedBarcode, setScannedBarcode] = useState('');
+  const [recognizedMeal, setRecognizedMeal] = useState('');
+  const [mealPhotoUrl, setMealPhotoUrl] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -31,16 +33,21 @@ function FoodTracking() {
     fetchProfile();
   }, []);
 
-  const handleCameraUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) setCameraPhoto(URL.createObjectURL(file));
+  const handleBarcodeScan = async () => {
+    const result = await launchBarcodeScanner();
+    if (result?.code) setScannedBarcode(result.code);
+  };
+
+  const handleMealPhoto = async () => {
+    const result = await launchPhotoRecognizer();
+    if (result?.label) setRecognizedMeal(result.label);
+    if (result?.imageUrl) setMealPhotoUrl(result.imageUrl);
   };
 
   const handleSave = () => {
-    alert('🔒 Save functionality coming soon:\n' +
-      `Barcode: ${barcode}\n` +
-      `Manual Text: ${manualEntry}\n` +
-      `Photo: ${cameraPhoto ? 'Yes' : 'No'}`);
+    alert('🔒 Save logic not implemented\n' +
+      `Barcode: ${scannedBarcode || '[none]'}\n` +
+      `Meal: ${recognizedMeal || '[none]'}`);
   };
 
   if (!user) return <p>You must be logged in to view this page.</p>;
@@ -104,66 +111,67 @@ function FoodTracking() {
           🍽️ Food Tracker
         </h2>
 
-        {/* Barcode Entry */}
+        {/* Barcode Scan */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <ScanBarcode size={18} /> Enter Barcode
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. 5059604645433"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
+          <button
+            onClick={handleBarcodeScan}
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: '#f3f4f6',
+              padding: 12,
+              borderRadius: 10,
               width: '100%',
-              padding: 10,
-              borderRadius: 8,
-              border: '1px solid #ccc',
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              border: '1px solid #ddd',
             }}
-          />
+          >
+            <ScanBarcode size={20} /> Scan Food Barcode
+          </button>
+          {scannedBarcode && (
+            <div style={{ marginTop: 8, fontSize: 14, color: '#111827' }}>
+              Scanned: <strong>{scannedBarcode}</strong>
+            </div>
+          )}
         </div>
 
-        {/* Camera Upload */}
+        {/* Meal Photo Recognition */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <Camera size={18} /> Upload Meal Photo
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleCameraUpload}
-          />
-          {cameraPhoto && (
+          <button
+            onClick={handleMealPhoto}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: '#f3f4f6',
+              padding: 12,
+              borderRadius: 10,
+              width: '100%',
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              border: '1px solid #ddd',
+            }}
+          >
+            <Camera size={20} /> Take Meal Photo
+          </button>
+          {mealPhotoUrl && (
             <img
-              src={cameraPhoto}
+              src={mealPhotoUrl}
               alt="meal"
               style={{ width: '100%', marginTop: 10, borderRadius: 8, objectFit: 'cover' }}
             />
           )}
+          {recognizedMeal && (
+            <div style={{ marginTop: 8, fontSize: 14, color: '#111827' }}>
+              Detected: <strong>{recognizedMeal}</strong>
+            </div>
+          )}
         </div>
 
-        {/* Manual Entry */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <Pencil size={18} /> Describe Manually
-          </label>
-          <textarea
-            rows={3}
-            placeholder="e.g. Chicken salad with olive oil, avocado and sweet potato"
-            value={manualEntry}
-            onChange={(e) => setManualEntry(e.target.value)}
-            style={{
-              width: '100%',
-              padding: 10,
-              borderRadius: 8,
-              border: '1px solid #ccc',
-              resize: 'vertical'
-            }}
-          />
-        </div>
-
-        {/* Save Button */}
         <button
           onClick={handleSave}
           style={{
