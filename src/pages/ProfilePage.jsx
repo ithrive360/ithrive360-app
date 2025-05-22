@@ -4,6 +4,58 @@ import { Menu, X, Pencil } from 'lucide-react';
 import SidebarMenu from './SidebarMenu';
 import logo from '../assets/logo.png';
 
+import {
+  CircularProgressbar,
+  buildStyles
+} from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+
+const CompletionRings = ({ corePct, lifestylePct, activityPct, supplementPct }) => {
+  const rings = [
+    { pct: corePct, color: '#3ab3a1', size: 120 },
+    { pct: lifestylePct, color: '#6ee7b7', size: 100 },
+    { pct: activityPct, color: '#99f6e4', size: 80 },
+    { pct: supplementPct, color: '#d1fae5', size: 60 },
+  ];
+
+  return (
+    <div style={{ position: 'relative', width: 130, height: 130, margin: '0 auto' }}>
+      {rings.map((r, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            top: (130 - r.size) / 2,
+            left: (130 - r.size) / 2,
+            width: r.size,
+            height: r.size,
+          }}
+        >
+          <CircularProgressbar
+            value={r.pct}
+            strokeWidth={8}
+            styles={buildStyles({
+              pathColor: r.color,
+              trailColor: '#f3f4f6',
+              strokeLinecap: 'round'
+            })}
+          />
+        </div>
+      ))}
+      <div style={{
+        position: 'absolute',
+        bottom: -24,
+        width: '100%',
+        fontSize: 12,
+        color: '#4B5563',
+        textAlign: 'center'
+      }}>
+        🧬 🧠 🏋️ 💊
+      </div>
+    </div>
+  );
+};
+
 const avatarFiles = [
   'arab_496405.png',
   'chinese_3011302.png',
@@ -14,8 +66,8 @@ const avatarFiles = [
   'ninja_6740968.png',
   'old-woman_9308303.png',
   'rapper_1864437.png',
-  'sloth_3309246.png',
-  'spanish_496424.png',
+  'sloth_3309426.png',
+  'spanish_4964248.png',
   'programmer_1413300.png'
 ];
 
@@ -23,14 +75,15 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingUserName, setIsEditingUserName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [editedUserName, setEditedUserName] = useState('');
-
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [charProgress, setCharProgress] = useState({
+    core: 0, lifestyle: 0, activity: 0, supplement: 0
+  });
 
   useEffect(() => {
     const getSessionAndProfile = async () => {
@@ -54,9 +107,32 @@ export default function ProfilePage() {
     getSessionAndProfile();
   }, []);
 
+  useEffect(() => {
+    const loadCharacteristics = async () => {
+      const { data, error } = await supabase
+        .from('user_characteristics')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !data) return;
+
+      const countFilled = (keys) =>
+        keys.filter((k) => data[k] !== null && data[k] !== '').length / keys.length * 100;
+
+      setCharProgress({
+        core: countFilled(['biological_sex', 'birthdate', 'ethnicity']),
+        lifestyle: countFilled(['diet_pattern', 'sleep_duration', 'alcohol_intake', 'smoking_status', 'caffeine_usage']),
+        activity: countFilled(['exercise_frequency', 'training_type', 'goal']),
+        supplement: countFilled(['current_supplements', 'prescription_medications']),
+      });
+    };
+
+    if (user?.id) loadCharacteristics();
+  }, [user]);
+
   const handleSave = async (field) => {
     const updates = {};
-
     if (field === 'name') {
       updates.full_name = editedName;
       setIsEditingName(false);
@@ -84,13 +160,12 @@ export default function ProfilePage() {
       .eq('user_id', user.id);
 
     if (!error) {
-      const { data: refreshedProfile } = await supabase
+      const { data: refreshed } = await supabase
         .from('user_profile')
         .select('full_name, user_name, avatar_url')
         .eq('user_id', user.id)
         .single();
-
-      setProfile(refreshedProfile || {});
+      setProfile(refreshed || {});
       setAvatarUrl(url);
       setShowAvatarPicker(false);
     } else {
@@ -98,9 +173,7 @@ export default function ProfilePage() {
     }
   };
 
-
   const firstInitial = profile?.full_name?.trim()?.[0]?.toUpperCase() || '?';
-
   if (!user) return <p>Please log in to view your profile.</p>;
 
   return (
@@ -121,7 +194,6 @@ export default function ProfilePage() {
         <img src={logo} alt="iThrive360 Logo" style={{ height: 32 }} />
       </div>
 
-      {/* Sidebar */}
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -132,95 +204,96 @@ export default function ProfilePage() {
         profile={profile}
       />
 
-      {/* Main Content */}
-      <div style={{ marginTop: 80 }}>
-        {/* Avatar */}
-        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="avatar"
-              style={{
-                width: 96, height: 96, borderRadius: '50%',
-                objectFit: 'cover', border: '2px solid #E5E7EB'
-              }}
+      {/* Avatar */}
+      <div style={{ marginTop: 80, position: 'relative', display: 'flex', justifyContent: 'center' }}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="avatar" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '2px solid #E5E7EB' }} />
+        ) : (
+          <div style={{ width: 96, height: 96, borderRadius: '50%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: '#374151', fontWeight: 600 }}>
+            {firstInitial}
+          </div>
+        )}
+        <button onClick={() => setShowAvatarPicker(true)} style={{
+          position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
+          backgroundColor: '#3ab3a1', border: 'none', color: 'white',
+          borderRadius: 9999, padding: '4px 8px', fontSize: 12, cursor: 'pointer'
+        }}>
+          Edit
+        </button>
+      </div>
+
+      {/* Name & Username */}
+      <div style={{ marginTop: 32 }}>
+        {/* Full Name */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
+            {isEditingName ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => handleSave('name')} style={{ fontSize: 12 }}>Save</button>
+                <button onClick={() => { setIsEditingName(false); setEditedName(profile.full_name); }} style={{ fontSize: 12 }}>Cancel</button>
+              </div>
+            ) : (
+              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingName(true)} />
+            )}
+          </div>
+          {isEditingName ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
             />
           ) : (
-            <div style={{
-              width: 96, height: 96, borderRadius: '50%',
-              backgroundColor: '#e5e7eb', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              fontSize: 32, color: '#374151', fontWeight: 600
-            }}>
-              {firstInitial}
-            </div>
+            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.full_name || 'Not set'}</div>
           )}
-          <button onClick={() => setShowAvatarPicker(true)} style={{
-            position: 'absolute', bottom: -8, left: '50%',
-            transform: 'translateX(-50%)', backgroundColor: '#3ab3a1',
-            border: 'none', color: 'white', borderRadius: 9999,
-            padding: '4px 8px', fontSize: 12, cursor: 'pointer'
-          }}>
-            Edit
-          </button>
         </div>
 
-        {/* Name & Username */}
-        <div style={{ marginTop: 32 }}>
-          {/* Full Name */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 16, color: '#6B7280' }}>Full Name:</strong>
-              {isEditingName ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => handleSave('name')} style={{ fontSize: 12 }}>Save</button>
-                  <button onClick={() => { setIsEditingName(false); setEditedName(profile.full_name); }} style={{ fontSize: 12 }}>Cancel</button>
-                </div>
-              ) : (
-                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingName(true)} />
-              )}
-            </div>
-            {isEditingName ? (
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
-              />
-            ) : (
-              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>
-                {profile?.full_name || 'Not set'}
-              </div>
-            )}
-          </div>
-
-          {/* User Name */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong style={{ fontSize: 16, color: '#6B7280' }}>User Name:</strong>
-              {isEditingUserName ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => handleSave('user_name')} style={{ fontSize: 12 }}>Save</button>
-                  <button onClick={() => { setIsEditingUserName(false); setEditedUserName(profile.user_name || firstInitial); }} style={{ fontSize: 12 }}>Cancel</button>
-                </div>
-              ) : (
-                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingUserName(true)} />
-              )}
-            </div>
+        {/* User Name */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 16, color: '#6B7280' }}>User Name:</strong>
             {isEditingUserName ? (
-              <input
-                type="text"
-                value={editedUserName}
-                onChange={(e) => setEditedUserName(e.target.value)}
-                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
-              />
-            ) : (
-              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>
-                {profile?.user_name || firstInitial}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => handleSave('user_name')} style={{ fontSize: 12 }}>Save</button>
+                <button onClick={() => { setIsEditingUserName(false); setEditedUserName(profile.user_name || firstInitial); }} style={{ fontSize: 12 }}>Cancel</button>
               </div>
+            ) : (
+              <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingUserName(true)} />
             )}
           </div>
+          {isEditingUserName ? (
+            <input
+              type="text"
+              value={editedUserName}
+              onChange={(e) => setEditedUserName(e.target.value)}
+              style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
+            />
+          ) : (
+            <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>{profile?.user_name || firstInitial}</div>
+          )}
         </div>
+      </div>
+
+      {/* Profile Completion Card */}
+      <div style={{
+        marginTop: 32,
+        backgroundColor: '#ffffff',
+        padding: 20,
+        border: '1px solid #E5E7EB',
+        borderRadius: 12,
+        textAlign: 'center',
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)'
+      }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1F2937', marginBottom: 12 }}>
+          Profile Completion
+        </h3>
+        <CompletionRings
+          corePct={charProgress.core}
+          lifestylePct={charProgress.lifestyle}
+          activityPct={charProgress.activity}
+          supplementPct={charProgress.supplement}
+        />
       </div>
 
       {/* Avatar Picker Modal */}
@@ -259,7 +332,7 @@ export default function ProfilePage() {
             <button onClick={() => setShowAvatarPicker(false)} style={{
               backgroundColor: '#3ab3a1', color: '#ffffff',
               border: 'none', padding: '8px 14px',
-              borderRadius: 6, cursor: 'pointer', fontWeight: 500, 
+              borderRadius: 6, cursor: 'pointer', fontWeight: 500
             }}>
               Cancel
             </button>
