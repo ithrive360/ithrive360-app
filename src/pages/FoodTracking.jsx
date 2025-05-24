@@ -30,8 +30,6 @@ function FoodTracking() {
       const { data: sessionData } = await supabase.auth.getSession();
       const userSession = sessionData?.session?.user;
       if (!userSession) {
-        // Redirect to login or show message if not logged in
-        // For now, just return to prevent further execution
         return;
       }
       setUser(userSession);
@@ -41,19 +39,80 @@ function FoodTracking() {
         .select('*')
         .eq('user_id', userSession.id)
         .single();
-
       setProfile(profileData);
     };
-
     fetchProfile();
+  }, []);
 
-    // Cleanup camera on component unmount
+  // Effect for handling camera start/stop when isCameraOpen changes
+  useEffect(() => {
+    let currentStream = null; // To hold the stream for cleanup
+
+    const manageCameraStream = async () => {
+      if (isCameraOpen) {
+        if (!user) {
+          setFeedback("You must be logged in to use the camera.");
+          setIsCameraOpen(false); // Close modal if user somehow gets here without being logged in
+          return;
+        }
+        setLoadingPhoto(true); // Show loading indicator while camera starts
+        setFeedback('Starting camera...');
+        try {
+          // Ensure videoRef.current is available
+          if (videoRef.current) {
+            currentStream = await startCamera(videoRef.current);
+            if (currentStream) {
+              setStream(currentStream);
+              setFeedback('Camera started.');
+            } else {
+              setFeedback('Failed to start camera. Check permissions or device.');
+              setIsCameraOpen(false); // Close modal if camera failed
+            }
+          } else {
+             setFeedback('Camera view not ready. Please try again.');
+             setIsCameraOpen(false);
+          }
+        } catch (error) {
+          console.error("Error opening camera:", error);
+          setFeedback('Error opening camera.');
+          setIsCameraOpen(false);
+        } finally {
+          setLoadingPhoto(false);
+        }
+      } else {
+        // isCameraOpen is false, so stop the stream if it exists
+        if (stream) {
+          stopCamera(stream, videoRef.current);
+          setStream(null);
+          setFeedback('Camera closed.');
+        }
+      }
+    };
+
+    manageCameraStream();
+
+    // Cleanup function for this effect
+    return () => {
+      if (currentStream) { // If a stream was started in this effect's lifecycle
+        stopCamera(currentStream, videoRef.current);
+      }
+      // Also ensure global stream state is cleaned up if component unmounts while modal is open
+      if (stream && isCameraOpen) { 
+          stopCamera(stream, videoRef.current);
+          setStream(null);
+      }
+    };
+  }, [isCameraOpen, user]); // Rerun when isCameraOpen or user changes
+
+  // General cleanup for component unmount (safety net)
+  useEffect(() => {
     return () => {
       if (stream) {
         stopCamera(stream, videoRef.current);
       }
     };
-  }, [stream]); // Add stream to dependency array for cleanup
+  }, [stream]);
+
 
   const handleBarcodeScan = async () => {
     setLoadingBarcode(true);
@@ -85,54 +144,39 @@ function FoodTracking() {
     }
   };
 
-  const handleOpenCamera = async () => {
+  const handleOpenCamera = () => {
     if (!user) {
-        setFeedback("You must be logged in to use the camera.");
-        return;
+      setFeedback("You must be logged in to use the camera.");
+      return;
     }
-    setLoadingPhoto(true);
-    setFeedback('');
+    setFeedback(''); // Clear any previous feedback
     setCapturedImage(null); // Clear previous image
-
-    try {
-      const currentStream = await startCamera(videoRef.current);
-      if (currentStream) {
-        setStream(currentStream);
-        setIsCameraOpen(true);
-      } else {
-        setFeedback('Failed to start camera. Check permissions or device.');
-      }
-    } catch (error) {
-      console.error("Error opening camera:", error);
-      setFeedback('Error opening camera.');
-    } finally {
-      setLoadingPhoto(false);
-    }
+    setIsCameraOpen(true); // This will trigger the useEffect to start the camera
   };
 
   const handleTakePhoto = () => {
     if (!user) {
-        setFeedback("You must be logged in to take a photo.");
-        return;
+      setFeedback("You must be logged in to take a photo.");
+      return;
+    }
+    if (!videoRef.current) {
+      setFeedback("Camera is not ready.");
+      return;
     }
     const imageDataUrl = capturePhoto(videoRef.current);
     if (imageDataUrl) {
       setCapturedImage(imageDataUrl);
       setFeedback('Photo captured! Review and log it.');
-      // Keep camera open as per requirement
+      setIsCameraOpen(false); // Close modal after taking photo
     } else {
       setFeedback('Failed to capture photo.');
+      // Optionally close modal or allow retry
+      // setIsCameraOpen(false); 
     }
   };
 
   const handleCloseCamera = () => {
-    if (stream) {
-      stopCamera(stream, videoRef.current);
-    }
-    setIsCameraOpen(false);
-    setStream(null);
-    // setCapturedImage(null); // Decide if you want to clear image on close
-    setFeedback('Camera closed.');
+    setIsCameraOpen(false); // This will trigger the useEffect to stop the camera
   };
   
   const handleLogPhoto = async () => {
@@ -267,6 +311,7 @@ function FoodTracking() {
         <div style={{ marginBottom: '1.5rem', border: '1px solid #eee', padding: '1rem', borderRadius: 10 }}>
           <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: '1rem' }}>Meal Photo</h3>
           
+          {/* This button remains to open the modal */}
           {!isCameraOpen && (
             <button
               onClick={handleOpenCamera}
@@ -282,41 +327,8 @@ function FoodTracking() {
             </button>
           )}
 
-          {isCameraOpen && (
-            <div style={{ marginBottom: '1rem' }}>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                style={{ width: '100%', maxHeight: '300px', borderRadius: 8, border: '1px solid #ddd', marginBottom: '1rem' }}
-              />
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <button
-                  onClick={handleTakePhoto}
-                  style={{
-                    flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    backgroundColor: '#22c55e', color: 'white', padding: 10, borderRadius: 8,
-                    fontWeight: 500, fontSize: 15, border: 'none', cursor: 'pointer'
-                  }}
-                >
-                  <Camera size={18} /> Take Photo
-                </button>
-                <button
-                  onClick={handleCloseCamera}
-                  style={{
-                    flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    backgroundColor: '#ef4444', color: 'white', padding: 10, borderRadius: 8,
-                    fontWeight: 500, fontSize: 15, border: 'none', cursor: 'pointer'
-                  }}
-                >
-                  <X size={18} /> Exit Camera
-                </button>
-              </div>
-            </div>
-          )}
-
-          {capturedImage && (
+          {/* Captured image display remains in the card, not in the modal */}
+          {capturedImage && !isCameraOpen && ( // Only show if camera is closed and image exists
             <div style={{ marginTop: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
               <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: '0.5rem' }}>Captured Image:</h4>
               <img src={capturedImage} alt="Captured meal" style={{ width: '100%', borderRadius: 8, border: '1px solid #ddd', marginBottom: '1rem' }} />
@@ -343,6 +355,46 @@ function FoodTracking() {
           </div>
         )}
       </div>
+
+      {/* Full-screen Camera Modal */}
+      {isCameraOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4" 
+        >
+          {/* Close Button (Top Right) */}
+          <button 
+            onClick={handleCloseCamera} 
+            className="absolute top-5 right-5 text-white p-2 rounded-full bg-black/50 hover:bg-white/20 focus:outline-none transition-colors z-10"
+            aria-label="Close camera"
+          >
+            <X size={32} /> {/* Using Lucide X icon */}
+          </button>
+
+          {/* Video Feed */}
+          <div className="relative w-full h-full flex items-center justify-center">
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              muted 
+              className="w-auto h-auto max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {/* Take Photo Button (Bottom Center Shutter Style) */}
+          {/* This outer div is for positioning the shutter button */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex justify-center items-center">
+            <button 
+              onClick={handleTakePhoto} 
+              className="w-20 h-20 bg-white rounded-full p-1 shadow-lg focus:outline-none ring-4 ring-white/50 ring-offset-2 ring-offset-black/30 hover:bg-gray-200 transition-all duration-200 ease-in-out flex items-center justify-center"
+              aria-label="Take photo"
+            >
+              {/* Inner circle for shutter button appearance */}
+              <div className="w-16 h-16 bg-white rounded-full border-2 border-gray-400 group-hover:border-gray-500 transition-all"></div>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
