@@ -214,22 +214,7 @@ export default function CardiovascularInsightsPage() {
     return icons[title] || null;
   };
 
-  const toggleSection = (section) => {
-    setExpandedSection(expandedSection === section ? '' : section);
-  };
-
-  const toggleBloodGroup = (cat) => {
-    setBloodGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const toggleDnaGroup = (cat) => {
-    setDnaGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  if (loading) return <p>Loading insights...</p>;
-  if (!data) return <p>No insights found for selected health area.</p>;
-
-  //HORIZONTAL SCROLLER
+    //HORIZONTAL SCROLLER
 
     const scrollRef = useRef(null);
 
@@ -257,6 +242,21 @@ export default function CardiovascularInsightsPage() {
     };
 
     //END OF HORIZONTAL SCROLLER
+
+  const toggleSection = (section) => {
+    setExpandedSection(expandedSection === section ? '' : section);
+  };
+
+  const toggleBloodGroup = (cat) => {
+    setBloodGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const toggleDnaGroup = (cat) => {
+    setDnaGroupOpen(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  if (loading) return <p>Loading insights...</p>;
+  if (!data) return <p>No insights found for selected health area.</p>;
 
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
