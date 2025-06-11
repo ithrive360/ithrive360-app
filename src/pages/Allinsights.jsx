@@ -162,29 +162,6 @@ export default function CardiovascularInsightsPage() {
     }
   }, [selectedHA, preloadedInsights]);
 
-  // Infinite scroll effect
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || !container.children.length) return;
-
-    const totalChildren = container.children.length;
-    const itemWidth = container.children[0].offsetWidth;
-    const midpoint = (totalChildren / 3) * itemWidth;
-
-    const handleLoop = () => {
-      const scrollLeft = container.scrollLeft;
-
-      if (scrollLeft < midpoint / 2) {
-        container.scrollLeft += midpoint;
-      } else if (scrollLeft > midpoint * 1.5) {
-        container.scrollLeft -= midpoint;
-      }
-    };
-
-    container.addEventListener('scroll', handleLoop);
-    return () => container.removeEventListener('scroll', handleLoop);
-  }, []);
-
   const IconForArea = ({ id }) => {
     const Icon = healthIcons[id] || Heart;
     return <Icon size={24} />;
@@ -360,12 +337,12 @@ export default function CardiovascularInsightsPage() {
         }}
         className="scroll-strip"
       >
-        {[...healthAreas, ...healthAreas, ...healthAreas].map((area, i) => {
+        {healthAreas.map(area => {
           const Icon = healthIcons[area.health_area_id] || Heart;
           const isActive = selectedHA === area.health_area_id;
           return (
             <div
-              key={`${i}-${area.health_area_id}`}
+              key={area.health_area_id}
               data-id={area.health_area_id}
               onClick={() => setSelectedHA(area.health_area_id)}
               style={{
