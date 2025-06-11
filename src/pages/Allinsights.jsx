@@ -9,6 +9,7 @@ import {
 import logo from '../assets/logo.png';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X } from 'lucide-react';
+import { useRef } from 'react'; //HORIZONTAL SCROLLER
 
 const healthIcons = {
   HA001: Apple,
@@ -228,6 +229,35 @@ export default function CardiovascularInsightsPage() {
   if (loading) return <p>Loading insights...</p>;
   if (!data) return <p>No insights found for selected health area.</p>;
 
+  //HORIZONTAL SCROLLER
+
+    const scrollRef = useRef(null);
+
+    const handleScroll = () => {
+      if (!scrollRef.current) return;
+      const children = Array.from(scrollRef.current.children);
+      const center = scrollRef.current.offsetWidth / 2;
+
+      let closest = null;
+      let closestDist = Infinity;
+
+      children.forEach((child) => {
+        const box = child.getBoundingClientRect();
+        const dist = Math.abs(box.left + box.width / 2 - center);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = child;
+        }
+      });
+
+      if (closest) {
+        const id = closest.getAttribute('data-id');
+        if (id && id !== selectedHA) setSelectedHA(id);
+      }
+    };
+
+    //END OF HORIZONTAL SCROLLER
+
   return (
     <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", padding: '32px 24px', maxWidth: '1100px', margin: '0 auto', backgroundColor: 'white' }}>
       <div
@@ -277,6 +307,55 @@ export default function CardiovascularInsightsPage() {
           profile={profile}
         />
       )}
+
+      {/* HORIZONTAL SCROLLER */}
+
+      <div style={{ position: 'relative', margin: '32px 0 24px' }}>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        style={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          gap: 16,
+          padding: '8px 12px',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)'
+        }}
+        className="scroll-strip"
+      >
+        {healthAreas.map(area => {
+          const Icon = healthIcons[area.health_area_id] || Heart;
+          const isActive = selectedHA === area.health_area_id;
+          return (
+            <div
+              key={area.health_area_id}
+              data-id={area.health_area_id}
+              onClick={() => setSelectedHA(area.health_area_id)}
+              style={{
+                flex: '0 0 auto',
+                scrollSnapAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '6px 8px',
+                transition: 'transform 0.2s',
+                transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                color: isActive ? '#3ab3a1' : '#9CA3AF',
+                borderBottom: isActive ? '3px solid #3ab3a1' : '3px solid transparent'
+              }}
+            >
+              <Icon size={24} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+      {/* END OF HORIZONTAL SCROLLER */}
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
