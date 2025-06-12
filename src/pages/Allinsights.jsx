@@ -320,56 +320,60 @@ export default function CardiovascularInsightsPage() {
 
       {/* HORIZONTAL SCROLLER */}
 
-      <div style={{ position: 'relative', margin: '32px 0 24px' }}>
       <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        style={{
-          display: 'flex',
-          overflowX: 'auto',
-          scrollSnapType: 'x mandatory',
-          gap: 16,
-          padding: '8px 12px',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)'
-        }}
-        className="scroll-strip"
-      >
-        {healthAreas.map(area => {
-          const Icon = healthIcons[area.health_area_id] || Heart;
-          const isActive = selectedHA === area.health_area_id;
-          return (
-            <div
-              key={area.health_area_id}
-              data-id={area.health_area_id}
-              onClick={() => setSelectedHA(area.health_area_id)}
-              style={{
-                flex: '0 0 auto',
-                scrollSnapAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '6px 8px',
-                transition: 'transform 0.2s',
-                transform: isActive ? 'scale(1.2)' : 'scale(1)',
-                color: isActive ? '#3ab3a1' : '#9CA3AF',
-                borderBottom: isActive ? '3px solid #3ab3a1' : '3px solid transparent'
-              }}
-            >
-              <>
-                <Icon size={24} />
-                <div style={{ fontSize: 12, marginTop: 4 }}>
-                  {area.health_area_name.split('&')[0].split(' ')[0]}
-                </div>
-              </>
+          ref={scrollRef}
+          onScroll={handleScroll}
+          style={{
+            display: 'flex',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            gap: 16,
+            padding: '8px 12px',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)'
+          }}
+          className="scroll-strip"
+        >
+          {/* LEFT SPACER */}
+          <div style={{ flex: '0 0 auto', width: 'calc(50vw - 40px)' }} />
 
-            </div>
-          );
-        })}
-      </div>
-    </div>
+          {healthAreas.map(area => {
+            const Icon = healthIcons[area.health_area_id] || Heart;
+            const isActive = selectedHA === area.health_area_id;
+            return (
+              <div
+                key={area.health_area_id}
+                data-id={area.health_area_id}
+                onClick={() => setSelectedHA(area.health_area_id)}
+                style={{
+                  flex: '0 0 auto',
+                  scrollSnapAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 8px',
+                  transition: 'transform 0.2s',
+                  transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                  color: isActive ? '#3ab3a1' : '#9CA3AF',
+                  borderBottom: isActive ? '3px solid #3ab3a1' : '3px solid transparent'
+                }}
+              >
+                <>
+                  <Icon size={24} />
+                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                    {area.health_area_name.split('&')[0].split(' ')[0]}
+                  </div>
+                </>
+              </div>
+            );
+          })}
+
+          {/* RIGHT SPACER */}
+          <div style={{ flex: '0 0 auto', width: 'calc(50vw - 40px)' }} />
+        </div>
+
 
       {/* END OF HORIZONTAL SCROLLER */}
 
