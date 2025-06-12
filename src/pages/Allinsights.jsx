@@ -320,6 +320,7 @@ export default function CardiovascularInsightsPage() {
 
       {/* HORIZONTAL SCROLLER */}
 
+      <div style={{ marginBottom: 32 }}>
       <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -384,7 +385,7 @@ export default function CardiovascularInsightsPage() {
           {/* RIGHT SPACER */}
           <div style={{ flex: '0 0 auto', width: 'calc(50vw - 40px)' }} />
         </div>
-
+        </div>
 
       {/* END OF HORIZONTAL SCROLLER */}
 
