@@ -346,7 +346,18 @@ export default function CardiovascularInsightsPage() {
               <div
                 key={area.health_area_id}
                 data-id={area.health_area_id}
-                onClick={() => setSelectedHA(area.health_area_id)}
+                onClick={(e) => {
+                  setSelectedHA(area.health_area_id);
+
+                  const container = scrollRef.current;
+                  const item = e.currentTarget;
+
+                  if (container && item) {
+                    const scrollPos = item.offsetLeft - container.offsetWidth / 2 + item.offsetWidth / 2;
+                    container.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                  }
+                }}
+                
                 style={{
                   flex: '0 0 auto',
                   scrollSnapAlign: 'center',
