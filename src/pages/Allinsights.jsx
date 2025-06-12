@@ -388,6 +388,8 @@ export default function CardiovascularInsightsPage() {
 
       {/* END OF HORIZONTAL SCROLLER */}
 
+
+      {/* DELETE - OLD GRID SELECTOR - KEPT FOR TEMPORARY REFERENCE
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px',
         margin: '12px auto 28px', maxWidth: 320
@@ -408,6 +410,7 @@ export default function CardiovascularInsightsPage() {
           );
         })}
       </div>
+      */}
 
       <div style={{ marginBottom: 12, textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 6 }}>
