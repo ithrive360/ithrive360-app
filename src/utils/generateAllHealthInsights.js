@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import { generateHealthInsight } from './generateHealthInsight';
 
 export async function generateAllHealthInsights(user_id) {

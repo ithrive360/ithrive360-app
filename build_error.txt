@@ -1,0 +1,31 @@
+
+> ithrive360-app@0.0.0 build
+> vite build
+
+[36mvite v6.3.5 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 48 modules transformed.
+[31m✗[39m Build failed in 421ms
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+D:/Downloads/Business Opportunities/AI/Anti-gravity/ithrive360/ithrive360-app/src/features/insights/components/ScoreCardsDashboard.jsx:86:22: ERROR: Unterminated regular expression[31m
+file: [36mD:/Downloads/Business Opportunities/AI/Anti-gravity/ithrive360/ithrive360-app/src/features/insights/components/ScoreCardsDashboard.jsx:86:22[31m
+[33m
+[33mUnterminated regular expression[33m
+84 |                          )}
+85 |                      </div>
+86 |                  </div>
+   |                        ^
+87 |              ))}
+88 |          </div>
+[31m
+    at failureErrorWithLog (D:\Downloads\Business Opportunities\AI\Anti-gravity\ithrive360\ithrive360-app\node_modules\esbuild\lib\main.js:1463:15)
+    at D:\Downloads\Business Opportunities\AI\Anti-gravity\ithrive360\ithrive360-app\node_modules\esbuild\lib\main.js:734:50
+    at responseCallbacks.<computed> (D:\Downloads\Business Opportunities\AI\Anti-gravity\ithrive360\ithrive360-app\node_modules\esbuild\lib\main.js:601:9)
+    at handleIncomingPacket (D:\Downloads\Business Opportunities\AI\Anti-gravity\ithrive360\ithrive360-app\node_modules\esbuild\lib\main.js:656:12)
+    at Socket.readFromStdout (D:\Downloads\Business Opportunities\AI\Anti-gravity\ithrive360\ithrive360-app\node_modules\esbuild\lib\main.js:579:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)[39m

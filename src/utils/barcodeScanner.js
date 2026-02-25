@@ -1,49 +1,41 @@
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
 /**
- * Launches the phone camera and detects a barcode using the ZXing scanner.
+ * Decodes a barcode from a provided image File.
+ * @param {File} file - The image file from the camera or file picker.
  * @returns {Promise<{ success: boolean, code?: string, message?: string }>}
  */
-export async function launchBarcodeScanner() {
-  return new Promise(async (resolve) => {
+export async function decodeBarcodeFromImage(file) {
+  return new Promise((resolve) => {
     try {
       const codeReader = new BrowserMultiFormatReader();
+      const imageUrl = URL.createObjectURL(file);
 
-      const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
-      const backCamera = videoInputDevices.find((device) =>
-        device.label.toLowerCase().includes('back')
-      ) || videoInputDevices[0];
+      const img = new Image();
+      img.onload = async () => {
+        try {
+          const result = await codeReader.decodeFromImageElement(img);
+          URL.revokeObjectURL(imageUrl);
+          if (result && result.text) {
+            resolve({ success: true, code: result.text });
+          } else {
+            resolve({ success: false, message: 'No barcode detected' });
+          }
+        } catch (err) {
+          URL.revokeObjectURL(imageUrl);
+          resolve({ success: false, message: 'No barcode detected in image.' });
+        }
+      };
 
-      if (!backCamera) {
-        return resolve({ success: false, message: 'No camera available' });
-      }
+      img.onerror = () => {
+        URL.revokeObjectURL(imageUrl);
+        resolve({ success: false, message: 'Failed to load image.' });
+      };
 
-      const videoElement = document.createElement('video');
-      videoElement.style.position = 'fixed';
-      videoElement.style.top = '50%';
-      videoElement.style.left = '50%';
-      videoElement.style.transform = 'translate(-50%, -50%)';
-      videoElement.style.width = '100vw';
-      videoElement.style.height = '100vh';
-      videoElement.style.zIndex = 10000;
-      videoElement.style.objectFit = 'cover';
-      videoElement.style.backgroundColor = '#000';
-
-      document.body.appendChild(videoElement);
-
-      const result = await codeReader.decodeOnceFromVideoDevice(backCamera.deviceId, videoElement);
-
-      codeReader.reset();
-      document.body.removeChild(videoElement);
-
-      if (result?.text) {
-        return resolve({ success: true, code: result.text });
-      } else {
-        return resolve({ success: false, message: 'No barcode detected' });
-      }
+      img.src = imageUrl;
     } catch (err) {
-      console.error('[launchBarcodeScanner] Error:', err.message);
-      return resolve({ success: false, message: err.message });
+      console.error('[decodeBarcodeFromImage] Error:', err.message);
+      resolve({ success: false, message: err.message });
     }
   });
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import { Menu, X, Pencil } from 'lucide-react';
 import SidebarMenu from './SidebarMenu';
 import logo from '../assets/logo.png';

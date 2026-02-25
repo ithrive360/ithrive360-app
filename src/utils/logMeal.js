@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 
 /**
  * Logs a user meal entry to Supabase.

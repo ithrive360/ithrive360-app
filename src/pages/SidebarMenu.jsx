@@ -45,6 +45,7 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
       label: 'Track Progress',
       path: '/track-progress'
     },
+
     {
       icon: <Settings size={20} />,
       label: 'Settings',

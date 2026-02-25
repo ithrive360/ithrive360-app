@@ -1,28 +1,48 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
-    <title>iThrive360</title>
-    <meta name="description" content="Take control of your health with DNA and blood-based insights. Built for mobile." />
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
-    <!-- Favicon & App Icons -->
-    <link rel="icon" type="image/png" href="/icons/icon-192x192.png" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+  <title>iThrive360</title>
+  <meta name="description" content="Take control of your health with DNA and blood-based insights. Built for mobile." />
 
-    <!-- PWA Support -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#3ab3a1" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <!-- Favicon & App Icons -->
+  <link rel="icon" type="image/png" href="/icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
 
-    <!-- Vite Entry -->
-    <script type="module" src="/src/main.jsx"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+  <!-- PWA Support -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#3ab3a1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Pre-Boot Interceptor for Fitbit OAuth -->
+  <!-- This MUST run before Vite and Supabase load to prevent Supabase from crashing on the Fitbit hash! -->
+  <!-- We restrict this to the /settings path so it DOES NOT steal Google Login hashes. -->
+  <script>
+    if (window.location.pathname.includes('/settings') && window.location.hash && window.location.hash.includes('access_token=')) {
+      var hashParams = new URLSearchParams(window.location.hash.substring(1));
+      var fitbitToken = hashParams.get('access_token');
+      var fitbitUserId = hashParams.get('user_id');
+      if (fitbitToken) {
+        localStorage.setItem('iThrive_fitbit_token', fitbitToken);
+        if (fitbitUserId) localStorage.setItem('iThrive_fitbit_user_id', fitbitUserId);
+        // Wipe the URI fragment so it's invisible to Supabase client initialization
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  </script>
+
+  <!-- Vite Entry -->
+  <script type="module" src="/src/main.jsx"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
 </html>

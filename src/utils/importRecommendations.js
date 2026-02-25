@@ -1,5 +1,5 @@
 // utils/importRecommendations.js
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 
 export async function importUserRecommendations(user_id) {
   if (!user_id) return { success: false, message: 'No user_id provided.' };

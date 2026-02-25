@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 
 /**
  * Looks up a barcode in Open Food Facts and optionally caches the result.
@@ -13,30 +13,29 @@ export async function lookupBarcodeProduct(barcode, cache = true) {
   }
 
   try {
-    const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`;
+    const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,serving_size,image_url,allergens,nova_group,nutriscore_grade,nutrient_levels`;
     const res = await fetch(url);
     const data = await res.json();
 
     if (data.status !== 1) {
-      return { success: false, message: `Barcode ${barcode} not found. Please try taking a photo of the food label (not barcode) on the packaging.` };
+      return { success: false, message: `Barcode ${barcode} not found on Open Food Facts.` };
     }
 
     const product = data.product;
 
     const normalized = {
-      name: product.product_name || 'Unnamed product',
+      name: product.product_name_en || product.product_name || 'Unnamed product',
       barcode,
       source: 'openfoodfacts',
       brand: product.brands || null,
-      category: product.categories_tags?.[0]?.replace('en:', '') || null,
-      ingredients: product.ingredients_text || null,
+      ingredients: product.ingredients_text_en || product.ingredients_text || null,
+      allergens: product.allergens ? product.allergens.replace(/en:/g, '').replace(/,/g, ', ') : null,
       nutrients_json: normalizeNutrients(product.nutriments),
+      nutrient_levels: product.nutrient_levels || null,
       serving_size: product.serving_size || null,
-      serving_weight_grams: product.serving_quantity || null,
-      tags: product.nova_group ? [`nova-${product.nova_group}`] : [],
-      gpt_label: product.product_name || null,
+      nova_group: product.nova_group || null,
+      nutriscore_grade: product.nutriscore_grade || null,
       image_url: product.image_url || null,
-      origin_country: product.countries_tags?.[0]?.replace('en:', '') || null,
     };
 
     // If requested, cache it into Supabase
