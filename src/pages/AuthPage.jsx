@@ -19,11 +19,7 @@ function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    const currentOrigin = window.location.origin;
-    const isLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('192.168');
-    const redirectTo = isLocalhost
-      ? `${currentOrigin}/auth/callback`
-      : 'https://ithrive360-app.vercel.app/auth/callback';
+    const redirectTo = window.location.origin + '/auth/callback';
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
