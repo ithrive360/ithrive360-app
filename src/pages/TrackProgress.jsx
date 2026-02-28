@@ -10,7 +10,18 @@ export default function TrackProgress() {
     const { user, profile, loading: userLoading } = useUserProfile();
 
     // --- Fitbit Data States ---
-    const [fitbitData, setFitbitData] = useState(null);
+    // Initialize with 0s so the UI paints instantly while waiting for data
+    const [fitbitData, setFitbitData] = useState({
+        activity: { steps: 0, distances: [{ distance: 0 }], caloriesOut: 0, activeZoneMinutes: 0 },
+        sleep: { totalMinutesAsleep: 0, totalTimeInBed: 0 },
+        heartRate: '--',
+        hrv: '--',
+        weight: '--',
+        spO2: '--',
+        timeRange: 'today'
+    });
+
+    // We only use this for a subtle background indicator now, not a blocking screen
     const [fitbitLoading, setFitbitLoading] = useState(false);
     const [fitbitError, setFitbitError] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -43,7 +54,7 @@ export default function TrackProgress() {
                 if (error) throw error;
 
                 if (!stats || stats.length === 0) {
-                    setFitbitData(null);
+                    // We don't nullify data here anymore, we just let the 0s show
                     // Force a sync if we have absolutely nothing
                     triggerBackgroundSync();
                     return;
@@ -97,7 +108,7 @@ export default function TrackProgress() {
                 console.error("Local DB read error:", err);
                 setFitbitError("Failed to load local health data.");
             } finally {
-                setFitbitLoading(false); // UI instantly unblocks here!
+                setFitbitLoading(false);
             }
         };
 
@@ -251,9 +262,9 @@ export default function TrackProgress() {
 
                 <div className="mb-8 space-y-6">
                     {fitbitLoading && (
-                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-                            <span className="text-gray-500 font-medium">Syncing Fitbit telemetry...</span>
+                        <div className="flex items-center justify-center py-2 space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500"></div>
+                            <span className="text-xs text-gray-500 font-medium">Syncing Fitbit telemetry in background...</span>
                         </div>
                     )}
 
@@ -264,7 +275,7 @@ export default function TrackProgress() {
                         </div>
                     )}
 
-                    {!fitbitLoading && !fitbitError && fitbitData && (
+                    {!fitbitError && fitbitData && (
                         <div className="space-y-6">
 
                             {/* --- PILLAR 1: ACTIVITY & MOVEMENT --- */}
@@ -374,7 +385,9 @@ export default function TrackProgress() {
                                             <span className="text-sm text-gray-500 font-medium ml-1">bpm</span>
                                         </div>
                                     </div>
+                                </div>
 
+                                <div className="grid grid-cols-2 gap-3 mb-10 mt-3">
                                     {/* HRV Glass Card */}
                                     <div className="bg-white rounded-3xl p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col justify-between h-[130px]">
                                         <div className="flex justify-between items-start">
@@ -393,7 +406,7 @@ export default function TrackProgress() {
 
                             {/* --- PILLAR 3: BODY & BIOMETRICS --- */}
                             <section>
-                                <h2 className="text-lg font-bold text-gray-800 mb-3 px-2 flex items-center gap-2 mt-4">
+                                <h2 className="text-lg font-bold text-gray-800 mb-3 px-2 flex items-center gap-2 mt-2">
                                     <UserIcon className="text-teal-500" size={20} /> Body & Biometrics
                                 </h2>
 
