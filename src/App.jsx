@@ -22,6 +22,12 @@ function App() {
     // 1. Initial quick check using synchronous local storage to paint the app immediately
     const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
     if (cachedSessionStr) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(cachedSessionStr));
+        if (cached && cached.user) setUser(cached.user);
+      } catch (e) {
+        console.warn('Failed to parse cached session', e);
+      }
       setLoading(false);
     }
 

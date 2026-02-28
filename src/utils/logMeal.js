@@ -23,23 +23,26 @@ export async function logMealToSupabase(payload) {
     }
 
     const insertPayload = {
+      ...(payload.meal_log_id && { meal_log_id: payload.meal_log_id }),
       user_id: payload.user_id,
       entry_type: payload.entry_type,
       barcode: payload.barcode || null,
       label: payload.label || null,
       meal_type: payload.meal_type || null,
       nutrients_json: payload.nutrients_json || null,
+      quantity: payload.quantity || 1,
+      serving_unit: payload.serving_unit || 'g',
       raw_json: payload.raw_json || null,
       source: payload.source || null,
       notes: payload.notes || null,
       food_id: payload.food_id || null,
     };
 
-    const { data, error } = await supabase
-      .from('user_meal_log')
-      .insert(insertPayload)
-      .select()
-      .single();
+    const query = payload.meal_log_id
+      ? supabase.from('user_meal_log').upsert(insertPayload).select().single()
+      : supabase.from('user_meal_log').insert(insertPayload).select().single();
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('[logMealToSupabase] Insert failed:', error.message);

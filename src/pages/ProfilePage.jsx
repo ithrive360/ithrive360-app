@@ -28,8 +28,10 @@ export default function ProfilePage() {
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingUserName, setIsEditingUserName] = useState(false);
+  const [isEditingCalorieTarget, setIsEditingCalorieTarget] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [editedUserName, setEditedUserName] = useState('');
+  const [editedCalorieTarget, setEditedCalorieTarget] = useState('');
 
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -43,7 +45,7 @@ export default function ProfilePage() {
 
       const { data: profileData } = await supabase
         .from('user_profile')
-        .select('full_name, user_name, avatar_url')
+        .select('full_name, user_name, avatar_url, daily_calorie_target')
         .eq('user_id', currentUser.id)
         .single();
 
@@ -51,6 +53,7 @@ export default function ProfilePage() {
       setAvatarUrl(profileData?.avatar_url || null);
       setEditedName(profileData?.full_name || '');
       setEditedUserName(profileData?.user_name || profileData?.full_name?.split(' ')[0] || '');
+      setEditedCalorieTarget(profileData?.daily_calorie_target || '');
     };
 
     getSessionAndProfile();
@@ -65,6 +68,9 @@ export default function ProfilePage() {
     } else if (field === 'user_name') {
       updates.user_name = editedUserName;
       setIsEditingUserName(false);
+    } else if (field === 'calorie_target') {
+      updates.daily_calorie_target = editedCalorieTarget ? parseInt(editedCalorieTarget, 10) : null;
+      setIsEditingCalorieTarget(false);
     }
 
     const { error } = await supabase
@@ -215,6 +221,34 @@ export default function ProfilePage() {
             ) : (
               <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>
                 {profile?.user_name || firstInitial}
+              </div>
+            )}
+          </div>
+
+          {/* Daily Calorie Target */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: 16, color: '#6B7280' }}>Daily Calorie Target:</strong>
+              {isEditingCalorieTarget ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => handleSave('calorie_target')} style={{ fontSize: 12 }}>Save</button>
+                  <button onClick={() => { setIsEditingCalorieTarget(false); setEditedCalorieTarget(profile.daily_calorie_target || ''); }} style={{ fontSize: 12 }}>Cancel</button>
+                </div>
+              ) : (
+                <Pencil size={16} style={{ color: '#6B7280', cursor: 'pointer' }} onClick={() => setIsEditingCalorieTarget(true)} />
+              )}
+            </div>
+            {isEditingCalorieTarget ? (
+              <input
+                type="number"
+                value={editedCalorieTarget}
+                onChange={(e) => setEditedCalorieTarget(e.target.value)}
+                placeholder="e.g. 2000"
+                style={{ fontSize: 16, marginTop: 6, padding: 6, width: '100%', border: '1px solid #D1D5DB', borderRadius: 6 }}
+              />
+            ) : (
+              <div style={{ fontSize: 17, fontWeight: 500, marginTop: 4, color: '#374151' }}>
+                {profile?.daily_calorie_target ? `${profile.daily_calorie_target} kcal` : 'Not set'}
               </div>
             )}
           </div>
