@@ -54,7 +54,12 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
     {
       icon: <HelpCircle size={20} />,
       label: 'Help Center',
-      path: '/help'
+      action: () => {
+        if (window.$crisp) {
+          window.$crisp.push(['do', 'chat:show']);
+          window.$crisp.push(['do', 'chat:open']);
+        }
+      }
     }
   ];
 
@@ -137,11 +142,15 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
         </div>
 
         {/* Menu Items */}
-        {menuItems.map(({ icon, label, path }, idx) => (
+        {menuItems.map(({ icon, label, path, action }, idx) => (
           <button
             key={idx}
             onClick={() => {
-              if (location.pathname !== path) navigate(path);
+              if (action) {
+                action();
+              } else if (path && location.pathname !== path) {
+                navigate(path);
+              }
               onClose();
             }}
             style={{

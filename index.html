@@ -39,6 +39,15 @@
 
   <!-- Vite Entry -->
   <script type="module" src="/src/main.jsx"></script>
+  <!-- Crisp Chat -->
+  <script type="text/javascript">
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = "02227e02-5900-4425-b021-f741bdf3fec6";
+    // Hide the chat launcher by default to keep the UI clean
+    $crisp.push(["safe", true]);
+    $crisp.push(["do", "chat:hide"]);
+    (function () { d = document; s = d.createElement("script"); s.src = "https://client.crisp.chat/l.js"; s.async = 1; d.getElementsByTagName("head")[0].appendChild(s); })();
+  </script>
 </head>
 
 <body>
