@@ -261,12 +261,7 @@ export default function TrackProgress() {
                 </div>
 
                 <div className="mb-8 space-y-6">
-                    {fitbitLoading && (
-                        <div className="flex items-center justify-center py-2 space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500"></div>
-                            <span className="text-xs text-gray-500 font-medium">Syncing Fitbit telemetry in background...</span>
-                        </div>
-                    )}
+
 
                     {fitbitError && (
                         <div className="text-center py-8 bg-red-50 rounded-3xl border border-red-100">
