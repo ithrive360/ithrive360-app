@@ -19,29 +19,33 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Native Interception logic moved to index.html to run before Supabase init
+    // 1. Initial quick check using synchronous local storage to paint the app immediately
+    const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+    if (cachedSessionStr) {
+      setLoading(false);
+    }
 
-    const getSession = async () => {
+    // 2. Perform the actual network verification in the background
+    const verifySession = async () => {
       const { data, error } = await supabase.auth.getSession();
 
-      // Globally intercept provider token before Supabase dumps it
       if (data?.session?.provider_token) {
         localStorage.setItem('iThrive_fitbit_token', data.session.provider_token);
       }
 
-      if (error) console.error('Error fetching session:', error.message);
       setUser(data?.session?.user || null);
-      setLoading(false);
+      setLoading(false); // Failsafe if local storage was empty
     };
 
-    getSession();
+    verifySession();
 
+    // 3. Listen for future changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Catch token during live redirect events as well
       if (session?.provider_token) {
         localStorage.setItem('iThrive_fitbit_token', session.provider_token);
       }
       setUser(session?.user || null);
+      setLoading(false);
     });
 
     return () => {
@@ -49,7 +53,14 @@ function App() {
     };
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
+        {/* Simple splash placeholder to replace the blank white screen */}
+        <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." style={{ width: '80px', height: '80px', animation: 'pulse 2s infinite' }} />
+      </div>
+    );
+  }
 
   return (
     <Router>

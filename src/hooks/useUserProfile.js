@@ -32,6 +32,12 @@ export function useUserProfile() {
     useEffect(() => {
         const checkSessionAndFetch = async () => {
             try {
+                // Instantly check local storage to decide whether we even need to show a loading screen
+                const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+                if (!cachedSessionStr) {
+                    setLoading(false); // They aren't logged in. Don't block the UI.
+                }
+
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user) {
                     await fetchUserData(session.user);
@@ -54,6 +60,7 @@ export function useUserProfile() {
                 } else {
                     setUser(null);
                     setProfile(null);
+                    setLoading(false);
                 }
             }
         );

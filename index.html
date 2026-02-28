@@ -51,7 +51,56 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- NATIVE SPLASH SCREEN: This paints instantly before React even loads -->
+    <style>
+      body {
+        margin: 0;
+        background-color: #FAFAFA;
+      }
+
+      .initial-splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #FAFAFA;
+        z-index: 99999;
+      }
+
+      .initial-splash img {
+        width: 80px;
+        height: 80px;
+        animation: pulse 2s infinite ease-in-out;
+        margin: 0 auto;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(0.95);
+          opacity: 0.8;
+        }
+
+        50% {
+          transform: scale(1.05);
+          opacity: 1;
+        }
+
+        100% {
+          transform: scale(0.95);
+          opacity: 0.8;
+        }
+      }
+    </style>
+    <div class="initial-splash">
+      <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." />
+    </div>
+  </div>
 </body>
 
 </html>
