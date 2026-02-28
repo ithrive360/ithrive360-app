@@ -42,15 +42,7 @@ export default function DashboardPage() {
     return <div className="flex justify-center items-center h-screen"><p>You must be logged in to view this page.</p></div>;
   }
 
-  const handleLogout = async () => {
-    if (isProcessing) return;
-    try {
-      await supabase.auth.signOut();
-      window.location.href = '/';
-    } catch (err) {
-      console.error('Logout error:', err.message);
-    }
-  };
+
 
   const handleTestGPT = async () => {
     if (isProcessing) return;
@@ -85,7 +77,7 @@ export default function DashboardPage() {
         <img src={logo} alt="iThrive360 Logo" className="h-8" />
       </div>
 
-      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onLogout={handleLogout} profile={profile} />
+      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} profile={profile} />
 
       <div className="h-16" /> {/* Spacer */}
 

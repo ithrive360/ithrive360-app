@@ -102,7 +102,7 @@ export default function Allinsights() {
         <div className="h-16" />
 
         {profile && (
-          <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} onLogout={async () => { await supabase.auth.signOut(); window.location.href = '/'; }} profile={profile} />
+          <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} profile={profile} />
         )}
 
         {/* HORIZONTAL SCROLLER */}

@@ -175,7 +175,22 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
         {/* Logout Button */}
         <div style={{ marginTop: 'auto', paddingTop: 64 }}>
           <button
-            onClick={onLogout}
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                if (onLogout) await onLogout();
+                else {
+                  const { supabase } = await import('../lib/supabase');
+                  await supabase.auth.signOut();
+                }
+              } catch (err) {
+                console.error("Logout caught error, forcing reset", err);
+              }
+              // Forcefully eradicate any stuck session cache
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.href = '/';
+            }}
             style={{
               width: '100%',
               backgroundColor: '#3ab3a1',

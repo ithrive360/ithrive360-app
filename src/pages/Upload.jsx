@@ -85,10 +85,6 @@ export default function UploadPage() {
         <SidebarMenu
           isOpen={menuOpen}
           onClose={() => setMenuOpen(false)}
-          onLogout={async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/';
-          }}
           profile={profile}
         />
 

@@ -127,10 +127,6 @@ export default function ProfilePage() {
       <SidebarMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
-        onLogout={async () => {
-          await supabase.auth.signOut();
-          window.location.href = '/';
-        }}
         profile={profile}
       />
 
@@ -261,7 +257,7 @@ export default function ProfilePage() {
             <button onClick={() => setShowAvatarPicker(false)} style={{
               backgroundColor: '#3ab3a1', color: '#ffffff',
               border: 'none', padding: '8px 14px',
-              borderRadius: 6, cursor: 'pointer', fontWeight: 500, 
+              borderRadius: 6, cursor: 'pointer', fontWeight: 500,
             }}>
               Cancel
             </button>
