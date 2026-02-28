@@ -146,7 +146,15 @@ function FoodTracking() {
         <img src={logo} alt="iThrive360 Logo" className="h-8" />
       </div>
 
-      <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} profile={profile} />
+      <SidebarMenu
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onLogout={async () => {
+          await supabase.auth.signOut();
+          window.location.href = '/';
+        }}
+        profile={profile}
+      />
 
       <div className="h-16" /> {/* Spacer */}
 
