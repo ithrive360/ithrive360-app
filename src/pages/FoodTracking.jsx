@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, X as XIcon } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LiveBarcodeScanner from '../components/LiveBarcodeScanner';
@@ -13,10 +13,10 @@ import { analyzeMealImage } from '../utils/photoRecognizer';
 import { logMealToSupabase } from '../utils/logMeal';
 
 const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Breakfast', icon: '🍳' },
-  { id: 'lunch', label: 'Lunch', icon: '🥗' },
-  { id: 'dinner', label: 'Dinner', icon: '🍲' },
-  { id: 'snack', label: 'Snacks', icon: '🍎' }
+  { id: 'breakfast', label: 'Breakfast', icon: Coffee, colorClass: 'bg-orange-100 text-orange-600' },
+  { id: 'lunch', label: 'Lunch', icon: Salad, colorClass: 'bg-green-100 text-green-600' },
+  { id: 'dinner', label: 'Dinner', icon: Utensils, colorClass: 'bg-indigo-100 text-indigo-600' },
+  { id: 'snack', label: 'Snacks', icon: Apple, colorClass: 'bg-rose-100 text-rose-600' }
 ];
 
 export default function FoodTracking() {
@@ -409,8 +409,8 @@ export default function FoodTracking() {
                     style={{ top: `${(index * 90) + 16}px`, zIndex: 40 - index }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
-                        {meal.icon}
+                      <div className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${meal.colorClass}`}>
+                        <meal.icon size={24} />
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-bold text-gray-900 truncate">{meal.label}</h3>
