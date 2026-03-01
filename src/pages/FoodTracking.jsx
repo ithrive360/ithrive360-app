@@ -71,12 +71,15 @@ export default function FoodTracking() {
   }, [sheetOpen]);
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchTodayLogs(user.id);
     }
-  }, [user]);
+  }, [user?.id]);
 
   const fetchTodayLogs = async (userId) => {
+    // Explicitly await the SDK session init before firing queries to prevent unauthenticated 0-row UI wipes
+    await supabase.auth.getSession();
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 

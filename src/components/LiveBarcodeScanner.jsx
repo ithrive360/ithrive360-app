@@ -53,16 +53,19 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
 
         // Cleanup on unmount
         return () => {
-            if (controls) {
-                controls.stop();
-            }
-            if (readerRef.current) {
-                readerRef.current.reset();
-            }
-            // Aggressive manual hardware destruction to prevent "black screen" deadlocks on re-open
-            if (videoRef.current && videoRef.current.srcObject) {
-                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = null;
+            try {
+                if (controls) {
+                    controls.stop();
+                }
+                // Aggressive manual hardware destruction to prevent "black screen" deadlocks on re-open
+                if (videoRef?.current?.srcObject) {
+                    videoRef.current.srcObject.getTracks().forEach(track => {
+                        if (typeof track.stop === 'function') track.stop();
+                    });
+                    videoRef.current.srcObject = null;
+                }
+            } catch (err) {
+                console.warn('Barcode cleanup safely bypassed:', err);
             }
         };
     }, [onScan]);
