@@ -54,8 +54,17 @@ export default function TrackProgress() {
                 if (error) throw error;
 
                 if (!stats || stats.length === 0) {
-                    // We don't nullify data here anymore, we just let the 0s show
-                    // Force a sync if we have absolutely nothing
+                    // Explicitly wipe the state so we don't carry over 'Week' or 'Month' values into an empty 'Today'
+                    setFitbitData({
+                        activity: { steps: 0, distances: [{ distance: 0 }], caloriesOut: 0, activeZoneMinutes: 0 },
+                        sleep: { totalMinutesAsleep: 0, totalTimeInBed: 0 },
+                        heartRate: '--',
+                        hrv: '--',
+                        weight: '--',
+                        spO2: '--',
+                        timeRange: timeRange
+                    });
+                    setFitbitError(null);
                     triggerBackgroundSync();
                     return;
                 }
@@ -271,7 +280,7 @@ export default function TrackProgress() {
                     )}
 
                     {!fitbitError && fitbitData && (
-                        <div className="space-y-6">
+                        <div className={`space-y-6 transition-all duration-300 ${fitbitLoading ? 'opacity-50 scale-[0.99] pointer-events-none' : 'opacity-100 scale-100'}`}>
 
                             {/* --- PILLAR 1: ACTIVITY & MOVEMENT --- */}
                             <section>
