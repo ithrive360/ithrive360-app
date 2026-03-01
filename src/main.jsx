@@ -9,15 +9,21 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>
 );
 
-// if ('serviceWorker' in navigator) {
-//   window.addEventListener('load', () => {
-//     navigator.serviceWorker
-//       .register('/service-worker.js')
-//       .then((reg) => {
-//         console.log('✅ Service Worker registered:', reg);
-//       })
-//       .catch((err) => {
-//         console.error('❌ Service Worker registration failed:', err);
-//       });
-//   });
-// }
+// Brutally purge the old broken Service Worker and all offline caches from users' phones!
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      registration.unregister();
+      console.log('Deleted zombie Service Worker:', registration);
+    }
+  });
+
+  if ('caches' in window) {
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        console.log('Purging archaic offline cache:', key);
+        return caches.delete(key);
+      }));
+    });
+  }
+}
