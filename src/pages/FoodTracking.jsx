@@ -336,66 +336,72 @@ export default function FoodTracking() {
       <div className="h-16" />
 
       {/* Main Dashboard View */}
-      <div className="px-4 max-w-md mx-auto">
+      <div className="max-w-md mx-auto relative">
 
-        {/* Calorie Summary Top Bar */}
-        <div className="flex items-center justify-between py-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold">{Math.round(totalEaten)}</div>
-            <div className="text-xs text-gray-500 font-medium">Eaten</div>
-          </div>
+        {/* --- STICKY TOP SUMMARY DASHBOARD --- */}
+        <div className="sticky top-16 bg-[#F9FAFB] z-20 px-4 pt-2 pb-4 border-b border-gray-100/50 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.1)]">
+          {/* Calorie Summary Top Bar */}
+          <div className="flex items-center justify-between py-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{Math.round(totalEaten)}</div>
+              <div className="text-xs text-gray-500 font-medium">Eaten</div>
+            </div>
 
-          <div className="w-28 h-28 relative">
-            <CircularProgressbar
-              value={progressPercentage}
-              styles={buildStyles({
-                pathColor: isOverBudget ? '#ef4444' : '#3ab3a1', // Red if over budget, green otherwise
-                trailColor: '#e5e7eb', // The static background ring
-                strokeLinecap: 'round', // This applies specifically to the path tips
-                pathTransitionDuration: 0.5,
-              })}
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className={`text-2xl font-black ${isOverBudget ? 'text-red-500' : 'text-gray-800'}`}>
-                {isOverBudget ? '+' : ''}{Math.round(caloriesLeft)}
-              </span>
-              <span className="text-xs font-semibold text-gray-400">
-                {isOverBudget ? 'Cal Over' : 'Cal Left'}
-              </span>
+            <div className="w-28 h-28 relative">
+              <CircularProgressbar
+                value={progressPercentage}
+                styles={buildStyles({
+                  pathColor: isOverBudget ? '#ef4444' : '#3ab3a1', // Red if over budget, green otherwise
+                  trailColor: '#e5e7eb', // The static background ring
+                  strokeLinecap: 'round', // This applies specifically to the path tips
+                  pathTransitionDuration: 0.5,
+                })}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className={`text-2xl font-black ${isOverBudget ? 'text-red-500' : 'text-gray-800'}`}>
+                  {isOverBudget ? '+' : ''}{Math.round(caloriesLeft)}
+                </span>
+                <span className="text-xs font-semibold text-gray-400">
+                  {isOverBudget ? 'Cal Over' : 'Cal Left'}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-2xl font-bold">{Math.round(totalBurned)}</div>
+              <div className="text-xs text-gray-500 font-medium">Burned</div>
             </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-2xl font-bold">{Math.round(totalBurned)}</div>
-            <div className="text-xs text-gray-500 font-medium">Burned</div>
-          </div>
-        </div>
-
-        {/* Macro Summary */}
-        <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-8">
-          <div className="text-center w-1/3 border-r border-gray-100">
-            <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
-            <div className="text-xs text-gray-500">Protein</div>
-          </div>
-          <div className="text-center w-1/3 border-r border-gray-100">
-            <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
-            <div className="text-xs text-gray-500">Fat</div>
-          </div>
-          <div className="text-center w-1/3">
-            <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
-            <div className="text-xs text-gray-500">Carbs</div>
+          {/* Macro Summary */}
+          <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-8">
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
+              <div className="text-xs text-gray-500">Protein</div>
+            </div>
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
+              <div className="text-xs text-gray-500">Fat</div>
+            </div>
+            <div className="text-center w-1/3">
+              <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
+              <div className="text-xs text-gray-500">Carbs</div>
+            </div>
           </div>
         </div>
 
         {/* Meal Categories */}
-        <div className="space-y-4">
-          {MEAL_TYPES.map((meal) => {
+        <div className="space-y-4 px-4 mt-4">
+          {MEAL_TYPES.map((meal, index) => {
             const rowLogs = logs.filter(l => l.meal_type === meal.id);
             const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
 
             return (
               <div key={meal.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col mb-4 relative">
-                <div className="p-4 flex items-center justify-between sticky top-[68px] z-10 bg-white rounded-t-3xl border-b border-transparent shadow-[0_1px_2px_-1px_rgba(0,0,0,0.05)]">
+                <div
+                  className="p-4 flex items-center justify-between sticky z-10 bg-white rounded-t-3xl border-b border-gray-100 shadow-[0_2px_4px_-2px_rgba(0,0,0,0.1)]"
+                  style={{ top: `${245 + (index * 76)}px` }}
+                >
                   <div className="flex items-center gap-4">
                     <div className="text-2xl bg-gray-50 h-12 w-12 rounded-full flex items-center justify-center">
                       {meal.icon}
