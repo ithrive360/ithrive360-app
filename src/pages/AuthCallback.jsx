@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 function AuthCallback() {
   const navigate = useNavigate();
+  const [isSlow, setIsSlow] = useState(false);
 
   useEffect(() => {
     let timeoutId;
@@ -56,10 +57,10 @@ function AuthCallback() {
         navigate('/');
       }
     };
-    // Add a strict boundary to prevent an infinite hang if the SDK locks up
+    // Notify the user if the network is throttling the OAuth exchange
     timeoutId = setTimeout(() => {
-      console.warn('AuthCallback timed out. Redirecting to home...');
-      navigate('/');
+      console.warn('AuthCallback is taking longer than expected due to network throttle.');
+      setIsSlow(true);
     }, 4000);
 
     finalizeLogin();
@@ -68,10 +69,17 @@ function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="app-container">
-      <div className="auth-box">
-        <p>Signing you in...</p>
+    <div className="flex flex-col justify-center items-center h-screen bg-[#FAFAFA] px-4">
+      <div className="animate-pulse">
+        <img src="/icons/icon-192x192.png" alt="Loading" className="w-20 h-20 mb-6" />
       </div>
+      <p className="text-gray-900 font-semibold text-lg">Signing you in...</p>
+
+      {isSlow && (
+        <p className="mt-4 text-sm text-gray-500 max-w-xs text-center">
+          The network response is slower than usual on mobile. Please keep the app open, securely verifying your keys...
+        </p>
+      )}
     </div>
   );
 }

@@ -35,12 +35,8 @@ function App() {
       }
     }
 
-    // Unblock the UI instantly if we have a locally cached user, 
-    // or if we aren't waiting for a live auth redirect
-    const isAuthRedirect = window.location.hash.includes('access_token') || window.location.search.includes('code');
-    if (hasValidLocalCache || !isAuthRedirect) {
-      setLoading(false);
-    }
+    // Unblock the UI instantly so the router can immediately mount exactly where the user is
+    setLoading(false);
 
     // 2. Perform the actual network verification securely in the background
     const verifySession = async () => {
@@ -60,8 +56,6 @@ function App() {
         if (data?.session?.user) setUser(data.session.user);
       } catch (err) {
         console.warn('Background session verification bypassed:', err.message);
-      } finally {
-        setLoading(false); // Absolute failsafe to drop the splash loader
       }
     };
 
