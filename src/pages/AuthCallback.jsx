@@ -6,12 +6,16 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let timeoutId;
+
     const finalizeLogin = async () => {
-      const { data: { session }, error } = await supabase.auth.refreshSession();
+      // getSession() automatically parses the URL hash from the redirect natively and synchronously
+      const { data: { session }, error } = await supabase.auth.getSession();
       const user = session?.user;
 
       if (error || !user) {
-        console.error('Error retrieving session after redirect:', error?.message);
+        console.warn('OAuth Error or No Session found during callback:', error?.message);
+        // Fallback to home page rather than hanging
         navigate('/');
         return;
       }
@@ -35,8 +39,15 @@ function AuthCallback() {
 
       navigate('/dashboard');
     };
+    // Add a strict boundary to prevent an infinite hang if the SDK locks up
+    timeoutId = setTimeout(() => {
+      console.warn('AuthCallback timed out. Redirecting to home...');
+      navigate('/');
+    }, 4000);
 
     finalizeLogin();
+
+    return () => clearTimeout(timeoutId);
   }, [navigate]);
 
   return (
