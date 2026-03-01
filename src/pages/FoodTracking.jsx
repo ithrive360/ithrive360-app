@@ -409,7 +409,7 @@ export default function FoodTracking() {
                     style={{ top: `${(index * 90) + 16}px`, zIndex: 40 - index }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${meal.colorClass}`}>
+                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${meal.colorClass}`}>
                         <meal.icon size={24} />
                       </div>
                       <div className="min-w-0">
