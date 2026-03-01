@@ -394,8 +394,8 @@ export default function FoodTracking() {
             const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
 
             return (
-              <div key={meal.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col mb-4">
-                <div className="p-4 flex items-center justify-between">
+              <div key={meal.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col mb-4 relative">
+                <div className="p-4 flex items-center justify-between sticky top-[68px] z-10 bg-white rounded-t-3xl border-b border-transparent shadow-[0_1px_2px_-1px_rgba(0,0,0,0.05)]">
                   <div className="flex items-center gap-4">
                     <div className="text-2xl bg-gray-50 h-12 w-12 rounded-full flex items-center justify-center">
                       {meal.icon}
