@@ -45,7 +45,12 @@ export function useUserProfile() {
                     }
                 }
 
-                const { data: { session } } = await supabase.auth.getSession();
+                // Force a strict 3-second timeout so a deadlocked network pool never freezes the PWA forever
+                const res = await Promise.race([
+                    supabase.auth.getSession(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 3000))
+                ]);
+                const session = res?.data?.session;
                 if (session?.user) {
                     await fetchUserData(session.user);
                 } else {

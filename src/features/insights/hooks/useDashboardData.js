@@ -17,61 +17,66 @@ export function useDashboardData(userId) {
         const fetchDashboardData = async () => {
             setLoading(true);
             try {
-                // --- 1. Fetch Insights & Weights ---
-                const { data: insights, error: insightsError } = await supabase
-                    .from('user_health_insight')
-                    .select('health_area_id, findings_json, recommendations_json')
-                    .eq('user_id', userId);
+                // Wrap the entire fetching block in a strict 6-second timeout to prevent infinite PWA loop locks
+                await Promise.race([
+                    (async () => {
+                        // --- 1. Fetch Insights & Weights ---
+                        const { data: insights, error: insightsError } = await supabase
+                            .from('user_health_insight')
+                            .select('health_area_id, findings_json, recommendations_json')
+                            .eq('user_id', userId);
 
-                if (insightsError) throw insightsError;
+                        if (insightsError) throw insightsError;
 
-                const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
-                const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
-                const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
-                const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
+                        const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
+                        const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
+                        const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
+                        const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
 
-                const scores = insights.map(insight => ({
-                    health_area_id: insight.health_area_id,
-                    score: calculateInsightScore({ insight, bloodWeights, bloodRefs, dnaWeights, dnaRefs }),
-                    recommendations: insight.recommendations_json || {}
-                }));
+                        const scores = insights.map(insight => ({
+                            health_area_id: insight.health_area_id,
+                            score: calculateInsightScore({ insight, bloodWeights, bloodRefs, dnaWeights, dnaRefs }),
+                            recommendations: insight.recommendations_json || {}
+                        }));
 
-                const getGroupAvg = (ids) => {
-                    const filtered = scores.filter(s => ids.includes(s.health_area_id));
-                    const valid = filtered.filter(s => s.score !== null);
-                    return valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
-                };
+                        const getGroupAvg = (ids) => {
+                            const filtered = scores.filter(s => ids.includes(s.health_area_id));
+                            const valid = filtered.filter(s => s.score !== null);
+                            return valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
+                        };
 
-                if (isMounted) {
-                    setOverallScores({
-                        general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
-                        performance: getGroupAvg(['HA005', 'HA006']),
-                        longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
-                    });
-                }
+                        if (isMounted) {
+                            setOverallScores({
+                                general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
+                                performance: getGroupAvg(['HA005', 'HA006']),
+                                longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
+                            });
+                        }
 
-                // --- 2. Fetch User Recommendations ---
-                const { data: recData, error: recError } = await supabase
-                    .from('user_recommendation')
-                    .select('category, recommendation, priority, is_selected');
+                        // --- 2. Fetch User Recommendations ---
+                        const { data: recData, error: recError } = await supabase
+                            .from('user_recommendation')
+                            .select('category, recommendation, priority, is_selected');
 
-                if (recError) throw recError;
+                        if (recError) throw recError;
 
-                const grouped = {};
-                const toggles = {};
+                        const grouped = {};
+                        const toggles = {};
 
-                for (const rec of recData || []) {
-                    const cat = rec.category;
-                    if (!grouped[cat]) grouped[cat] = [];
-                    grouped[cat].push({ text: rec.recommendation, priority: rec.priority || 'medium' });
-                    toggles[rec.recommendation] = rec.is_selected ?? false;
-                }
+                        for (const rec of recData || []) {
+                            const cat = rec.category;
+                            if (!grouped[cat]) grouped[cat] = [];
+                            grouped[cat].push({ text: rec.recommendation, priority: rec.priority || 'medium' });
+                            toggles[rec.recommendation] = rec.is_selected ?? false;
+                        }
 
-                if (isMounted) {
-                    setRecommendationData(grouped);
-                    setActiveToggles(toggles);
-                }
-
+                        if (isMounted) {
+                            setRecommendationData(grouped);
+                            setActiveToggles(toggles);
+                        }
+                    })(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard Data Fetch Timeout')), 6000))
+                ]);
             } catch (err) {
                 console.error('Failed to fetch dashboard data:', err.message);
                 if (isMounted) setError(err);
