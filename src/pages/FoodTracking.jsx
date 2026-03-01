@@ -373,19 +373,19 @@ export default function FoodTracking() {
             </div>
           </div>
 
-          {/* Macro Summary - Compact Pill Style */}
-          <div className="flex justify-between bg-white rounded-2xl shadow-sm border border-gray-100 py-2 px-3">
-            <div className="text-center flex-1 border-r border-gray-100">
-              <div className="text-xs font-bold">{Math.round(totalProtein)}g</div>
-              <div className="text-[10px] text-gray-400 font-medium">Protein</div>
+          {/* Macro Summary (Restored Original Sizing, Reduced Bottom Margin) */}
+          <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-2">
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
+              <div className="text-xs text-gray-500">Protein</div>
             </div>
-            <div className="text-center flex-1 border-r border-gray-100">
-              <div className="text-xs font-bold">{Math.round(totalFat)}g</div>
-              <div className="text-[10px] text-gray-400 font-medium">Fat</div>
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
+              <div className="text-xs text-gray-500">Fat</div>
             </div>
-            <div className="text-center flex-1">
-              <div className="text-xs font-bold">{Math.round(totalCarbs)}g</div>
-              <div className="text-[10px] text-gray-400 font-medium">Carbs</div>
+            <div className="text-center w-1/3">
+              <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
+              <div className="text-xs text-gray-500">Carbs</div>
             </div>
           </div>
         </div>
@@ -405,8 +405,8 @@ export default function FoodTracking() {
                 <React.Fragment key={meal.id}>
                   {/* STICKY CARD HEADER */}
                   <div
-                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
-                    style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
+                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[90px] border-b border-gray-100"
+                    style={{ top: `${(index * 90) + 16}px`, zIndex: 40 - index }}
                   >
                     <div className="flex items-center gap-4">
                       <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
