@@ -449,9 +449,9 @@ export default function FoodTracking() {
       {/* Bottom Sheet Modal */}
       {sheetOpen && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-50 transition-opacity" onClick={() => window.location.hash = ''}></div>
+          <div className="fixed inset-0 bg-black/40 z-50 transition-opacity touch-action-none" onClick={() => window.location.hash = ''}></div>
           <div
-            className="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 animate-slide-up shadow-2xl max-h-[85vh] overflow-y-auto transition-transform"
+            className="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 animate-slide-up shadow-2xl max-h-[85vh] overflow-y-auto transition-transform touch-action-none overscroll-none"
             style={{ transform: `translateY(${Math.max(0, sheetOffset)}px)` }}
             onTouchStart={(e) => setTouchStartY(e.touches[0].clientY)}
             onTouchMove={(e) => {
