@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
@@ -324,22 +324,21 @@ export default function FoodTracking() {
   }
 
   return (
-    <div className="font-sans min-h-screen bg-[#F9FAFB] text-gray-900 pb-24">
+    <div className="font-sans h-[100dvh] w-full bg-[#F9FAFB] text-gray-900 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md flex items-center justify-center py-3 px-4 z-40 shadow-sm border-b border-gray-100">
+      <div className="flex-none h-[64px] w-full bg-white/80 backdrop-blur-md flex items-center justify-center px-4 z-40 border-b border-gray-100 relative shadow-sm">
         <button onClick={() => setMenuOpen(!menuOpen)} className="absolute left-4 bg-transparent outline-none cursor-pointer border-none p-0">
           {menuOpen ? <X size={28} className="text-emerald-500" /> : <Menu size={28} className="text-emerald-500" />}
         </button>
         <img src={logo} alt="iThrive360 Logo" className="h-8" />
       </div>
       <SidebarMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} profile={profile} />
-      <div className="h-16" />
 
       {/* Main Dashboard View */}
-      <div className="max-w-md mx-auto relative">
+      <div className="flex flex-col flex-1 w-full max-w-md mx-auto relative overflow-hidden">
 
-        {/* --- STICKY TOP SUMMARY DASHBOARD --- */}
-        <div className="sticky top-16 bg-[#F9FAFB] z-20 px-4 pt-2 pb-4 border-b border-gray-100/50 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.1)]">
+        {/* --- FIXED TOP SUMMARY DASHBOARD --- */}
+        <div className="flex-none bg-[#F9FAFB] z-20 px-4 pt-2 pb-4 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
           {/* Calorie Summary Top Bar */}
           <div className="flex items-center justify-between py-6">
             <div className="text-center">
@@ -390,63 +389,66 @@ export default function FoodTracking() {
           </div>
         </div>
 
-        {/* Meal Categories */}
-        <div className="space-y-4 px-4 mt-4">
+        {/* Meal Categories (SCROLLABLE CONTAINER) */}
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32 w-full relative">
           {MEAL_TYPES.map((meal, index) => {
             const rowLogs = logs.filter(l => l.meal_type === meal.id);
             const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
 
             return (
-              <div key={meal.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col mb-4 relative">
+              <React.Fragment key={meal.id}>
+                {/* STICKY CARD HEADER */}
                 <div
-                  className="p-4 flex items-center justify-between sticky z-10 bg-white rounded-t-3xl border-b border-gray-100 shadow-[0_2px_4px_-2px_rgba(0,0,0,0.1)]"
-                  style={{ top: `${245 + (index * 76)}px` }}
+                  className="p-4 flex items-center justify-between sticky z-10 bg-white rounded-3xl border border-gray-100 shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] mb-2"
+                  style={{ top: `${index * 96}px` }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-2xl bg-gray-50 h-12 w-12 rounded-full flex items-center justify-center">
+                    <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
                       {meal.icon}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">{meal.label}</h3>
-                      <span className="text-xs text-gray-500 font-medium">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-gray-900 truncate">{meal.label}</h3>
+                      <span className="text-xs text-gray-500 font-medium block truncate">
                         {rowLogs.length} {rowLogs.length === 1 ? 'item' : 'items'} • {Math.round(rowCals)} Cal
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => openAddSheet(meal.id)}
-                    className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition-all border-none outline-none cursor-pointer"
+                    className="h-10 w-10 shrink-0 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition-all border-none outline-none cursor-pointer"
                   >
                     <Plus size={20} strokeWidth={2.5} />
                   </button>
                 </div>
 
-                {/* Mini list of items logged inside this category */}
-                {rowLogs.length > 0 && (
-                  <div className="bg-gray-50/50 border-t border-gray-100 px-4 py-2 flex flex-col gap-2">
+                {/* ITEMS LOGGED (Slides perfectly under sticky headers) */}
+                {rowLogs.length > 0 ? (
+                  <div className="bg-transparent px-2 py-1 flex flex-col gap-2 mb-6">
                     {rowLogs.map((log) => (
                       <div
                         key={log.meal_log_id}
-                        className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0 hover:bg-gray-100/50 -mx-2 px-2 rounded-xl transition-colors cursor-pointer"
+                        className="flex justify-between items-center py-2 border-b border-gray-200/70 last:border-0 hover:bg-gray-100/50 rounded-xl transition-colors cursor-pointer"
                         onClick={() => openEditSheet(log)}
                       >
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">{log.label}</p>
-                          <p className="text-xs text-gray-500">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{log.label}</p>
+                          <p className="text-xs text-gray-500 truncate">
                             {log.quantity} {log.serving_unit} • {Math.round(log.nutrients_json?.energy_kcal || log.nutrients_json?.calories || 0)} kcal
                           </p>
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDeleteLog(log.meal_log_id); }}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-transparent border-none cursor-pointer rounded-full ml-2"
+                          className="text-gray-400 hover:text-red-500 transition-colors p-2 shrink-0 bg-transparent border-none cursor-pointer rounded-full ml-1"
                         >
                           <XIcon size={16} />
                         </button>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="h-4" /> // Spacing for empty meals so cards don't touch
                 )}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>
