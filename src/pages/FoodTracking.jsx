@@ -31,6 +31,7 @@ export default function FoodTracking() {
   const [showLiveScanner, setShowLiveScanner] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [editingLogId, setEditingLogId] = useState(null);
+  const [deleteLogId, setDeleteLogId] = useState(null);
 
   // New State for customizing amount before saving
   const [inputQuantity, setInputQuantity] = useState(100);
@@ -296,9 +297,12 @@ export default function FoodTracking() {
     }
   };
 
-  const handleDeleteLog = async (logId) => {
-    if (!confirm('Are you sure you want to delete this log?')) return;
-    const { error } = await supabase.from('user_meal_log').delete().eq('meal_log_id', logId);
+  const performDeleteLog = async () => {
+    if (!deleteLogId) return;
+    const logIdToDel = deleteLogId;
+    setDeleteLogId(null); // Optimistically close modal
+
+    const { error } = await supabase.from('user_meal_log').delete().eq('meal_log_id', logIdToDel);
     if (!error) fetchTodayLogs(user.id);
   };
 
@@ -443,7 +447,7 @@ export default function FoodTracking() {
                             </p>
                           </div>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDeleteLog(log.meal_log_id); }}
+                            onClick={(e) => { e.stopPropagation(); setDeleteLogId(log.meal_log_id); }}
                             className="text-gray-400 hover:text-red-500 transition-colors p-2 shrink-0 bg-transparent border-none cursor-pointer rounded-full ml-1"
                           >
                             <XIcon size={16} />
@@ -458,6 +462,43 @@ export default function FoodTracking() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteLogId && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
+            onClick={() => setDeleteLogId(null)}
+          ></div>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-scale-up">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <XIcon size={32} strokeWidth={2.5} className="text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Meal</h3>
+                <p className="text-sm text-gray-500 mb-8">
+                  Are you sure you want to remove this item from your daily log? This cannot be undone.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setDeleteLogId(null)}
+                    className="flex-1 py-3.5 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors border-none outline-none cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={performDeleteLog}
+                    className="flex-1 py-3.5 px-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30 border-none outline-none cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Bottom Sheet Modal */}
       {sheetOpen && (
