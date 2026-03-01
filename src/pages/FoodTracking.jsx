@@ -399,8 +399,8 @@ export default function FoodTracking() {
               <React.Fragment key={meal.id}>
                 {/* STICKY CARD HEADER */}
                 <div
-                  className="p-4 flex items-center justify-between sticky z-10 bg-white rounded-3xl border border-gray-100 shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] mb-2"
-                  style={{ top: `${index * 96}px` }}
+                  className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
+                  style={{ top: `${index * 88}px`, zIndex: 40 - index }}
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
@@ -422,12 +422,12 @@ export default function FoodTracking() {
                 </div>
 
                 {/* ITEMS LOGGED (Slides perfectly under sticky headers) */}
-                {rowLogs.length > 0 ? (
-                  <div className="bg-transparent px-2 py-1 flex flex-col gap-2 mb-6">
+                {rowLogs.length > 0 && (
+                  <div className="bg-white px-2 py-1 flex flex-col mb-4">
                     {rowLogs.map((log) => (
                       <div
                         key={log.meal_log_id}
-                        className="flex justify-between items-center py-2 border-b border-gray-200/70 last:border-0 hover:bg-gray-100/50 rounded-xl transition-colors cursor-pointer"
+                        className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer px-2"
                         onClick={() => openEditSheet(log)}
                       >
                         <div className="flex-1 min-w-0 pr-2">
@@ -445,8 +445,6 @@ export default function FoodTracking() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="h-4" /> // Spacing for empty meals so cards don't touch
                 )}
               </React.Fragment>
             );
