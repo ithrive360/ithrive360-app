@@ -156,13 +156,38 @@ export default function FoodTracking() {
         return;
       }
 
-      setScannedProduct({
-        ...lookup.data,
-        source: 'barcode'
-      });
-      setInputQuantity(100);
-      setInputUnit('g');
-      setFeedback('Product found! Specify quantity.');
+      // Deduplication Logic
+      // Check if this exact barcode was already logged in this exact meal category today
+      const existingLog = logs.find(l => l.meal_type === selectedMealType && l.barcode === lookup.data.code);
+
+      if (existingLog) {
+        // Auto-switch to Edit Mode for the existing log
+        setScannedProduct({
+          name: existingLog.label,
+          source: 'barcode',
+          code: existingLog.barcode,
+          nutrients_json: existingLog.nutrients_json,
+          raw_json: existingLog.raw_json
+        });
+
+        // Let's assume the user wants to add 1 more serving/100g of whatever they originally logged
+        const baseIncrement = existingLog.serving_unit === 'g' ? 100 : 1;
+        setInputQuantity(Number(existingLog.quantity) + baseIncrement);
+        setInputUnit(existingLog.serving_unit);
+        setEditingLogId(existingLog.meal_log_id);
+
+        setFeedback('Item already logged! Auto-incremented quantity.');
+      } else {
+        // Brand new entry
+        setScannedProduct({
+          ...lookup.data,
+          source: 'barcode'
+        });
+        setInputQuantity(100);
+        setInputUnit('g');
+        setEditingLogId(null);
+        setFeedback('Product found! Specify quantity.');
+      }
     } catch (err) {
       console.error(err);
       setFeedback('Unexpected error during barcode scan');
@@ -281,7 +306,10 @@ export default function FoodTracking() {
   const totalTarget = profile?.daily_calorie_target || 2000;
   const totalEaten = logs.reduce((sum, log) => sum + (log.nutrients_json?.energy_kcal || log.nutrients_json?.calories || 0), 0);
   const totalBurned = fitbitStats?.calories_out ? Math.floor(fitbitStats.calories_out) : 0;
-  const caloriesLeft = Math.max(0, totalTarget - totalEaten);
+
+  const isOverBudget = totalEaten > totalTarget;
+  const caloriesLeft = Math.abs(totalTarget - totalEaten);
+  const progressPercentage = isOverBudget ? Math.min(100, (caloriesLeft / totalTarget) * 100) : (totalEaten / totalTarget) * 100;
 
   const totalProtein = logs.reduce((sum, log) => sum + (log.nutrients_json?.protein_g || 0), 0);
   const totalCarbs = logs.reduce((sum, log) => sum + (log.nutrients_json?.carbohydrates_g || log.nutrients_json?.carbs_g || 0), 0);
@@ -319,18 +347,21 @@ export default function FoodTracking() {
 
           <div className="w-28 h-28 relative">
             <CircularProgressbar
-              value={totalEaten}
-              maxValue={totalTarget}
+              value={progressPercentage}
               styles={buildStyles({
-                pathColor: '#e5e7eb', // The "consumed" path, white/gray
-                trailColor: '#3ab3a1', // The "available" trail, green
-                strokeLinecap: 'round',
+                pathColor: isOverBudget ? '#ef4444' : '#3ab3a1', // Red if over budget, green otherwise
+                trailColor: '#e5e7eb', // The static background ring
+                strokeLinecap: 'round', // This applies specifically to the path tips
                 pathTransitionDuration: 0.5,
               })}
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-gray-800">{Math.round(caloriesLeft)}</span>
-              <span className="text-xs font-semibold text-gray-400">Cal Left</span>
+              <span className={`text-2xl font-black ${isOverBudget ? 'text-red-500' : 'text-gray-800'}`}>
+                {isOverBudget ? '+' : ''}{Math.round(caloriesLeft)}
+              </span>
+              <span className="text-xs font-semibold text-gray-400">
+                {isOverBudget ? 'Cal Over' : 'Cal Left'}
+              </span>
             </div>
           </div>
 
@@ -479,6 +510,13 @@ export default function FoodTracking() {
                       </>
                     )}
                   </select>
+                </div>
+
+                <div className="text-sm font-bold text-gray-500 mb-2">
+                  {Math.round(
+                    (scannedProduct.nutrients_json?.energy_kcal || scannedProduct.nutrients_json?.calories || 0) *
+                    (scannedProduct.source === 'barcode' && inputUnit === 'g' ? inputQuantity / 100 : inputQuantity)
+                  )} kcal
                 </div>
 
                 {feedback && <p className="text-sm text-emerald-600 font-medium mt-2">{feedback}</p>}
