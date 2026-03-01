@@ -56,6 +56,14 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
             if (controls) {
                 controls.stop();
             }
+            if (readerRef.current) {
+                readerRef.current.reset();
+            }
+            // Aggressive manual hardware destruction to prevent "black screen" deadlocks on re-open
+            if (videoRef.current && videoRef.current.srcObject) {
+                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = null;
+            }
         };
     }, [onScan]);
 

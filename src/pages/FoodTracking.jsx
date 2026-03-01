@@ -80,12 +80,16 @@ export default function FoodTracking() {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
+    // Create a local ISO string that doesn't shift to GMT to prevent timezone "flip flopping" of visible meals
+    const tzOffset = startOfDay.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(startOfDay - tzOffset)).toISOString().slice(0, -1);
+
     // Fetch meal logs
     const { data: logData } = await supabase
       .from('user_meal_log')
       .select('*')
       .eq('user_id', userId)
-      .gte('timestamp', startOfDay.toISOString());
+      .gte('timestamp', localISOTime);
 
     // Filter out old legacy test logs that didn't have a specific meal_type assigned
     const validLogs = (logData || []).filter(log => MEAL_TYPES.some(m => m.id === log.meal_type));
