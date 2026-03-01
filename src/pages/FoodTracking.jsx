@@ -390,7 +390,7 @@ export default function FoodTracking() {
         </div>
 
         {/* Meal Categories (SCROLLABLE CONTAINER) */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32 w-full relative">
+        <div className="flex-1 overflow-y-auto px-4 pb-32 w-full relative pt-4 bg-[#F9FAFB]">
           {MEAL_TYPES.map((meal, index) => {
             const rowLogs = logs.filter(l => l.meal_type === meal.id);
             const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
@@ -400,7 +400,7 @@ export default function FoodTracking() {
                 {/* STICKY CARD HEADER */}
                 <div
                   className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
-                  style={{ top: `${index * 88}px`, zIndex: 40 - index }}
+                  style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
