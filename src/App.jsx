@@ -21,26 +21,48 @@ function App() {
   useEffect(() => {
     // 1. Initial quick check using synchronous local storage to paint the app immediately
     const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+    let hasValidLocalCache = false;
+
     if (cachedSessionStr) {
       try {
         const cached = JSON.parse(localStorage.getItem(cachedSessionStr));
-        if (cached && cached.user) setUser(cached.user);
+        if (cached && cached.user) {
+          setUser(cached.user);
+          hasValidLocalCache = true;
+        }
       } catch (e) {
         console.warn('Failed to parse cached session', e);
       }
+    }
+
+    // Unblock the UI instantly if we have a locally cached user, 
+    // or if we aren't waiting for a live auth redirect
+    const isAuthRedirect = window.location.hash.includes('access_token') || window.location.search.includes('code');
+    if (hasValidLocalCache || !isAuthRedirect) {
       setLoading(false);
     }
 
-    // 2. Perform the actual network verification in the background
+    // 2. Perform the actual network verification securely in the background
     const verifySession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      try {
+        // Enforce a strict timeout so a deadlocked network pool never freezes the PWA splash screen forever
+        const res = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 4000))
+        ]);
 
-      if (data?.session?.provider_token) {
-        localStorage.setItem('iThrive_fitbit_token', data.session.provider_token);
+        const data = res?.data;
+        if (data?.session?.provider_token) {
+          localStorage.setItem('iThrive_fitbit_token', data.session.provider_token);
+        }
+
+        // If the background token refresh actually succeeded, ensure the user state is perfectly synced
+        if (data?.session?.user) setUser(data.session.user);
+      } catch (err) {
+        console.warn('Background session verification bypassed:', err.message);
+      } finally {
+        setLoading(false); // Absolute failsafe to drop the splash loader
       }
-
-      setUser(data?.session?.user || null);
-      setLoading(false); // Failsafe if local storage was empty
     };
 
     verifySession();
