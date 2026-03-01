@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
@@ -38,10 +39,6 @@ export default function FoodTracking() {
   const [inputUnit, setInputUnit] = useState('g');
 
   const [fitbitStats, setFitbitStats] = useState(null);
-
-  // Swipe to close state
-  const [touchStartY, setTouchStartY] = useState(0);
-  const [sheetOffset, setSheetOffset] = useState(0);
 
   // Handle hardware back buttons via hash routing
   useEffect(() => {
@@ -464,155 +461,169 @@ export default function FoodTracking() {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {deleteLogId && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity"
-            onClick={() => setDeleteLogId(null)}
-          ></div>
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-scale-up">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <XIcon size={32} strokeWidth={2.5} className="text-red-500" />
+      <AnimatePresence>
+        {deleteLogId && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+              onClick={() => setDeleteLogId(null)}
+            />
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <XIcon size={32} strokeWidth={2.5} className="text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Meal</h3>
+                  <p className="text-sm text-gray-500 mb-8">
+                    Are you sure you want to remove this item from your daily log? This cannot be undone.
+                  </p>
+                  <div className="flex gap-3 w-full">
+                    <button
+                      onClick={() => setDeleteLogId(null)}
+                      className="flex-1 py-3.5 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors border-none outline-none cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={performDeleteLog}
+                      className="flex-1 py-3.5 px-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30 border-none outline-none cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Meal</h3>
-                <p className="text-sm text-gray-500 mb-8">
-                  Are you sure you want to remove this item from your daily log? This cannot be undone.
-                </p>
-                <div className="flex gap-3 w-full">
-                  <button
-                    onClick={() => setDeleteLogId(null)}
-                    className="flex-1 py-3.5 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors border-none outline-none cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={performDeleteLog}
-                    className="flex-1 py-3.5 px-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30 border-none outline-none cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Sheet Modal */}
-      {sheetOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-50 transition-opacity touch-action-none" onClick={() => window.location.hash = ''}></div>
-          <div
-            className="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 animate-slide-up shadow-2xl max-h-[85vh] overflow-y-auto transition-transform touch-action-none overscroll-none"
-            style={{ transform: `translateY(${Math.max(0, sheetOffset)}px)` }}
-            onTouchStart={(e) => setTouchStartY(e.touches[0].clientY)}
-            onTouchMove={(e) => {
-              const currentY = e.touches[0].clientY;
-              const delta = currentY - touchStartY;
-              if (delta > 0) {
-                setSheetOffset(delta);
-              }
-            }}
-            onTouchEnd={() => {
-              if (sheetOffset > 100) {
-                window.location.hash = '';
-              } else {
-                setSheetOffset(0);
-              }
-            }}
-          >
-            {/* Handle bar */}
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+      <AnimatePresence>
+        {sheetOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-50 touch-action-none"
+              onClick={() => window.location.hash = ''}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100) {
+                  window.location.hash = '';
+                }
+              }}
+              className="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 shadow-2xl max-h-[85vh] overflow-y-auto touch-action-none overscroll-none"
+            >
+              {/* Handle bar */}
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0" />
 
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold capitalize">Add to {selectedMealType}</h2>
-              <button onClick={() => window.history.back()} className="bg-gray-100 p-2 rounded-full cursor-pointer border-none outline-none">
-                <XIcon size={20} className="text-gray-500" />
-              </button>
-            </div>
+              <div className="flex justify-between items-center mb-6 shrink-0">
+                <h2 className="text-xl font-bold capitalize">Add to {selectedMealType}</h2>
+                <button onClick={() => window.location.hash = ''} className="bg-gray-100 p-2 rounded-full cursor-pointer border-none outline-none">
+                  <XIcon size={20} className="text-gray-500" />
+                </button>
+              </div>
 
-            {scannedProduct ? (
-              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
-                {scannedProduct.image_url && <img src={scannedProduct.image_url} alt="" className="h-24 w-24 object-cover rounded-xl mx-auto mb-3" />}
-                <h3 className="font-bold text-lg">{scannedProduct.name}</h3>
+              {scannedProduct ? (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+                  {scannedProduct.image_url && <img src={scannedProduct.image_url} alt="" className="h-24 w-24 object-cover rounded-xl mx-auto mb-3" />}
+                  <h3 className="font-bold text-lg">{scannedProduct.name}</h3>
 
-                <div className="my-4 bg-white p-3 rounded-xl border border-emerald-100/50 flex items-center justify-center gap-2">
-                  <label className="text-sm font-semibold text-gray-600">Amount:</label>
-                  <input
-                    type="number"
-                    value={inputQuantity}
-                    onChange={(e) => setInputQuantity(Number(e.target.value) || 1)}
-                    className="w-20 text-center font-bold text-gray-900 border-b-2 border-emerald-200 focus:border-emerald-500 outline-none p-1 bg-transparent"
-                  />
-                  <select
-                    value={inputUnit}
-                    onChange={(e) => setInputUnit(e.target.value)}
-                    className="text-sm font-semibold text-gray-600 bg-transparent outline-none border-none cursor-pointer"
+                  <div className="my-4 bg-white p-3 rounded-xl border border-emerald-100/50 flex items-center justify-center gap-2">
+                    <label className="text-sm font-semibold text-gray-600">Amount:</label>
+                    <input
+                      type="number"
+                      value={inputQuantity}
+                      onChange={(e) => setInputQuantity(Number(e.target.value) || 1)}
+                      className="w-20 text-center font-bold text-gray-900 border-b-2 border-emerald-200 focus:border-emerald-500 outline-none p-1 bg-transparent"
+                    />
+                    <select
+                      value={inputUnit}
+                      onChange={(e) => setInputUnit(e.target.value)}
+                      className="text-sm font-semibold text-gray-600 bg-transparent outline-none border-none cursor-pointer"
+                    >
+                      {scannedProduct.source === 'barcode' ? (
+                        <>
+                          <option value="g">grams (g)</option>
+                          <option value="ml">ml</option>
+                          <option value="serving">servings</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="serving">servings</option>
+                          <option value="meal">entire meal</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="text-sm font-bold text-gray-500 mb-2">
+                    {Math.round(
+                      (scannedProduct.nutrients_json?.energy_kcal || scannedProduct.nutrients_json?.calories || 0) *
+                      (scannedProduct.source === 'barcode' && inputUnit === 'g' ? inputQuantity / 100 : inputQuantity)
+                    )} kcal
+                  </div>
+
+                  {feedback && <p className="text-sm text-emerald-600 font-medium mt-2">{feedback}</p>}
+                  <button
+                    onClick={handleConfirmLog}
+                    disabled={loadingType === 'save'}
+                    className={`mt-4 w-full py-3 rounded-xl font-bold transition-all border-none cursor-pointer ${loadingType === 'save' ? 'bg-emerald-300 text-white cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
                   >
-                    {scannedProduct.source === 'barcode' ? (
-                      <>
-                        <option value="g">grams (g)</option>
-                        <option value="ml">ml</option>
-                        <option value="serving">servings</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="serving">servings</option>
-                        <option value="meal">entire meal</option>
-                      </>
-                    )}
-                  </select>
+                    {loadingType === 'save' ? 'Saving...' : 'Log Food'}
+                  </button>
                 </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => window.location.hash = 'scanner'}
+                    disabled={loadingType !== null}
+                    className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}
+                  >
+                    <div className="bg-blue-100 text-blue-600 p-3 rounded-xl"><ScanBarcode size={24} /></div>
+                    <div className="flex-1">
+                      <span className="font-bold block text-[15px]">{loadingType === 'barcode' ? 'Looking up...' : 'Scan Barcode'}</span>
+                      <span className="text-xs text-gray-500">Packaged foods & snacks</span>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400" />
+                  </button>
 
-                <div className="text-sm font-bold text-gray-500 mb-2">
-                  {Math.round(
-                    (scannedProduct.nutrients_json?.energy_kcal || scannedProduct.nutrients_json?.calories || 0) *
-                    (scannedProduct.source === 'barcode' && inputUnit === 'g' ? inputQuantity / 100 : inputQuantity)
-                  )} kcal
+                  <label className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}>
+                    <div className="bg-purple-100 text-purple-600 p-3 rounded-xl"><Camera size={24} /></div>
+                    <div className="flex-1">
+                      <span className="font-bold block text-[15px]">{loadingType === 'photo' ? 'Analyzing...' : 'Take Photo'}</span>
+                      <span className="text-xs text-gray-500">AI meal analysis</span>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400" />
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingType !== null} />
+                  </label>
+
+                  {feedback && <p className="text-center text-sm font-medium text-emerald-600 mt-2">{feedback}</p>}
                 </div>
-
-                {feedback && <p className="text-sm text-emerald-600 font-medium mt-2">{feedback}</p>}
-                <button
-                  onClick={handleConfirmLog}
-                  disabled={loadingType === 'save'}
-                  className={`mt-4 w-full py-3 rounded-xl font-bold transition-all border-none cursor-pointer ${loadingType === 'save' ? 'bg-emerald-300 text-white cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-                >
-                  {loadingType === 'save' ? 'Saving...' : 'Log Food'}
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => window.location.hash = 'scanner'}
-                  disabled={loadingType !== null}
-                  className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}
-                >
-                  <div className="bg-blue-100 text-blue-600 p-3 rounded-xl"><ScanBarcode size={24} /></div>
-                  <div className="flex-1">
-                    <span className="font-bold block text-[15px]">{loadingType === 'barcode' ? 'Looking up...' : 'Scan Barcode'}</span>
-                    <span className="text-xs text-gray-500">Packaged foods & snacks</span>
-                  </div>
-                  <ChevronRight size={20} className="text-gray-400" />
-                </button>
-
-                <label className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}>
-                  <div className="bg-purple-100 text-purple-600 p-3 rounded-xl"><Camera size={24} /></div>
-                  <div className="flex-1">
-                    <span className="font-bold block text-[15px]">{loadingType === 'photo' ? 'Analyzing...' : 'Take Photo'}</span>
-                    <span className="text-xs text-gray-500">AI meal analysis</span>
-                  </div>
-                  <ChevronRight size={20} className="text-gray-400" />
-                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingType !== null} />
-                </label>
-
-                {feedback && <p className="text-center text-sm font-medium text-emerald-600 mt-2">{feedback}</p>}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {showLiveScanner && (
         <div className="fixed inset-0 z-[60] bg-black">

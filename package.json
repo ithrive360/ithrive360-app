@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "@zxing/browser": "^0.1.5",
+    "framer-motion": "^12.34.3",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.508.0",
     "papaparse": "^5.5.3",
