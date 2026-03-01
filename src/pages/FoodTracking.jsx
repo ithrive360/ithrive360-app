@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
 import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, X as XIcon } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
@@ -19,14 +20,13 @@ const MEAL_TYPES = [
 ];
 
 export default function FoodTracking() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const { user, profile, loading: userLoading } = useUserProfile();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logs, setLogs] = useState([]);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState(null);
-  const [loadingAction, setLoadingAction] = useState(false);
+  const [loadingType, setLoadingType] = useState(null); // 'barcode' | 'photo' | 'save' | null
   const [feedback, setFeedback] = useState('');
   const [showLiveScanner, setShowLiveScanner] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
@@ -71,23 +71,10 @@ export default function FoodTracking() {
   }, [sheetOpen]);
 
   useEffect(() => {
-    const initData = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const currentUser = sessionData?.session?.user;
-      if (!currentUser) return;
-      setUser(currentUser);
-
-      const { data: profileData } = await supabase
-        .from('user_profile')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .single();
-      setProfile(profileData);
-
-      fetchTodayLogs(currentUser.id);
-    };
-    initData();
-  }, []);
+    if (user) {
+      fetchTodayLogs(user.id);
+    }
+  }, [user]);
 
   const fetchTodayLogs = async (userId) => {
     const startOfDay = new Date();
@@ -151,14 +138,14 @@ export default function FoodTracking() {
     }
 
     if (navigator.vibrate) navigator.vibrate(50);
-    setLoadingAction(true);
+    setLoadingType('barcode');
     setFeedback('Looking up product...');
 
     try {
       const lookup = await lookupBarcodeProduct(scan.code);
       if (!lookup.success) {
         setFeedback(lookup.message);
-        setLoadingAction(false);
+        setLoadingType(null);
         return;
       }
 
@@ -173,7 +160,7 @@ export default function FoodTracking() {
       console.error(err);
       setFeedback('Unexpected error during barcode scan');
     } finally {
-      setLoadingAction(false);
+      setLoadingType(null);
     }
   };
 
@@ -181,7 +168,7 @@ export default function FoodTracking() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setLoadingAction(true);
+    setLoadingType('photo');
     setScannedProduct(null);
     setFeedback('Analyzing photo...');
 
@@ -189,7 +176,7 @@ export default function FoodTracking() {
       const result = await analyzeMealImage(file);
       if (!result.success) {
         setFeedback(`Analysis failed: ${result.message}`);
-        setLoadingAction(false);
+        setLoadingType(null);
         return;
       }
 
@@ -207,54 +194,73 @@ export default function FoodTracking() {
       console.error(err);
       setFeedback('Unexpected error during photo scan');
     } finally {
-      setLoadingAction(false);
+      setLoadingType(null);
     }
   };
 
   const handleConfirmLog = async () => {
-    if (!scannedProduct) return;
-    setLoadingAction(true);
-    setFeedback('Saving...');
+    try {
+      if (!scannedProduct) return;
+      setLoadingType('save');
+      setFeedback('Saving (Precomputing)...');
 
-    // Calculate scaled nutrients
-    let scaledNutrients = { ...scannedProduct.nutrients_json };
-    let mult = 1;
-    if (scannedProduct.source === 'barcode' && inputUnit === 'g') {
-      mult = inputQuantity / 100;
-    } else if (scannedProduct.source === 'photo') {
-      mult = inputQuantity; // usually 1 serving
-    }
+      // Calculate scaled nutrients
+      let scaledNutrients = { ...scannedProduct.nutrients_json };
+      let mult = 1;
+      if (scannedProduct.source === 'barcode' && inputUnit === 'g') {
+        mult = inputQuantity / 100;
+      } else if (scannedProduct.source === 'photo') {
+        mult = inputQuantity; // usually 1 serving
+      }
 
-    if (mult !== 1 && scaledNutrients) {
-      Object.keys(scaledNutrients).forEach(key => {
-        if (typeof scaledNutrients[key] === 'number') {
-          scaledNutrients[key] = scaledNutrients[key] * mult;
+      if (mult !== 1 && scaledNutrients) {
+        Object.keys(scaledNutrients).forEach(key => {
+          if (typeof scaledNutrients[key] === 'number') {
+            scaledNutrients[key] = scaledNutrients[key] * mult;
+          }
+        });
+      }
+
+      const payload = {
+        user_id: user.id,
+        meal_log_id: editingLogId,
+        entry_type: scannedProduct.source === 'barcode' ? 'barcode' : 'photo',
+        meal_type: selectedMealType,
+        label: scannedProduct.name,
+        barcode: scannedProduct.code || null,
+        quantity: inputQuantity,
+        serving_unit: inputUnit,
+        nutrients_json: scaledNutrients,
+        source: scannedProduct.source === 'barcode' ? 'openfoodfacts' : 'openai-vision',
+        raw_json: scannedProduct.raw_json || scannedProduct
+      };
+
+      setFeedback('Saving (Uploading)...');
+
+      const log = await logMealToSupabase(payload);
+
+      setLoadingType(null);
+      if (log.success) {
+        window.location.hash = ''; // Force clear the hash to prevent back-button loops
+        setSheetOpen(false); // Force close the UI overlay immediately
+
+        // Optimistically insert into the active UI instantly
+        if (log.data) {
+          if (editingLogId) {
+            setLogs(prev => prev.map(l => l.meal_log_id === editingLogId ? log.data : l));
+          } else {
+            setLogs(prev => [...prev, log.data]);
+          }
         }
-      });
-    }
 
-    const payload = {
-      user_id: user.id,
-      meal_log_id: editingLogId,
-      entry_type: scannedProduct.source === 'barcode' ? 'barcode' : 'photo',
-      meal_type: selectedMealType,
-      label: scannedProduct.name,
-      barcode: scannedProduct.code || null,
-      quantity: inputQuantity,
-      serving_unit: inputUnit,
-      nutrients_json: scaledNutrients,
-      source: scannedProduct.source === 'barcode' ? 'openfoodfacts' : 'openai-vision',
-      raw_json: scannedProduct.raw_json || scannedProduct
-    };
-
-    const log = await logMealToSupabase(payload);
-
-    setLoadingAction(false);
-    if (log.success) {
-      window.location.hash = ''; // Force clear the hash to prevent back-button loops
-      fetchTodayLogs(user.id);
-    } else {
-      setFeedback(`❌ Log error: ${log.message}`);
+        setTimeout(() => fetchTodayLogs(user.id), 1500); // Silent background sync later
+      } else {
+        setFeedback(`❌ Log error: ${log.message}`);
+      }
+    } catch (err) {
+      console.error('handleConfirmLog crash:', err);
+      setLoadingType(null);
+      setFeedback(`❌ System Error: ${err.message}`);
     }
   };
 
@@ -268,13 +274,19 @@ export default function FoodTracking() {
   const totalTarget = profile?.daily_calorie_target || 2000;
   const totalEaten = logs.reduce((sum, log) => sum + (log.nutrients_json?.energy_kcal || log.nutrients_json?.calories || 0), 0);
   const totalBurned = fitbitStats?.calories_out ? Math.floor(fitbitStats.calories_out) : 0;
-  const caloriesLeft = Math.max(0, totalTarget - totalEaten + totalBurned);
+  const caloriesLeft = Math.max(0, totalTarget - totalEaten);
 
   const totalProtein = logs.reduce((sum, log) => sum + (log.nutrients_json?.protein_g || 0), 0);
   const totalCarbs = logs.reduce((sum, log) => sum + (log.nutrients_json?.carbohydrates_g || log.nutrients_json?.carbs_g || 0), 0);
   const totalFat = logs.reduce((sum, log) => sum + (log.nutrients_json?.fat_g || 0), 0);
 
-  if (!user) return <p>Loading...</p>;
+  if (!user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#F9FAFB]">
+        <img src="/icons/icon-192x192.png" alt="Loading..." className="h-16 w-16 animate-pulse opacity-50" />
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans min-h-screen bg-[#F9FAFB] text-gray-900 pb-24">
@@ -303,8 +315,8 @@ export default function FoodTracking() {
               value={totalEaten}
               maxValue={totalTarget}
               styles={buildStyles({
-                pathColor: '#3ab3a1',
-                trailColor: '#f3f4f6',
+                pathColor: '#e5e7eb', // The "consumed" path, white/gray
+                trailColor: '#3ab3a1', // The "available" trail, green
                 strokeLinecap: 'round',
                 pathTransitionDuration: 0.5,
               })}
@@ -465,35 +477,35 @@ export default function FoodTracking() {
                 {feedback && <p className="text-sm text-emerald-600 font-medium mt-2">{feedback}</p>}
                 <button
                   onClick={handleConfirmLog}
-                  disabled={loadingAction}
-                  className={`mt-4 w-full py-3 rounded-xl font-bold transition-all border-none cursor-pointer ${loadingAction ? 'bg-emerald-300 text-white cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+                  disabled={loadingType === 'save'}
+                  className={`mt-4 w-full py-3 rounded-xl font-bold transition-all border-none cursor-pointer ${loadingType === 'save' ? 'bg-emerald-300 text-white cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
                 >
-                  {loadingAction ? 'Saving...' : 'Log Food'}
+                  {loadingType === 'save' ? 'Saving...' : 'Log Food'}
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => window.location.hash = 'scanner'}
-                  disabled={loadingAction}
-                  className="w-full bg-gray-50 hover:bg-gray-100 active:scale-[0.98] border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4"
+                  disabled={loadingType !== null}
+                  className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}
                 >
                   <div className="bg-blue-100 text-blue-600 p-3 rounded-xl"><ScanBarcode size={24} /></div>
                   <div className="flex-1">
-                    <span className="font-bold block text-[15px]">Scan Barcode</span>
+                    <span className="font-bold block text-[15px]">{loadingType === 'barcode' ? 'Looking up...' : 'Scan Barcode'}</span>
                     <span className="text-xs text-gray-500">Packaged foods & snacks</span>
                   </div>
                   <ChevronRight size={20} className="text-gray-400" />
                 </button>
 
-                <label className={`w-full bg-gray-50 hover:bg-gray-100 active:scale-[0.98] border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingAction ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}>
                   <div className="bg-purple-100 text-purple-600 p-3 rounded-xl"><Camera size={24} /></div>
                   <div className="flex-1">
-                    <span className="font-bold block text-[15px]">{loadingAction ? 'Analyzing...' : 'Take Photo'}</span>
+                    <span className="font-bold block text-[15px]">{loadingType === 'photo' ? 'Analyzing...' : 'Take Photo'}</span>
                     <span className="text-xs text-gray-500">AI meal analysis</span>
                   </div>
                   <ChevronRight size={20} className="text-gray-400" />
-                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingAction} />
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingType !== null} />
                 </label>
 
                 {feedback && <p className="text-center text-sm font-medium text-emerald-600 mt-2">{feedback}</p>}

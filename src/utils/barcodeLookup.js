@@ -14,7 +14,17 @@ export async function lookupBarcodeProduct(barcode, cache = true) {
 
   try {
     const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,serving_size,image_url,allergens,nova_group,nutriscore_grade,nutrient_levels`;
-    const res = await fetch(url);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Prevent dead socket hangs
+
+    let res;
+    try {
+      res = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
     const data = await res.json();
 
     if (data.status !== 1) {

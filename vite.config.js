@@ -10,6 +10,10 @@ export default defineConfig({
     basicSsl()
   ],
   server: {
+    host: true,
+    port: 5173,
+    cors: true,
+    strictPort: false,
     proxy: {
       '/api/openai': {
         target: 'https://api.openai.com/v1',

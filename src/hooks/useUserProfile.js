@@ -36,6 +36,13 @@ export function useUserProfile() {
                 const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
                 if (!cachedSessionStr) {
                     setLoading(false); // They aren't logged in. Don't block the UI.
+                } else {
+                    try {
+                        const cachedObj = JSON.parse(localStorage.getItem(cachedSessionStr));
+                        if (cachedObj?.user) setUser(cachedObj.user);
+                    } catch (e) {
+                        console.warn("Error parsing cache", e);
+                    }
                 }
 
                 const { data: { session } } = await supabase.auth.getSession();
