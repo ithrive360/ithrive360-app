@@ -338,117 +338,124 @@ export default function FoodTracking() {
       <div className="flex flex-col flex-1 w-full max-w-md mx-auto relative overflow-hidden">
 
         {/* --- FIXED TOP SUMMARY DASHBOARD --- */}
-        <div className="flex-none bg-[#F9FAFB] z-20 px-4 pt-2 pb-4 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
+        <div className="flex-none bg-[#F9FAFB] z-20 px-4 pt-4 pb-2 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
+
           {/* Calorie Summary Top Bar */}
-          <div className="flex items-center justify-between py-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{Math.round(totalEaten)}</div>
-              <div className="text-xs text-gray-500 font-medium">Eaten</div>
+          <div className="flex items-center justify-between pb-3">
+            <div className="text-center w-1/4">
+              <div className="text-xl font-bold">{Math.round(totalEaten)}</div>
+              <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Eaten</div>
             </div>
 
-            <div className="w-28 h-28 relative">
+            <div className="w-20 h-20 relative flex-shrink-0">
               <CircularProgressbar
                 value={progressPercentage}
                 styles={buildStyles({
-                  pathColor: isOverBudget ? '#ef4444' : '#3ab3a1', // Red if over budget, green otherwise
-                  trailColor: '#e5e7eb', // The static background ring
-                  strokeLinecap: 'round', // This applies specifically to the path tips
+                  pathColor: isOverBudget ? '#ef4444' : '#3ab3a1',
+                  trailColor: '#e5e7eb',
+                  strokeLinecap: 'round',
                   pathTransitionDuration: 0.5,
                 })}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className={`text-2xl font-black ${isOverBudget ? 'text-red-500' : 'text-gray-800'}`}>
+                <span className={`text-xl font-black ${isOverBudget ? 'text-red-500' : 'text-gray-800'}`}>
                   {isOverBudget ? '+' : ''}{Math.round(caloriesLeft)}
                 </span>
-                <span className="text-xs font-semibold text-gray-400">
-                  {isOverBudget ? 'Cal Over' : 'Cal Left'}
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+                  {isOverBudget ? 'Over' : 'Left'}
                 </span>
               </div>
             </div>
 
-            <div className="text-center">
-              <div className="text-2xl font-bold">{Math.round(totalBurned)}</div>
-              <div className="text-xs text-gray-500 font-medium">Burned</div>
+            <div className="text-center w-1/4">
+              <div className="text-xl font-bold">{Math.round(totalBurned)}</div>
+              <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Burned</div>
             </div>
           </div>
 
-          {/* Macro Summary */}
-          <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-8">
-            <div className="text-center w-1/3 border-r border-gray-100">
-              <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
-              <div className="text-xs text-gray-500">Protein</div>
+          {/* Macro Summary - Compact Pill Style */}
+          <div className="flex justify-between bg-white rounded-2xl shadow-sm border border-gray-100 py-2 px-3">
+            <div className="text-center flex-1 border-r border-gray-100">
+              <div className="text-xs font-bold">{Math.round(totalProtein)}g</div>
+              <div className="text-[10px] text-gray-400 font-medium">Protein</div>
             </div>
-            <div className="text-center w-1/3 border-r border-gray-100">
-              <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
-              <div className="text-xs text-gray-500">Fat</div>
+            <div className="text-center flex-1 border-r border-gray-100">
+              <div className="text-xs font-bold">{Math.round(totalFat)}g</div>
+              <div className="text-[10px] text-gray-400 font-medium">Fat</div>
             </div>
-            <div className="text-center w-1/3">
-              <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
-              <div className="text-xs text-gray-500">Carbs</div>
+            <div className="text-center flex-1">
+              <div className="text-xs font-bold">{Math.round(totalCarbs)}g</div>
+              <div className="text-[10px] text-gray-400 font-medium">Carbs</div>
             </div>
           </div>
         </div>
 
         {/* Meal Categories (SCROLLABLE CONTAINER) */}
-        <div className="flex-1 overflow-y-auto px-4 pb-32 w-full relative pt-4 bg-[#F9FAFB]">
-          {MEAL_TYPES.map((meal, index) => {
-            const rowLogs = logs.filter(l => l.meal_type === meal.id);
-            const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
+        <div className="flex-1 overflow-y-auto w-full relative">
 
-            return (
-              <React.Fragment key={meal.id}>
-                {/* STICKY CARD HEADER */}
-                <div
-                  className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
-                  style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
-                      {meal.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 truncate">{meal.label}</h3>
-                      <span className="text-xs text-gray-500 font-medium block truncate">
-                        {rowLogs.length} {rowLogs.length === 1 ? 'item' : 'items'} • {Math.round(rowCals)} Cal
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => openAddSheet(meal.id)}
-                    className="h-10 w-10 shrink-0 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition-all border-none outline-none cursor-pointer"
+          {/* Top Buffer Mask (Hides text scrolling above Breakfast) */}
+          <div className="sticky top-0 h-4 bg-[#F9FAFB] w-full z-50"></div>
+
+          <div className="px-4 pb-32">
+            {MEAL_TYPES.map((meal, index) => {
+              const rowLogs = logs.filter(l => l.meal_type === meal.id);
+              const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
+
+              return (
+                <React.Fragment key={meal.id}>
+                  {/* STICKY CARD HEADER */}
+                  <div
+                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
+                    style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
                   >
-                    <Plus size={20} strokeWidth={2.5} />
-                  </button>
-                </div>
-
-                {/* ITEMS LOGGED (Slides perfectly under sticky headers) */}
-                {rowLogs.length > 0 && (
-                  <div className="bg-white px-2 py-1 flex flex-col mb-4">
-                    {rowLogs.map((log) => (
-                      <div
-                        key={log.meal_log_id}
-                        className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer px-2"
-                        onClick={() => openEditSheet(log)}
-                      >
-                        <div className="flex-1 min-w-0 pr-2">
-                          <p className="text-sm font-semibold text-gray-800 truncate">{log.label}</p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {log.quantity} {log.serving_unit} • {Math.round(log.nutrients_json?.energy_kcal || log.nutrients_json?.calories || 0)} kcal
-                          </p>
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteLog(log.meal_log_id); }}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2 shrink-0 bg-transparent border-none cursor-pointer rounded-full ml-1"
-                        >
-                          <XIcon size={16} />
-                        </button>
+                    <div className="flex items-center gap-4">
+                      <div className="text-2xl bg-gray-50/80 h-12 w-12 rounded-full flex items-center justify-center shrink-0">
+                        {meal.icon}
                       </div>
-                    ))}
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-gray-900 truncate">{meal.label}</h3>
+                        <span className="text-xs text-gray-500 font-medium block truncate">
+                          {rowLogs.length} {rowLogs.length === 1 ? 'item' : 'items'} • {Math.round(rowCals)} Cal
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openAddSheet(meal.id)}
+                      className="h-10 w-10 shrink-0 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition-all border-none outline-none cursor-pointer"
+                    >
+                      <Plus size={20} strokeWidth={2.5} />
+                    </button>
                   </div>
-                )}
-              </React.Fragment>
-            );
-          })}
+
+                  {/* ITEMS LOGGED (Slides perfectly under sticky headers) */}
+                  {rowLogs.length > 0 && (
+                    <div className="bg-white px-2 py-1 flex flex-col mb-4">
+                      {rowLogs.map((log) => (
+                        <div
+                          key={log.meal_log_id}
+                          className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer px-2"
+                          onClick={() => openEditSheet(log)}
+                        >
+                          <div className="flex-1 min-w-0 pr-2">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{log.label}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {log.quantity} {log.serving_unit} • {Math.round(log.nutrients_json?.energy_kcal || log.nutrients_json?.calories || 0)} kcal
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteLog(log.meal_log_id); }}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2 shrink-0 bg-transparent border-none cursor-pointer rounded-full ml-1"
+                          >
+                            <XIcon size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
       </div>
 
