@@ -14,11 +14,13 @@ export function UserProfileProvider({ children }) {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const fetchInProgress = React.useRef(false);
+    const lastFetchRef = React.useRef(0);
 
     const fetchUserData = async (currentUser) => {
-        if (fetchInProgress.current) return;
-        fetchInProgress.current = true;
+        const now = Date.now();
+        if (now - lastFetchRef.current < 2000) return; // Debounce strict 2 seconds
+        lastFetchRef.current = now;
+
         try {
             setUser(currentUser);
             await initUserProfile(currentUser);
@@ -31,11 +33,13 @@ export function UserProfileProvider({ children }) {
 
             if (profileError) throw profileError;
             setProfile(profileData || null);
+            if (profileData) {
+                localStorage.setItem('iThrive_cached_profile', JSON.stringify(profileData));
+            }
         } catch (err) {
             console.error('fetchUserData error:', err.message);
             setError(err);
         } finally {
-            fetchInProgress.current = false;
             setLoading(false);
         }
     };
@@ -51,11 +55,17 @@ export function UserProfileProvider({ children }) {
                     try {
                         const cachedObj = JSON.parse(localStorage.getItem(cachedSessionStr));
                         if (cachedObj?.user) setUser(cachedObj.user);
+
+                        // We must also try to hydrate the profile from a custom local cache
+                        // so we don't return a null profile to the dashboard before the network resolves.
+                        const cachedProfile = localStorage.getItem('iThrive_cached_profile');
+                        if (cachedProfile) {
+                            setProfile(JSON.parse(cachedProfile));
+                            setLoading(false); // Safe to unblock instantly, we have both User and Profile
+                        }
                     } catch (e) {
                         console.warn("Error parsing cache", e);
                     }
-                    // Unblock instantly to enable optimistic rendering
-                    setLoading(false);
                 }
 
                 // Force a strict 3-second timeout so a deadlocked network pool never freezes the PWA forever
