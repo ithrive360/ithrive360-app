@@ -1,6 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { supabase } from './lib/supabase';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import AuthCallback from './pages/AuthCallback';
@@ -13,67 +11,11 @@ import FoodTracking from './pages/FoodTracking';
 import SettingsPage from './pages/SettingsPage';
 import TrackProgress from './pages/TrackProgress';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useUserProfile } from './hooks/useUserProfile';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useUserProfile();
 
-  useEffect(() => {
-    // 1. Initial quick check using synchronous local storage to paint the app immediately
-    const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-    let hasValidLocalCache = false;
-
-    if (cachedSessionStr) {
-      try {
-        const cached = JSON.parse(localStorage.getItem(cachedSessionStr));
-        if (cached && cached.user) {
-          setUser(cached.user);
-          hasValidLocalCache = true;
-        }
-      } catch (e) {
-        console.warn('Failed to parse cached session', e);
-      }
-    }
-
-    // Unblock the UI instantly so the router can immediately mount exactly where the user is
-    setLoading(false);
-
-    // 2. Perform the actual network verification securely in the background
-    const verifySession = async () => {
-      try {
-        // Enforce a strict timeout so a deadlocked network pool never freezes the PWA splash screen forever
-        const res = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 4000))
-        ]);
-
-        const data = res?.data;
-        if (data?.session?.provider_token) {
-          localStorage.setItem('iThrive_fitbit_token', data.session.provider_token);
-        }
-
-        // If the background token refresh actually succeeded, ensure the user state is perfectly synced
-        if (data?.session?.user) setUser(data.session.user);
-      } catch (err) {
-        console.warn('Background session verification bypassed:', err.message);
-      }
-    };
-
-    verifySession();
-
-    // 3. Listen for future changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.provider_token) {
-        localStorage.setItem('iThrive_fitbit_token', session.provider_token);
-      }
-      setUser(session?.user || null);
-      setLoading(false);
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
 
   if (loading) {
     return (
