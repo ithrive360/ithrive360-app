@@ -8,6 +8,7 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
     const readerRef = useRef(null);
 
     useEffect(() => {
+        let isMounted = true;
         let controls = null;
 
         const startScanner = async () => {
@@ -25,7 +26,7 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
                     }
                 };
 
-                controls = await readerRef.current.decodeFromConstraints(
+                const newControls = await readerRef.current.decodeFromConstraints(
                     constraints,
                     videoRef.current,
                     (result, err) => {
@@ -43,9 +44,15 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
                     }
                 );
 
+                if (!isMounted) {
+                    newControls.stop();
+                    return;
+                }
+                controls = newControls;
+
             } catch (err) {
                 console.error('Camera access error:', err);
-                setError('Could not access the camera. Please check permissions.');
+                if (isMounted) setError('Could not access the camera. Please check permissions.');
             }
         };
 
@@ -53,6 +60,7 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
 
         // Cleanup on unmount
         return () => {
+            isMounted = false;
             try {
                 if (controls) {
                     controls.stop();
@@ -63,6 +71,9 @@ export default function LiveBarcodeScanner({ onScan, onClose }) {
                         if (typeof track.stop === 'function') track.stop();
                     });
                     videoRef.current.srcObject = null;
+                }
+                if (readerRef.current) {
+                    readerRef.current.reset();
                 }
             } catch (err) {
                 console.warn('Barcode cleanup safely bypassed:', err);

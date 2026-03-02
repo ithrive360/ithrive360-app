@@ -14,8 +14,11 @@ export function UserProfileProvider({ children }) {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const fetchInProgress = React.useRef(false);
 
     const fetchUserData = async (currentUser) => {
+        if (fetchInProgress.current) return;
+        fetchInProgress.current = true;
         try {
             setUser(currentUser);
             await initUserProfile(currentUser);
@@ -32,6 +35,7 @@ export function UserProfileProvider({ children }) {
             console.error('fetchUserData error:', err.message);
             setError(err);
         } finally {
+            fetchInProgress.current = false;
             setLoading(false);
         }
     };
@@ -50,6 +54,8 @@ export function UserProfileProvider({ children }) {
                     } catch (e) {
                         console.warn("Error parsing cache", e);
                     }
+                    // Unblock instantly to enable optimistic rendering
+                    setLoading(false);
                 }
 
                 // Force a strict 3-second timeout so a deadlocked network pool never freezes the PWA forever

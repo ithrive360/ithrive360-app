@@ -16,11 +16,9 @@ import { useUserProfile } from './hooks/useUserProfile';
 function App() {
   const { user, loading } = useUserProfile();
 
-
   if (loading) {
     return (
       <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
-        {/* Simple splash placeholder to replace the blank white screen */}
         <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." style={{ width: '80px', height: '80px', animation: 'pulse 2s infinite' }} />
       </div>
     );
