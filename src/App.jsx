@@ -24,6 +24,9 @@ function App() {
     );
   }
 
+  // Prevent router trashing before the initial user token is hydrated
+  if (user === undefined) return null;
+
   return (
     <Router>
       <Routes>

@@ -50,7 +50,8 @@ export function UserProfileProvider({ children }) {
                 // Instantly check local storage to decide whether we even need to show a loading screen
                 const cachedSessionStr = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
                 if (!cachedSessionStr) {
-                    setLoading(false); // They aren't logged in. Don't block the UI.
+                    // Do NOT unblock early if there's no cache.
+                    // Let the actual Supabase network promise resolve first to prevent rapid redirect loops.
                 } else {
                     try {
                         const cachedObj = JSON.parse(localStorage.getItem(cachedSessionStr));
