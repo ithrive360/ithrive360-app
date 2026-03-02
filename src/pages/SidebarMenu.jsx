@@ -95,7 +95,9 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
-          padding: '24px 16px'
+          padding: '24px 16px',
+          pointerEvents: isOpen ? 'auto' : 'none',
+          opacity: isOpen ? 1 : 0
         }}
       >
         {/* Header with Avatar */}
