@@ -65,7 +65,7 @@ export default function TrackProgress() {
                         timeRange: timeRange
                     });
                     setFitbitError(null);
-                    triggerBackgroundSync();
+                    triggerBackgroundSync(); // Hand off loading responsibility
                     return;
                 }
 
@@ -110,13 +110,16 @@ export default function TrackProgress() {
                 const hoursSinceSync = (new Date() - mostRecentSync) / (1000 * 60 * 60);
 
                 if (hoursSinceSync > 1) {
+                    // Hand off loading responsibility to the background sync
                     triggerBackgroundSync();
+                } else {
+                    // No background sync needed, we are done loading
+                    setFitbitLoading(false);
                 }
 
             } catch (err) {
                 console.error("Local DB read error:", err);
                 setFitbitError("Failed to load local health data.");
-            } finally {
                 setFitbitLoading(false);
             }
         };
@@ -125,13 +128,13 @@ export default function TrackProgress() {
             const token = localStorage.getItem('iThrive_fitbit_token');
             if (!token || token === 'linked_but_requires_reconnect') {
                 if (!fitbitData) setFitbitError("Please connect Fitbit in Settings.");
+                setFitbitLoading(false); // ALWAYS drop the UI lock on an early exit
                 return;
             }
 
             console.log("Background syncing Fitbit metrics to Supabase...");
 
             try {
-                setFitbitLoading(true);
                 // Fetch the core 1-month metrics from Fitbit APIs
                 const [stepsRes, distRes, azmRes, calsRes, sleepRes, hrRes, weightRes, hrvRes] = await Promise.all([
                     supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/steps/date/today/1m.json`, token } }),
@@ -222,7 +225,7 @@ export default function TrackProgress() {
             }
         };
 
-        // We do not set loading true here globally anymore. fetchLocalStats sets it.
+        setFitbitLoading(true);
         fetchLocalStats();
 
     }, [timeRange, user]);
