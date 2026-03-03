@@ -58,6 +58,12 @@ export function UserProfileProvider({ children }) {
     };
 
     useEffect(() => {
+        // BRUTE FORCE FAILSAFE: guarantee the app unlocks after 8s
+        const failsafeTimer = setTimeout(() => {
+            console.warn("UserProfileContext: Initialization failsafe triggered. Force-unblocking UI.");
+            setLoading(false);
+        }, 8000);
+
         const checkSessionAndFetch = async () => {
             try {
                 // Instantly check local storage to decide whether we even need to show a loading screen
@@ -82,7 +88,7 @@ export function UserProfileProvider({ children }) {
                     }
                 }
 
-                // Force a strict 3-second timeout so a deadlocked network pool never freezes the PWA forever
+                // Force a strict 10-second timeout so a deadlocked network pool never freezes the PWA forever
                 const res = await Promise.race([
                     supabase.auth.getSession(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 10000))
@@ -123,6 +129,7 @@ export function UserProfileProvider({ children }) {
         );
 
         return () => {
+            clearTimeout(failsafeTimer);
             authListener?.subscription?.unsubscribe();
         };
     }, []);

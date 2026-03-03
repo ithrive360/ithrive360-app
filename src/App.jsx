@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
@@ -25,7 +26,25 @@ function App() {
   }
 
   // Prevent router trashing before the initial user token is hydrated
-  if (user === undefined) return null;
+  const [routerLock, setRouterLock] = useState(true);
+
+  useEffect(() => {
+    // If user resolves to null (logged out) or an object (logged in), unlock.
+    if (user !== undefined) {
+      setRouterLock(false);
+    }
+    // Hard fallback: if Context API completely fails to resolve `user` within 10s on WebView, force unlock.
+    const lockTimer = setTimeout(() => {
+      if (user === undefined) {
+        console.warn("App.jsx: user === undefined for 10s. Force-unlocking router.");
+        setRouterLock(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(lockTimer);
+  }, [user]);
+
+  if (routerLock && user === undefined) return null;
 
   return (
     <Router>
