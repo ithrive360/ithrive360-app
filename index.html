@@ -20,6 +20,24 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
+  <!-- PWA Service Worker Kill Switch -->
+  <!-- Automatically rescues mobile users trapped on an aggressively cached, broken old version -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        let killedWorker = false;
+        for (let registration of registrations) {
+          registration.unregister();
+          killedWorker = true;
+        }
+        // If we found and killed an old PWA cache worker, reload the page to pull the fresh HTML bypassing cache
+        if (killedWorker) {
+          window.location.reload(true);
+        }
+      });
+    }
+  </script>
+
   <!-- Pre-Boot Interceptor for Fitbit OAuth -->
   <!-- This MUST run before Vite and Supabase load to prevent Supabase from crashing on the Fitbit hash! -->
   <!-- We restrict this to the /settings path so it DOES NOT steal Google Login hashes. -->
