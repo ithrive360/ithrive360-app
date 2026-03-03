@@ -13,6 +13,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Android Chrome 'Pull-to-refresh' abruptly kills the PWA document while it's holding `navigator.locks` for the Auth token.
     // When the page reloads, Supabase-js waits INFINITELY for that dead Web Lock to clear, deadlocking ALL `.from()` queries.
     // Bypassing the cross-tab lock entirely fixes this for mobile PWAs where users only have one active tab anyway.
-    lock: (name, acquire) => acquire(),
+    lock: async (name, acquire) => {
+      // Must await the acquire callback to satisfy Supabase-js Promise signature
+      return await acquire();
+    },
   },
 });
