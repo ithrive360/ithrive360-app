@@ -23,15 +23,28 @@ export function UserProfileProvider({ children }) {
 
         try {
             setUser(currentUser);
-            await initUserProfile(currentUser);
 
-            const { data: profileData, error: profileError } = await supabase
+            let { data: profileData, error: profileError } = await supabase
                 .from('user_profile')
                 .select('*')
                 .eq('user_id', currentUser.id)
-                .single();
+                .maybeSingle();
 
-            if (profileError) throw profileError;
+            if (!profileData && !profileError) {
+                // Profile doesn't exist, create it.
+                await initUserProfile(currentUser);
+                // Fetch the newly created profile
+                const res = await supabase
+                    .from('user_profile')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+                profileData = res.data;
+                profileError = res.error;
+            }
+
+            if (profileError && profileError.code !== 'PGRST116') throw profileError;
+
             setProfile(profileData || null);
             if (profileData) {
                 localStorage.setItem('iThrive_cached_profile', JSON.stringify(profileData));
@@ -72,7 +85,7 @@ export function UserProfileProvider({ children }) {
                 // Force a strict 3-second timeout so a deadlocked network pool never freezes the PWA forever
                 const res = await Promise.race([
                     supabase.auth.getSession(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 3000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 10000))
                 ]);
                 const session = res?.data?.session;
 

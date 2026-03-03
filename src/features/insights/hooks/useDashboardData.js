@@ -20,18 +20,25 @@ export function useDashboardData(userId) {
                 // Wrap the entire fetching block in a strict 6-second timeout to prevent infinite PWA loop locks
                 await Promise.race([
                     (async () => {
-                        // --- 1. Fetch Insights & Weights ---
-                        const { data: insights, error: insightsError } = await supabase
-                            .from('user_health_insight')
-                            .select('health_area_id, findings_json, recommendations_json')
-                            .eq('user_id', userId);
+                        // --- 1. Fetch Insights & Weights & Recommendations in Parallel ---
+                        const [
+                            { data: insights, error: insightsError },
+                            { data: bloodWeights },
+                            { data: bloodRefs },
+                            { data: dnaWeights },
+                            { data: dnaRefs },
+                            { data: recData, error: recError }
+                        ] = await Promise.all([
+                            supabase.from('user_health_insight').select('health_area_id, findings_json, recommendations_json').eq('user_id', userId),
+                            supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight'),
+                            supabase.from('blood_marker_reference').select('blood_marker_id, marker_name'),
+                            supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight'),
+                            supabase.from('dna_marker_reference').select('dna_id, trait'),
+                            supabase.from('user_recommendation').select('category, recommendation, priority, is_selected')
+                        ]);
 
                         if (insightsError) throw insightsError;
-
-                        const { data: bloodWeights } = await supabase.from('blood_marker_health_area').select('blood_marker_id, health_area_id, importance_weight');
-                        const { data: bloodRefs } = await supabase.from('blood_marker_reference').select('blood_marker_id, marker_name');
-                        const { data: dnaWeights } = await supabase.from('dna_marker_health_area').select('dna_id, health_area_id, importance_weight');
-                        const { data: dnaRefs } = await supabase.from('dna_marker_reference').select('dna_id, trait');
+                        if (recError) throw recError;
 
                         const scores = insights.map(insight => ({
                             health_area_id: insight.health_area_id,
@@ -53,13 +60,6 @@ export function useDashboardData(userId) {
                             });
                         }
 
-                        // --- 2. Fetch User Recommendations ---
-                        const { data: recData, error: recError } = await supabase
-                            .from('user_recommendation')
-                            .select('category, recommendation, priority, is_selected');
-
-                        if (recError) throw recError;
-
                         const grouped = {};
                         const toggles = {};
 
@@ -75,7 +75,7 @@ export function useDashboardData(userId) {
                             setActiveToggles(toggles);
                         }
                     })(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard Data Fetch Timeout')), 6000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard Data Fetch Timeout')), 15000))
                 ]);
             } catch (err) {
                 console.error('Failed to fetch dashboard data:', err.message);
