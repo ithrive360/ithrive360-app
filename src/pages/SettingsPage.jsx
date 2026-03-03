@@ -1,84 +1,113 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, Settings as SettingsIcon, Link as LinkIcon, CheckCircle } from 'lucide-react';
+import { Menu, X, Settings as SettingsIcon, Link as LinkIcon, CheckCircle, RefreshCw } from 'lucide-react';
 import logo from '../assets/logo.png';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 export default function SettingsPage() {
-    const [user, setUser] = useState(null);
-    const [profile, setProfile] = useState(null);
+    const { user, profile } = useUserProfile();
     const [menuOpen, setMenuOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState('');
-    const [fitbitToken, setFitbitToken] = useState(null);
+    const [fitbitToken, setFitbitToken] = useState(() => localStorage.getItem('iThrive_fitbit_token'));
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const currentUser = sessionData?.session?.user;
-            if (!currentUser) return;
-            setUser(currentUser);
-
-            // Manual URL Scrape for OAuth redirect callback
+        // Run once on mount to catch the OAuth redirect
+        const handleOAuthHash = async () => {
             const hash = window.location.hash.substring(1);
+            if (!hash) return;
+
             const params = new URLSearchParams(hash);
             const hashAccessToken = params.get('access_token');
             const hashUserId = params.get('user_id');
 
             if (hashAccessToken) {
-                console.log("Successfully scraped Fitbit token from URL hash!");
-                localStorage.setItem('iThrive_fitbit_token', hashAccessToken);
-                if (hashUserId) {
-                    localStorage.setItem('iThrive_fitbit_user_id', hashUserId);
-                }
-                setFitbitToken(hashAccessToken);
-                window.history.replaceState(null, '', window.location.pathname);
-            } else {
-                const savedToken = localStorage.getItem('iThrive_fitbit_token');
-                if (savedToken) {
-                    setFitbitToken(savedToken);
-                }
-            }
+                console.log("SettingsPage: Successfully scraped Fitbit token from URL hash!");
 
-            const { data: profileData } = await supabase
-                .from('user_profile')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .single();
-            setProfile(profileData);
+                // Save it
+                localStorage.setItem('iThrive_fitbit_token', hashAccessToken);
+                if (hashUserId) localStorage.setItem('iThrive_fitbit_user_id', hashUserId);
+                setFitbitToken(hashAccessToken);
+
+                // Clean the URL hash so it doesn't run again on reload
+                window.history.replaceState(null, '', window.location.pathname);
+
+                // Clear the TrackProgress optimistic caches so it is forced to redraw
+                if (user) {
+                    localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_today`);
+                    localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_week`);
+                    localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_month`);
+                }
+
+                setFeedback('Connection successful! Syncing fresh data...');
+                setLoading(true);
+
+                // Force a background sync of today's data right now, so the user doesn't wonder why "Today" is empty!
+                try {
+                    const [stepsRes, distRes, azmRes, calsRes, sleepRes, hrRes, weightRes, hrvRes] = await Promise.all([
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/steps/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/distance/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/active-zone-minutes/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/calories/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1.2/user/-/sleep/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/heart/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/body/log/weight/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/hrv/date/today/today.json`, token: hashAccessToken } })
+                    ]);
+
+                    await supabase.functions.invoke('sync-fitbit-pg', {
+                        body: {
+                            userId: user?.id,
+                            stepsData: stepsRes.data?.data,
+                            distanceData: distRes.data?.data,
+                            azmData: azmRes.data?.data,
+                            caloriesData: calsRes.data?.data,
+                            sleepData: sleepRes.data?.data,
+                            hrData: hrRes.data?.data,
+                            weightData: weightRes.data?.data,
+                            hrvData: hrvRes.data?.data
+                        }
+                    });
+                    setFeedback('Fitbit data is now fully synced!');
+                } catch (e) {
+                    console.error("Fresh sync failed:", e);
+                    setFeedback('Connected, but initial sync timed out. Data will load soon.');
+                }
+                setLoading(false);
+            }
         };
 
-        fetchProfile();
-    }, []);
-
-    const handleFitbitConnect = async () => {
-        setLoading(true);
-        setFeedback('Routing to Fitbit securely...');
-
-        try {
-            const clientId = import.meta.env.VITE_FITBIT_CLIENT_ID;
-            if (!clientId) {
-                throw new Error("Missing Fitbit Client ID in environment variables");
-            }
-
-            const redirectUri = encodeURIComponent(`${window.location.origin}/settings`);
-            const fitbitAuthUrl = `https://www.fitbit.com/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}&scope=activity%20heartrate%20weight%20profile%20sleep&expires_in=31536000`;
-            window.location.href = fitbitAuthUrl;
-        } catch (err) {
-            console.error('Error initiating Fitbit Auth:', err.message);
-            setFeedback('Failed to connect: ' + err.message);
-            setLoading(false);
+        if (user) {
+            handleOAuthHash();
         }
-    };
+    }, [user]);
 
     const handleDisconnect = () => {
         localStorage.removeItem('iThrive_fitbit_token');
+        if (user) {
+            localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_today`);
+            localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_week`);
+            localStorage.removeItem(`iThrive_fitbit_cache_${user.id}_month`);
+            localStorage.removeItem(`iThrive_dashboard_cache_${user.id}`);
+        }
         setFitbitToken(null);
-        setFeedback('Fitbit disconnected successfully.');
+        setFeedback('Fitbit disconnected. Local cache cleared.');
     };
 
-    if (!user) return <div className="flex justify-center items-center h-screen"><p>You must be logged in to view this page.</p></div>;
+    if (!user) {
+        return (
+            <div className="flex justify-center flex-col gap-4 items-center h-screen bg-[#F9FAFB]">
+                <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." className="w-20 h-20 animate-pulse" />
+                <p className="text-gray-500 font-medium">Loading settings...</p>
+            </div>
+        );
+    }
+
+    const clientId = import.meta.env.VITE_FITBIT_CLIENT_ID;
+    const redirectUri = encodeURIComponent(`${window.location.origin}/settings`);
+    const fitbitAuthUrl = `https://www.fitbit.com/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}&scope=activity%20heartrate%20weight%20profile%20sleep&expires_in=31536000`;
 
     return (
         <ErrorBoundary>
@@ -111,7 +140,7 @@ export default function SettingsPage() {
                             <LinkIcon size={18} className="text-blue-500" /> Connected Apps & Devices
                         </h2>
                         <p className="text-sm text-gray-500 mb-6">
-                            Securely link external trackers like Fitbit and Eufy scales to automatically sync your health data with iThrive360.
+                            Securely link external trackers like Fitbit to automatically sync your health data with iThrive360.
                         </p>
 
                         <div className="border border-gray-100 rounded-2xl p-5 bg-gray-50/50">
@@ -140,24 +169,25 @@ export default function SettingsPage() {
                             {fitbitToken ? (
                                 <button
                                     onClick={handleDisconnect}
-                                    className="w-full bg-white border border-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors hover:bg-gray-50"
+                                    className="w-full bg-white border border-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                                 >
                                     Disconnect Fitbit
                                 </button>
                             ) : (
-                                <button
-                                    onClick={handleFitbitConnect}
-                                    disabled={loading}
-                                    className={`w-full bg-[#00B0B9] text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-opacity ${loading ? 'opacity-70' : 'hover:opacity-90'}`}
+                                <a
+                                    href={fitbitAuthUrl}
+                                    // Native anchor tag instead of window.location to force Android PWAs to break out properly
+                                    className={`w-full block text-center bg-[#00B0B9] text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90`}
                                 >
-                                    {loading ? 'Routing securely...' : 'Connect to Fitbit'}
-                                </button>
+                                    Connect to Fitbit
+                                </a>
                             )}
 
                             {feedback && (
-                                <p className="mt-4 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg text-center">
+                                <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-3 rounded-lg border border-emerald-100">
+                                    {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
                                     {feedback}
-                                </p>
+                                </div>
                             )}
                         </div>
                     </section>
