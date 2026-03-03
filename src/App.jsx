@@ -17,14 +17,6 @@ import { useUserProfile } from './hooks/useUserProfile';
 function App() {
   const { user, loading } = useUserProfile();
 
-  if (loading) {
-    return (
-      <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
-        <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." style={{ width: '80px', height: '80px', animation: 'pulse 2s infinite' }} />
-      </div>
-    );
-  }
-
   // Prevent router trashing before the initial user token is hydrated
   const [routerLock, setRouterLock] = useState(true);
 
@@ -43,6 +35,14 @@ function App() {
 
     return () => clearTimeout(lockTimer);
   }, [user]);
+
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAFAFA' }}>
+        <img src="/icons/icon-192x192.png" alt="Loading iThrive360..." style={{ width: '80px', height: '80px', animation: 'pulse 2s infinite' }} />
+      </div>
+    );
+  }
 
   if (routerLock && user === undefined) return null;
 

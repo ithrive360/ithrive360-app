@@ -18,17 +18,25 @@ export function UserProfileProvider({ children }) {
 
     const fetchUserData = async (currentUser) => {
         const now = Date.now();
-        if (now - lastFetchRef.current < 2000) return; // Debounce strict 2 seconds
+        if (now - lastFetchRef.current < 2000) {
+            setLoading(false); // Make sure we don't accidentally swallow the unlock
+            return;
+        }
         lastFetchRef.current = now;
 
         try {
             setUser(currentUser);
 
-            let { data: profileData, error: profileError } = await supabase
+            // Wrap DB query in a race to prevent deadlocking the PWA if offline
+            const profilePromise = supabase
                 .from('user_profile')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .maybeSingle();
+
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile Fetch Timeout')), 8000));
+
+            let { data: profileData, error: profileError } = await Promise.race([profilePromise, timeoutPromise]);
 
             if (!profileData && !profileError) {
                 // Profile doesn't exist, create it.
