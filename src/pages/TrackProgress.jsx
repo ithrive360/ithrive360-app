@@ -131,6 +131,7 @@ export default function TrackProgress() {
             console.log("Background syncing Fitbit metrics to Supabase...");
 
             try {
+                setFitbitLoading(true);
                 // Fetch the core 1-month metrics from Fitbit APIs
                 const [stepsRes, distRes, azmRes, calsRes, sleepRes, hrRes, weightRes, hrvRes] = await Promise.all([
                     supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/steps/date/today/1m.json`, token } }),
@@ -208,16 +209,20 @@ export default function TrackProgress() {
                     if (upsertErr) throw upsertErr;
                     console.log("Successfully background synced and upserted Fitbit data.");
 
-                    // Re-run local fetch to softly update the UI with the fresh data
+                    // Re-run local fetch to softly update the UI with the fresh data.
+                    // Important: fetchLocalStats will manage its own loading state.
                     fetchLocalStats();
                 }
 
             } catch (err) {
                 console.error("Background sync failed:", err);
+            } finally {
+                // ALWAYS release the loading lock so the screen doesn't stay grayed out forever
+                setFitbitLoading(false);
             }
         };
 
-        setFitbitLoading(true);
+        // We do not set loading true here globally anymore. fetchLocalStats sets it.
         fetchLocalStats();
 
     }, [timeRange, user]);
