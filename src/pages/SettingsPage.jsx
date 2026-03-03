@@ -49,27 +49,70 @@ export default function SettingsPage() {
                     const [stepsRes, distRes, azmRes, calsRes, sleepRes, hrRes, weightRes, hrvRes] = await Promise.all([
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/steps/date/today/1m.json`, token: hashAccessToken } }),
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/distance/date/today/1m.json`, token: hashAccessToken } }),
-                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/active-zone-minutes/date/today/1m.json`, token: hashAccessToken } }),
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/activeZoneMinutes/date/today/1m.json`, token: hashAccessToken } }),
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/calories/date/today/1m.json`, token: hashAccessToken } }),
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1.2/user/-/sleep/date/today/1m.json`, token: hashAccessToken } }),
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/activities/heart/date/today/1m.json`, token: hashAccessToken } }),
                         supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/body/log/weight/date/today/1m.json`, token: hashAccessToken } }),
-                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/hrv/date/today/today.json`, token: hashAccessToken } })
+                        supabase.functions.invoke('fitbit-proxy', { body: { endpoint: `https://api.fitbit.com/1/user/-/hrv/date/today/1m.json`, token: hashAccessToken } })
                     ]);
 
-                    await supabase.functions.invoke('sync-fitbit-pg', {
-                        body: {
-                            userId: user?.id,
-                            stepsData: stepsRes.data?.data,
-                            distanceData: distRes.data?.data,
-                            azmData: azmRes.data?.data,
-                            caloriesData: calsRes.data?.data,
-                            sleepData: sleepRes.data?.data,
-                            hrData: hrRes.data?.data,
-                            weightData: weightRes.data?.data,
-                            hrvData: hrvRes.data?.data
+                    if (stepsRes.error || stepsRes.data?.error) {
+                        throw new Error("Fitbit Token Error on Initial Sync");
+                    }
+
+                    const pSteps = stepsRes.data?.['activities-steps'] || [];
+                    const pDist = distRes.data?.['activities-distance'] || [];
+                    const pAzm = azmRes.data?.['activities-activeZoneMinutes'] || [];
+                    const pCals = calsRes.data?.['activities-calories'] || [];
+                    const pSleep = sleepRes.data?.sleep || [];
+                    const pHr = hrRes.data?.['activities-heart'] || [];
+                    const pWeight = weightRes.data?.weight || [];
+                    const pHrv = hrvRes.data?.hrv || [];
+
+                    const dailyRecords = {};
+
+                    pSteps.forEach(d => {
+                        dailyRecords[d.dateTime] = {
+                            user_id: user.id,
+                            date: d.dateTime,
+                            steps: parseInt(d.value || 0),
+                            last_synced_at: new Date().toISOString()
+                        };
+                    });
+
+                    pDist.forEach(d => { if (dailyRecords[d.dateTime]) dailyRecords[d.dateTime].distance_km = parseFloat(d.value || 0); });
+                    pCals.forEach(d => { if (dailyRecords[d.dateTime]) dailyRecords[d.dateTime].calories_out = parseInt(d.value || 0); });
+                    pAzm.forEach(d => { if (dailyRecords[d.dateTime]) dailyRecords[d.dateTime].active_zone_minutes = parseInt(d.value?.activeZoneMinutes || 0); });
+
+                    pSleep.forEach(d => {
+                        if (dailyRecords[d.dateOfSleep]) {
+                            dailyRecords[d.dateOfSleep].sleep_minutes_asleep = parseInt(d.minutesAsleep || 0);
+                            dailyRecords[d.dateOfSleep].sleep_time_in_bed = parseInt(d.timeInBed || 0);
                         }
                     });
+
+                    pHr.forEach(d => { if (dailyRecords[d.dateTime]) dailyRecords[d.dateTime].resting_heart_rate = parseInt(d.value?.restingHeartRate || null); });
+                    pHrv.forEach(d => { if (dailyRecords[d.dateTime]) dailyRecords[d.dateTime].hrv = parseFloat(d.value?.dailyRmssd || null); });
+
+                    pWeight.forEach(d => {
+                        if (dailyRecords[d.date]) {
+                            let w = parseFloat(d.weight || 0);
+                            if (w > 130) w = w / 2.20462;
+                            dailyRecords[d.date].weight_kg = w;
+                        }
+                    });
+
+                    const upsertBatch = Object.values(dailyRecords);
+
+                    if (upsertBatch.length > 0) {
+                        const { error: upsertErr } = await supabase
+                            .from('user_fitbit_stats')
+                            .upsert(upsertBatch, { onConflict: 'user_id,date' });
+
+                        if (upsertErr) throw upsertErr;
+                    }
+
                     setFeedback('Fitbit data is now fully synced!');
                 } catch (e) {
                     console.error("Fresh sync failed:", e);
