@@ -15,7 +15,26 @@ export function useDashboardData(userId) {
         let isMounted = true;
 
         const fetchDashboardData = async () => {
-            setLoading(true);
+            const cacheKey = `iThrive_dashboard_cache_${userId}`;
+            const cached = localStorage.getItem(cacheKey);
+
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (isMounted) {
+                        setOverallScores(parsed.overallScores || { general: null, longevity: null, performance: null });
+                        setRecommendationData(parsed.recommendationData || {});
+                        setActiveToggles(parsed.activeToggles || {});
+                        setLoading(false); // Instantly drop the UI lock so pull-to-refresh deadlocks don't freeze the screen!
+                    }
+                } catch (e) {
+                    console.warn("Invalid dashboard cache", e);
+                    if (isMounted) setLoading(true);
+                }
+            } else {
+                if (isMounted) setLoading(true);
+            }
+
             try {
                 // Wrap the entire fetching block in a strict 6-second timeout to prevent infinite PWA loop locks
                 await Promise.race([
@@ -52,13 +71,11 @@ export function useDashboardData(userId) {
                             return valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
                         };
 
-                        if (isMounted) {
-                            setOverallScores({
-                                general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
-                                performance: getGroupAvg(['HA005', 'HA006']),
-                                longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
-                            });
-                        }
+                        const newScores = {
+                            general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
+                            performance: getGroupAvg(['HA005', 'HA006']),
+                            longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
+                        };
 
                         const grouped = {};
                         const toggles = {};
@@ -71,8 +88,16 @@ export function useDashboardData(userId) {
                         }
 
                         if (isMounted) {
+                            setOverallScores(newScores);
                             setRecommendationData(grouped);
                             setActiveToggles(toggles);
+
+                            // Silently update the optimistic cache against future deadlocks
+                            localStorage.setItem(cacheKey, JSON.stringify({
+                                overallScores: newScores,
+                                recommendationData: grouped,
+                                activeToggles: toggles
+                            }));
                         }
                     })(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard Data Fetch Timeout')), 15000))

@@ -32,6 +32,21 @@ export default function TrackProgress() {
         if (!user) return;
 
         const fetchLocalStats = async () => {
+            const cacheKey = `iThrive_fitbit_cache_${user.id}_${timeRange}`;
+            const cached = localStorage.getItem(cacheKey);
+
+            if (cached) {
+                try {
+                    setFitbitData(JSON.parse(cached));
+                    setFitbitLoading(false); // Instantly drop the UI lock!
+                } catch (e) {
+                    console.warn("Invalid fitbit cache", e);
+                    setFitbitLoading(true);
+                }
+            } else {
+                setFitbitLoading(true);
+            }
+
             try {
                 // 1. Determine date range
                 const today = new Date();
@@ -42,20 +57,27 @@ export default function TrackProgress() {
                 const todayStr = today.toISOString().split('T')[0];
                 const startStr = startDate.toISOString().split('T')[0];
 
-                // 2. Fetch from fast local Supabase table
-                const { data: stats, error } = await supabase
-                    .from('user_fitbit_stats')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .gte('date', startStr)
-                    .lte('date', todayStr)
-                    .order('date', { ascending: false });
+                // Wrap network call in a timeout race to ensure deadlocks skip gracefully
+                const [statsRes] = await Promise.race([
+                    Promise.all([
+                        supabase.from('user_fitbit_stats')
+                            .select('*')
+                            .eq('user_id', user.id)
+                            .gte('date', startStr)
+                            .lte('date', todayStr)
+                            .order('date', { ascending: false })
+                    ]),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Network Fetch Timeout')), 10000))
+                ]);
+
+                const stats = statsRes.data;
+                const error = statsRes.error;
 
                 if (error) throw error;
 
                 if (!stats || stats.length === 0) {
                     // Explicitly wipe the state so we don't carry over 'Week' or 'Month' values into an empty 'Today'
-                    setFitbitData({
+                    const emptyData = {
                         activity: { steps: 0, distances: [{ distance: 0 }], caloriesOut: 0, activeZoneMinutes: 0 },
                         sleep: { totalMinutesAsleep: 0, totalTimeInBed: 0 },
                         heartRate: '--',
@@ -63,7 +85,9 @@ export default function TrackProgress() {
                         weight: '--',
                         spO2: '--',
                         timeRange: timeRange
-                    });
+                    };
+                    setFitbitData(emptyData);
+                    localStorage.setItem(cacheKey, JSON.stringify(emptyData)); // Cache empty state too
                     setFitbitError(null);
                     triggerBackgroundSync(); // Hand off loading responsibility
                     return;
@@ -92,7 +116,7 @@ export default function TrackProgress() {
                 const validWeights = stats.filter(r => r.weight_kg > 0);
                 const activeWeight = validWeights.length > 0 ? parseFloat(validWeights[0].weight_kg).toFixed(1) : '--'; // Get most recent
 
-                setFitbitData({
+                const newFitbitData = {
                     activity: activeSummary,
                     isYesterday: false, // Legacy fallback flag, no longer strictly needed with DB model but kept for UI compat
                     sleep: activeSleep,
@@ -101,7 +125,10 @@ export default function TrackProgress() {
                     weight: activeWeight,
                     spO2: '--', // Not yet in core schema
                     timeRange: timeRange
-                });
+                };
+
+                setFitbitData(newFitbitData);
+                localStorage.setItem(cacheKey, JSON.stringify(newFitbitData)); // Silently update optimistic cache
 
                 setFitbitError(null);
 
