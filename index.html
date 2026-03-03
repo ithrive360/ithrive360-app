@@ -30,8 +30,11 @@
           registration.unregister();
           killedWorker = true;
         }
-        // If we found and killed an old PWA cache worker, reload the page to pull the fresh HTML bypassing cache
-        if (killedWorker) {
+
+        // Prevent infinite reload loops! If Chrome refuses to kill the worker instantly,
+        // we only allow ONE forced reload per session.
+        if (killedWorker && !sessionStorage.getItem('pwa_reloaded')) {
+          sessionStorage.setItem('pwa_reloaded', 'true');
           window.location.reload(true);
         }
       });
