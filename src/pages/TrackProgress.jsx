@@ -181,6 +181,15 @@ export default function TrackProgress() {
                     throw new Error("Fitbit Token Error");
                 }
 
+                console.log("----- FITBIT RAW BACKGROUND SYNC PAYLOADS -----");
+                console.log("Steps:", stepsRes.data);
+                console.log("Distance:", distRes.data);
+                console.log("AZM:", azmRes.data);
+                console.log("Calories:", calsRes.data);
+                console.log("Sleep:", sleepRes.data);
+                console.log("HR:", hrRes.data);
+                console.log("==========================================");
+
                 // Safe array extraction
                 const pSteps = stepsRes.data?.['activities-steps'] || [];
                 const pDist = distRes.data?.['activities-distance'] || [];
