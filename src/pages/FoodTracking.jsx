@@ -381,7 +381,7 @@ export default function FoodTracking() {
       <div className="flex flex-col flex-1 w-full max-w-md mx-auto relative overflow-hidden">
 
         {/* --- FIXED TOP SUMMARY DASHBOARD --- */}
-        <div className="flex-none bg-[#F9FAFB] z-20 px-4 pt-4 pb-2 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
+        <div className="flex-none bg-[#F9FAFB] z-[60] px-4 pt-4 pb-2 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
 
           {/* Calorie Summary Top Bar */}
           <div className="flex items-center justify-between pb-3">
