@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Activity, ShieldCheck, Zap, Brain, Info } from 'lucide-react';
 
 export default function ScoreCardsDashboard({ scores }) {
     const [visibleInfo, setVisibleInfo] = useState(null);
-    const infoRefs = useRef({});
 
     const getColorClass = (score) => {
         if (score === null || score === '--') return 'bg-gray-300';
@@ -47,20 +46,6 @@ export default function ScoreCardsDashboard({ scores }) {
         }
     ];
 
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (
-                visibleInfo &&
-                infoRefs.current[visibleInfo] &&
-                !infoRefs.current[visibleInfo].contains(e.target)
-            ) {
-                setVisibleInfo(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [visibleInfo]);
-
     return (
         <div className="w-full relative font-sans mb-8">
             <div className="grid grid-cols-2 gap-3">
@@ -70,18 +55,13 @@ export default function ScoreCardsDashboard({ scores }) {
                             <div className={`${card.iconBg} p-2 rounded-2xl`}>
                                 {card.icon}
                             </div>
-                            <div className="relative" ref={(el) => (infoRefs.current[card.key] = el)}>
+                            <div className="relative">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setVisibleInfo(visibleInfo === card.key ? null : card.key); }}
                                     className="p-1.5 text-gray-300 hover:text-gray-500 transition-colors rounded-full focus:outline-none"
                                 >
                                     <Info size={18} />
                                 </button>
-                                {visibleInfo === card.key && (
-                                    <div className="absolute top-full right-0 z-[100] bg-white p-4 mt-2 border border-gray-200 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] w-64 text-sm text-gray-700 leading-relaxed text-left">
-                                        {card.description}
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -108,6 +88,41 @@ export default function ScoreCardsDashboard({ scores }) {
                     </div>
                 ))}
             </div>
+
+            {/* Modal Overlay for Info */}
+            {visibleInfo && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm transition-opacity"
+                    onClick={() => setVisibleInfo(null)}
+                >
+                    <div
+                        className="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 transform transition-transform"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {(() => {
+                            const activeCard = scoreCards.find(c => c.key === visibleInfo);
+                            if (!activeCard) return null;
+                            return (
+                                <>
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className={`${activeCard.iconBg} p-2 rounded-2xl`}>
+                                            {activeCard.icon}
+                                        </div>
+                                        <h3 className="font-bold text-gray-900 text-lg m-0">{activeCard.title}</h3>
+                                    </div>
+                                    <p className="text-gray-600 text-sm leading-relaxed m-0">{activeCard.description}</p>
+                                    <button
+                                        onClick={() => setVisibleInfo(null)}
+                                        className="mt-6 w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 flex justify-center items-center rounded-xl transition-colors focus:outline-none"
+                                    >
+                                        Got it
+                                    </button>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
