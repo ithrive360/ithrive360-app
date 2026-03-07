@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, ChevronLeft, Calendar, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LiveBarcodeScanner from '../components/LiveBarcodeScanner';
@@ -69,6 +69,13 @@ export default function FoodTracking() {
 
   const [fitbitStats, setFitbitStats] = useState(null);
 
+  // Date Navigation State
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
+  });
+
   // Handle hardware back buttons via hash routing
   useEffect(() => {
     const handleHash = () => {
@@ -99,43 +106,48 @@ export default function FoodTracking() {
 
   useEffect(() => {
     if (user?.id) {
-      fetchTodayLogs(user.id);
+      fetchLogsForDate(user.id, selectedDate);
     }
-  }, [user?.id]);
+  }, [user?.id, selectedDate]);
 
-  const fetchTodayLogs = async (userId) => {
+  const fetchLogsForDate = async (userId, targetDateStr) => {
     // Explicitly await the SDK session init before firing queries to prevent unauthenticated 0-row UI wipes
     await supabase.auth.getSession();
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    const [year, month, day] = targetDateStr.split('-');
+    const startOfDay = new Date(year, month - 1, day);
+    const endOfDay = new Date(year, month - 1, day);
+    endOfDay.setDate(endOfDay.getDate() + 1);
 
     // Create a local ISO string that doesn't shift to GMT to prevent timezone "flip flopping" of visible meals
     const tzOffset = startOfDay.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(startOfDay - tzOffset)).toISOString().slice(0, -1);
+    const localStartISO = (new Date(startOfDay.getTime() - tzOffset)).toISOString().slice(0, -1);
+    const localEndISO = (new Date(endOfDay.getTime() - tzOffset)).toISOString().slice(0, -1);
 
     // Fetch meal logs
     const { data: logData } = await supabase
       .from('user_meal_log')
       .select('*')
       .eq('user_id', userId)
-      .gte('timestamp', localISOTime);
+      .gte('timestamp', localStartISO)
+      .lt('timestamp', localEndISO);
 
     // Filter out old legacy test logs that didn't have a specific meal_type assigned
     const validLogs = (logData || []).filter(log => MEAL_TYPES.some(m => m.id === log.meal_type));
     setLogs(validLogs);
 
     // Fetch Fitbit stats for "Burned" logic
-    const todayYYYYMMDD = new Date().toISOString().split('T')[0];
     const { data: fbData } = await supabase
       .from('user_fitbit_stats')
       .select('*')
       .eq('user_id', userId)
-      .eq('date', todayYYYYMMDD)
+      .eq('date', targetDateStr)
       .maybeSingle();
 
     if (fbData) {
       setFitbitStats(fbData);
+    } else {
+      setFitbitStats(null);
     }
   };
 
@@ -312,7 +324,7 @@ export default function FoodTracking() {
           }
         }
 
-        setTimeout(() => fetchTodayLogs(user.id), 1500); // Silent background sync later
+        setTimeout(() => fetchLogsForDate(user.id, selectedDate), 1500); // Silent background sync later
       } else {
         setFeedback(`❌ Log error: ${log.message}`);
       }
@@ -329,7 +341,7 @@ export default function FoodTracking() {
     setDeleteLogId(null); // Optimistically close modal
 
     const { error } = await supabase.from('user_meal_log').delete().eq('meal_log_id', logIdToDel);
-    if (!error) fetchTodayLogs(user.id);
+    if (!error) fetchLogsForDate(user.id, selectedDate);
   };
 
   // Aggregations
@@ -417,6 +429,50 @@ export default function FoodTracking() {
               <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
               <div className="text-xs text-gray-500">Carbs</div>
             </div>
+          </div>
+          {/* Date Navigator Bar */}
+          <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mt-2 mb-2 relative">
+            <button
+              onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() - 1);
+                setSelectedDate(d.toISOString().split('T')[0]);
+              }}
+              className="p-1.5 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors focus:outline-none cursor-pointer"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <div className="flex items-center gap-2 cursor-pointer relative font-bold text-gray-800 text-sm hover:text-emerald-600 transition-colors">
+              <Calendar size={16} className="text-emerald-500" />
+              <span>
+                {selectedDate === new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
+                  ? 'Today'
+                  : new Date(selectedDate.split('-')[0], selectedDate.split('-')[1] - 1, selectedDate.split('-')[2]).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                max={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() + 1);
+                const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                if (d.toISOString().split('T')[0] <= todayStr) {
+                  setSelectedDate(d.toISOString().split('T')[0]);
+                }
+              }}
+              disabled={selectedDate >= new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
+              className={`p-1.5 rounded-lg transition-colors focus:outline-none ${selectedDate >= new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0] ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 cursor-pointer'}`}
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
 
