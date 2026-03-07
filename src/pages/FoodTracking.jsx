@@ -20,6 +20,35 @@ const MEAL_TYPES = [
   { id: 'snack', label: 'Snacks', icon: Apple, colorClass: 'bg-rose-100 text-rose-600' }
 ];
 
+const FakeProgressCircle = () => {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const duration = 5000;
+    const interval = 50;
+    const steps = duration / interval;
+    let currentStep = 0;
+    const timer = setInterval(() => {
+      currentStep++;
+      setProgress(Math.min((currentStep / steps) * 100, 95)); // Max 95% until real response
+    }, interval);
+    return () => clearInterval(timer);
+  }, []);
+
+  const radius = 10;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative w-8 h-8 flex flex-shrink-0 items-center justify-center">
+      <svg className="transform -rotate-90 w-8 h-8 absolute">
+        <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" className="text-gray-200" />
+        <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="text-purple-500 transition-all duration-75 ease-linear" strokeLinecap="round" />
+      </svg>
+      <span className="text-[9px] font-bold text-purple-600">{Math.round(progress)}%</span>
+    </div>
+  );
+};
+
 export default function FoodTracking() {
   const { user, profile, loading: userLoading } = useUserProfile();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -607,13 +636,17 @@ export default function FoodTracking() {
                     <ChevronRight size={20} className="text-gray-400" />
                   </button>
 
-                  <label className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}>
+                  <label className={`w-full bg-gray-50 hover:bg-gray-100 border border-gray-100 py-4 px-4 rounded-2xl flex items-center text-left transition-all gap-4 cursor-pointer m-0 ${loadingType === 'photo' ? 'pointer-events-none bg-gray-100/80 shadow-inner' : loadingType ? 'opacity-50 pointer-events-none' : 'active:scale-[0.98]'}`}>
                     <div className="bg-purple-100 text-purple-600 p-3 rounded-xl"><Camera size={24} /></div>
                     <div className="flex-1">
                       <span className="font-bold block text-[15px]">{loadingType === 'photo' ? 'Analyzing...' : 'Take Photo'}</span>
                       <span className="text-xs text-gray-500">AI meal analysis</span>
                     </div>
-                    <ChevronRight size={20} className="text-gray-400" />
+                    {loadingType === 'photo' ? (
+                      <FakeProgressCircle />
+                    ) : (
+                      <ChevronRight size={20} className="text-gray-400" />
+                    )}
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingType !== null} />
                   </label>
 
