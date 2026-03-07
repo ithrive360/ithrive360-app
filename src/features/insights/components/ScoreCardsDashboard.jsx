@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Activity, ShieldCheck, Zap, Brain, Info } from 'lucide-react';
 
 export default function ScoreCardsDashboard({ scores }) {
     const [visibleInfo, setVisibleInfo] = useState(null);
@@ -16,20 +17,34 @@ export default function ScoreCardsDashboard({ scores }) {
             key: 'general',
             score: scores?.general ?? '--',
             title: 'Overall Health',
+            icon: <Activity size={18} className="text-emerald-500" />,
+            iconBg: 'bg-emerald-50/80',
             description: 'This score reflects your current health status based on a composite of cardiovascular, metabolic, nutritional, and hormonal markers. It combines both DNA traits and blood test results to provide a balanced snapshot of your overall wellbeing.',
         },
         {
             key: 'longevity',
             score: scores?.longevity ?? '--',
             title: 'Longevity',
+            icon: <ShieldCheck size={18} className="text-purple-500" />,
+            iconBg: 'bg-purple-50/80',
             description: 'This score captures your long-term health potential by integrating inflammation markers, immune balance, detox efficiency, and DNA traits related to cellular aging and disease resistance.',
         },
         {
             key: 'performance',
             score: scores?.performance ?? '--',
-            title: 'Performance & Recovery',
+            title: 'Performance',
+            icon: <Zap size={18} className="text-orange-500" />,
+            iconBg: 'bg-orange-50/80',
             description: 'This score evaluates your body’s ability to recover from stress and perform at its best, using markers like testosterone, cortisol, vitamin D, and key inflammation indicators — combined with DNA traits linked to muscle recovery and fatigue resistance.',
         },
+        {
+            key: 'resilience',
+            score: scores?.resilience ?? '--',
+            title: 'Mind & Resilience',
+            icon: <Brain size={18} className="text-indigo-500" />,
+            iconBg: 'bg-indigo-50/80',
+            description: 'This score evaluates your mental clarity, cognitive function, and overnight recovery through sleep metrics, providing a measure of your brain\'s health and physical adaptability.',
+        }
     ];
 
     useEffect(() => {
@@ -47,50 +62,51 @@ export default function ScoreCardsDashboard({ scores }) {
     }, [visibleInfo]);
 
     return (
-        <div className="w-full relative z-10 font-sans mb-8">
-            <div className="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 relative overflow-hidden group hover:shadow-lg transition-all">
-                {/* Subtle decorative blob */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-60"></div>
+        <div className="w-full relative font-sans mb-8">
+            <div className="grid grid-cols-2 gap-3">
+                {scoreCards.map((card) => (
+                    <div key={card.key} className="bg-white rounded-3xl p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 relative flex flex-col justify-between h-[150px]">
+                        <div className="flex justify-between items-start relative z-10 w-full">
+                            <div className={`${card.iconBg} p-2 rounded-2xl`}>
+                                {card.icon}
+                            </div>
+                            <div className="relative" ref={(el) => (infoRefs.current[card.key] = el)}>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setVisibleInfo(visibleInfo === card.key ? null : card.key); }}
+                                    className="p-1.5 text-gray-300 hover:text-gray-500 transition-colors rounded-full focus:outline-none"
+                                >
+                                    <Info size={18} />
+                                </button>
+                                {visibleInfo === card.key && (
+                                    <div className="absolute top-full right-0 z-[100] bg-white p-4 mt-2 border border-gray-200 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] w-64 text-sm text-gray-700 leading-relaxed text-left">
+                                        {card.description}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-                <div className="relative z-10 flex flex-col gap-6">
-                    {scoreCards.map((card) => (
-                        <div key={card.key} className="relative">
-                            <div className="flex justify-between items-end mb-2">
-                                <span className="font-bold text-gray-800 text-lg tracking-tight">{card.title}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-gray-900 tracking-tight">
+                        <div className="mt-auto relative z-10 flex flex-col w-full">
+                            <span className="text-xs font-bold text-gray-400 tracking-[0.05em] uppercase mb-1 truncate w-full block">
+                                {card.title}
+                            </span>
+                            <div className="flex items-baseline justify-between w-full">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold tracking-tight text-gray-900">
                                         {card.score}
                                     </span>
-                                    <span className="text-sm font-semibold text-gray-400 mb-0.5">/100</span>
+                                    <span className="text-sm font-semibold text-gray-400">/100</span>
                                 </div>
                             </div>
-                            <div className="h-3.5 rounded-full bg-gray-100/80 shadow-inner overflow-hidden mb-1 relative border border-gray-200/50">
+
+                            <div className="h-1.5 w-full rounded-full bg-gray-100 mt-2.5 overflow-hidden">
                                 <div
                                     className={`h-full rounded-full transition-all duration-1000 ease-out ${getColorClass(card.score)}`}
                                     style={{ width: typeof card.score === 'number' ? `${card.score}%` : '0%' }}
                                 ></div>
                             </div>
-                            <div className="text-right">
-                                <button
-                                    onClick={() => setVisibleInfo(visibleInfo === card.key ? null : card.key)}
-                                    className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-500 font-medium px-2.5 py-1 rounded-lg border border-gray-200 transition-colors cursor-pointer relative focus:outline-none"
-                                    aria-label="More info"
-                                >
-                                    Why this score?
-                                </button>
-                            </div>
-
-                            {visibleInfo === card.key && (
-                                <div
-                                    ref={(el) => (infoRefs.current[card.key] = el)}
-                                    className="absolute top-full right-0 z-50 bg-white p-4 mt-2 border border-gray-200 rounded-lg shadow-lg w-80 text-sm text-gray-700"
-                                >
-                                    {card.description}
-                                </div>
-                            )}
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { calculateInsightScore } from '../utils/scoreCalculator';
 
 export function useDashboardData(userId) {
-    const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null });
+    const [overallScores, setOverallScores] = useState({ general: null, longevity: null, performance: null, resilience: null });
     const [recommendationData, setRecommendationData] = useState({});
     const [activeToggles, setActiveToggles] = useState({});
     const [loading, setLoading] = useState(true);
@@ -71,10 +71,12 @@ export function useDashboardData(userId) {
                             return valid.length ? Math.round(valid.reduce((a, b) => a + b.score, 0) / valid.length) : null;
                         };
 
-                        const newScores = {
+                        // Calculate overall scores
+                        const newOverallScores = {
                             general: getGroupAvg(['HA001', 'HA002', 'HA003', 'HA004']),
                             performance: getGroupAvg(['HA005', 'HA006']),
                             longevity: getGroupAvg(['HA007', 'HA008', 'HA009']),
+                            resilience: getGroupAvg(['HA006', 'HA007']),
                         };
 
                         const grouped = {};
@@ -88,13 +90,13 @@ export function useDashboardData(userId) {
                         }
 
                         if (isMounted) {
-                            setOverallScores(newScores);
+                            setOverallScores(newOverallScores);
                             setRecommendationData(grouped);
                             setActiveToggles(toggles);
 
                             // Silently update the optimistic cache against future deadlocks
                             localStorage.setItem(cacheKey, JSON.stringify({
-                                overallScores: newScores,
+                                overallScores: newOverallScores,
                                 recommendationData: grouped,
                                 activeToggles: toggles
                             }));
