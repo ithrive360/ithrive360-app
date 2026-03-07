@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   X, LayoutDashboard, UploadCloud, TrendingUp, Settings,
-  User, HelpCircle, LogOut, Soup, NotebookTabs
+  User, HelpCircle, LogOut, Soup, NotebookTabs, DownloadCloud
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,12 +9,21 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [installPromptReady, setInstallPromptReady] = useState(false);
+
+  useEffect(() => {
+    const handlePwaReady = () => setInstallPromptReady(true);
+    if (window.deferredPWAInstallPrompt) handlePwaReady();
+    window.addEventListener('pwaPromptReady', handlePwaReady);
+    return () => window.removeEventListener('pwaPromptReady', handlePwaReady);
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
     return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
 
-  const menuItems = [
+  const baseMenuItems = [
     {
       icon: <User size={20} />,
       label: 'My Profile',
@@ -62,6 +71,25 @@ export default function SidebarMenu({ isOpen, onClose, onLogout, profile }) {
       }
     }
   ];
+
+  const menuItems = [...baseMenuItems];
+
+  // Inject the Install App button dynamically if the OS supports PWA installation
+  if (installPromptReady) {
+    menuItems.splice(menuItems.length - 2, 0, {
+      icon: <DownloadCloud size={20} className="text-emerald-500" />,
+      label: <span className="text-emerald-600 font-bold">Install App</span>,
+      action: async () => {
+        if (!window.deferredPWAInstallPrompt) return;
+        window.deferredPWAInstallPrompt.prompt();
+        const { outcome } = await window.deferredPWAInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setInstallPromptReady(false);
+          window.deferredPWAInstallPrompt = null;
+        }
+      }
+    });
+  }
 
   return (
     <>
