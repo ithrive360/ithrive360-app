@@ -54,6 +54,25 @@ export default function FoodTracking() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [logs, setLogs] = useState([]);
 
+  // Dynamically calculate the perfect scroll track height needed to stack sticky headers
+  const scrollContainerRef = React.useRef(null);
+  const [spacerHeight, setSpacerHeight] = useState(0);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          const containerHeight = entry.contentRect.height;
+          // The 4 sticky headers occupy ~376px. We leave a small margin, so we subtract 450px 
+          // from the total container height to get the perfect docking spacer.
+          setSpacerHeight(Math.max(0, containerHeight - 450));
+        }
+      });
+      resizeObserver.observe(scrollContainerRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState(null);
   const [loadingType, setLoadingType] = useState(null); // 'barcode' | 'photo' | 'save' | null
@@ -434,7 +453,7 @@ export default function FoodTracking() {
         </div>
 
         {/* Meal Categories (SCROLLABLE CONTAINER) */}
-        <div className="flex-1 overflow-y-auto w-full relative min-h-[400px]">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto w-full relative min-h-[400px]">
 
           {/* Top Buffer Mask (Hides text scrolling above Breakfast) */}
           <div className="sticky top-0 h-4 bg-[#F9FAFB] w-full z-50"></div>
@@ -627,8 +646,8 @@ export default function FoodTracking() {
               );
             })}
 
-            {/* Physical Spacer to extend content-box for sticky tracking on iOS/Safari */}
-            <div className="h-[400px] w-full flex-shrink-0 pointer-events-none" aria-hidden="true" />
+            {/* Dynamic Spacer: Extends the containing block exactly enough to dock the final log immediately under the sticky stack. */}
+            <div style={{ height: spacerHeight }} className="w-full flex-shrink-0 pointer-events-none" aria-hidden="true" />
           </div>
         </div>
       </div>
