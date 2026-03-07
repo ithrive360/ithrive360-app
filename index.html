@@ -20,22 +20,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- PWA Service Worker Kill Switch -->
-  <!-- Automatically rescues mobile users trapped on an aggressively cached, broken old version -->
+  <!-- PWA Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        let killedWorker = false;
-        for (let registration of registrations) {
-          registration.unregister();
-          killedWorker = true;
-        }
+      // Register the new service worker to enable PWA install prompts
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function (registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(function (err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
 
-        // Prevent infinite reload loops! If Chrome refuses to kill the worker instantly,
-        // we only allow ONE forced reload per session.
-        if (killedWorker && !sessionStorage.getItem('pwa_reloaded')) {
-          sessionStorage.setItem('pwa_reloaded', 'true');
-          window.location.reload(true);
+      // Clean up ANY obsolete service workers that aren't our primary one
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          if (!registration.active || !registration.active.scriptURL.endsWith('/service-worker.js')) {
+            console.log('Unregistering obsolete service worker:', registration);
+            registration.unregister();
+          }
         }
       });
     }
