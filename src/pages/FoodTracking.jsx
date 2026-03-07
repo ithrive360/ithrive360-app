@@ -34,17 +34,17 @@ const FakeProgressCircle = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const radius = 10;
+  const radius = 16;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="relative w-8 h-8 flex flex-shrink-0 items-center justify-center">
-      <svg className="transform -rotate-90 w-8 h-8 absolute">
-        <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" className="text-gray-200" />
-        <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="text-purple-500 transition-all duration-75 ease-linear" strokeLinecap="round" />
+    <div className="relative w-11 h-11 flex flex-shrink-0 items-center justify-center">
+      <svg className="transform -rotate-90 w-11 h-11 absolute">
+        <circle cx="22" cy="22" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" className="text-gray-200" />
+        <circle cx="22" cy="22" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="text-purple-500 transition-all duration-75 ease-linear" strokeLinecap="round" />
       </svg>
-      <span className="text-[9px] font-bold text-purple-600">{Math.round(progress)}%</span>
+      <span className="text-[10px] font-bold text-purple-600 tracking-tight">{Math.round(progress)}%</span>
     </div>
   );
 };
