@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, ChevronLeft, Calendar, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, ChevronLeft, Calendar, ChevronUp, ChevronDown, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LiveBarcodeScanner from '../components/LiveBarcodeScanner';
@@ -75,6 +75,7 @@ export default function FoodTracking() {
     const tzOffset = d.getTimezoneOffset() * 60000;
     return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
   });
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Handle hardware back buttons via hash routing
   useEffect(() => {
@@ -431,7 +432,7 @@ export default function FoodTracking() {
             </div>
           </div>
           {/* Date Navigator Bar */}
-          <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mt-2 mb-2 relative">
+          <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mt-2 mb-2 relative z-50">
             <button
               onClick={() => {
                 const d = new Date(selectedDate);
@@ -443,20 +444,16 @@ export default function FoodTracking() {
               <ChevronLeft size={20} />
             </button>
 
-            <div className="flex items-center gap-2 cursor-pointer relative font-bold text-gray-800 text-sm hover:text-emerald-600 transition-colors">
-              <Calendar size={16} className="text-emerald-500" />
+            <div
+              className="flex items-center gap-2 cursor-pointer font-bold text-gray-800 text-sm hover:text-emerald-600 transition-colors py-1 px-3 rounded-lg hover:bg-gray-50 bg-white"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
+              <Calendar size={16} className={showCalendar ? "text-emerald-600" : "text-emerald-500"} />
               <span>
                 {selectedDate === new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
                   ? 'Today'
                   : new Date(selectedDate.split('-')[0], selectedDate.split('-')[1] - 1, selectedDate.split('-')[2]).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
               </span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                max={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
-              />
             </div>
 
             <button
@@ -473,6 +470,94 @@ export default function FoodTracking() {
             >
               <ChevronRight size={20} />
             </button>
+
+            {/* Custom Popover Calendar */}
+            {showCalendar && (
+              <>
+                {/* Backdrop to close when clicking outside */}
+                <div
+                  className="fixed inset-0 z-[100]"
+                  onClick={() => setShowCalendar(false)}
+                />
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 p-4 z-[101] w-72">
+                  <div className="flex justify-between items-center mb-4 px-1">
+                    <button
+                      onClick={() => {
+                        const d = new Date(selectedDate);
+                        d.setMonth(d.getMonth() - 1);
+                        setSelectedDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="p-1 text-gray-400 hover:text-emerald-500 rounded-lg hover:bg-emerald-50 transition-colors"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <span className="font-bold text-gray-800">
+                      {new Date(selectedDate.split('-')[0], selectedDate.split('-')[1] - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const d = new Date(selectedDate);
+                        d.setMonth(d.getMonth() + 1);
+                        const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                        if (d.toISOString().slice(0, 7) <= todayStr.slice(0, 7)) {
+                          setSelectedDate(d.toISOString().split('T')[0]);
+                        }
+                      }}
+                      disabled={selectedDate.slice(0, 7) >= new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 7)}
+                      className={`p-1 rounded-lg transition-colors ${selectedDate.slice(0, 7) >= new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 7) ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50'}`}
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                      <div key={day} className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{day}</div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1">
+                    {(() => {
+                      const year = parseInt(selectedDate.split('-')[0]);
+                      const month = parseInt(selectedDate.split('-')[1]) - 1;
+                      const firstDay = new Date(year, month, 1).getDay();
+                      const daysInMonth = new Date(year, month + 1, 0).getDate();
+                      const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+                      const days = [];
+                      for (let i = 0; i < firstDay; i++) {
+                        days.push(<div key={`empty-${i}`} className="h-8"></div>);
+                      }
+                      for (let i = 1; i <= daysInMonth; i++) {
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        const isSelected = dateStr === selectedDate;
+                        const isFuture = dateStr > todayStr;
+                        const isToday = dateStr === todayStr;
+
+                        days.push(
+                          <button
+                            key={i}
+                            disabled={isFuture}
+                            onClick={() => {
+                              setSelectedDate(dateStr);
+                              setShowCalendar(false); // Instant 1-tap close
+                            }}
+                            className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors outline-none
+                              ${isSelected ? 'bg-emerald-500 text-white shadow-sm' :
+                                isFuture ? 'text-gray-300 cursor-not-allowed' :
+                                  isToday ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-gray-700 hover:bg-gray-100'}
+                            `}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                      return days;
+                    })()}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
