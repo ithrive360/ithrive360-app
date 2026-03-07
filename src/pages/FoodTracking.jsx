@@ -439,7 +439,7 @@ export default function FoodTracking() {
           {/* Top Buffer Mask (Hides text scrolling above Breakfast) */}
           <div className="sticky top-0 h-4 bg-[#F9FAFB] w-full z-50"></div>
 
-          <div className="px-4 pb-64 min-h-[500px]">
+          <div className="px-4">
             {/* Date Navigator Bar */}
             <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mb-4 relative z-50">
               <button
@@ -626,6 +626,9 @@ export default function FoodTracking() {
                 </React.Fragment>
               );
             })}
+
+            {/* Physical Spacer to extend content-box for sticky tracking on iOS/Safari */}
+            <div className="h-[400px] w-full flex-shrink-0 pointer-events-none" aria-hidden="true" />
           </div>
         </div>
       </div>
