@@ -576,8 +576,8 @@ export default function FoodTracking() {
                 <React.Fragment key={meal.id}>
                   {/* STICKY CARD HEADER */}
                   <div
-                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[90px] border-b border-gray-100"
-                    style={{ top: `${(index * 90) + 16}px`, zIndex: 40 - index }}
+                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
+                    style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${meal.colorClass}`}>
