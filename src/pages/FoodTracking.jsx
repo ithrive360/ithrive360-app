@@ -567,7 +567,7 @@ export default function FoodTracking() {
           {/* Top Buffer Mask (Hides text scrolling above Breakfast) */}
           <div className="sticky top-0 h-4 bg-[#F9FAFB] w-full z-50"></div>
 
-          <div className="px-4 pb-32">
+          <div className="px-4 pb-64">
             {MEAL_TYPES.map((meal, index) => {
               const rowLogs = logs.filter(l => l.meal_type === meal.id);
               const rowCals = rowLogs.reduce((sum, l) => sum + (l.nutrients_json?.energy_kcal || l.nutrients_json?.calories || 0), 0);
