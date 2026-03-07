@@ -434,12 +434,12 @@ export default function FoodTracking() {
         </div>
 
         {/* Meal Categories (SCROLLABLE CONTAINER) */}
-        <div className="flex-1 overflow-y-auto w-full relative">
+        <div className="flex-1 overflow-y-auto w-full relative min-h-[400px]">
 
           {/* Top Buffer Mask (Hides text scrolling above Breakfast) */}
           <div className="sticky top-0 h-4 bg-[#F9FAFB] w-full z-50"></div>
 
-          <div className="px-4 pb-64">
+          <div className="px-4 pb-64 min-h-[500px]">
             {/* Date Navigator Bar */}
             <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mb-4 relative z-50">
               <button
@@ -576,8 +576,8 @@ export default function FoodTracking() {
                 <React.Fragment key={meal.id}>
                   {/* STICKY CARD HEADER */}
                   <div
-                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[88px] border-b border-gray-100"
-                    style={{ top: `${(index * 88) + 16}px`, zIndex: 40 - index }}
+                    className="px-4 flex items-center justify-between sticky bg-white shadow-[0_4px_6px_-2px_rgba(0,0,0,0.05)] w-full h-[90px] border-b border-gray-100"
+                    style={{ top: `${(index * 90) + 16}px`, zIndex: 40 - index }}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${meal.colorClass}`}>
