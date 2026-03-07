@@ -381,7 +381,7 @@ export default function FoodTracking() {
       <div className="flex flex-col flex-1 w-full max-w-md mx-auto relative overflow-hidden">
 
         {/* --- FIXED TOP SUMMARY DASHBOARD --- */}
-        <div className="flex-none bg-[#F9FAFB] z-[60] px-4 pt-4 pb-2 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
+        <div className="flex-none bg-[#F9FAFB] relative z-[60] px-4 pt-4 pb-2 border-b border-gray-200/60 shadow-[0_4px_10px_-10px_rgba(0,0,0,0.05)]">
 
           {/* Calorie Summary Top Bar */}
           <div className="flex items-center justify-between pb-3">
@@ -416,23 +416,8 @@ export default function FoodTracking() {
             </div>
           </div>
 
-          {/* Macro Summary (Restored Original Sizing, Reduced Bottom Margin) */}
-          <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-2">
-            <div className="text-center w-1/3 border-r border-gray-100">
-              <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
-              <div className="text-xs text-gray-500">Protein</div>
-            </div>
-            <div className="text-center w-1/3 border-r border-gray-100">
-              <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
-              <div className="text-xs text-gray-500">Fat</div>
-            </div>
-            <div className="text-center w-1/3">
-              <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
-              <div className="text-xs text-gray-500">Carbs</div>
-            </div>
-          </div>
           {/* Date Navigator Bar */}
-          <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mt-2 mb-2 relative z-50">
+          <div className="flex items-center justify-between bg-white px-2 py-2.5 rounded-2xl shadow-sm border border-gray-100 mb-3 relative">
             <button
               onClick={() => {
                 const d = new Date(selectedDate);
@@ -558,6 +543,22 @@ export default function FoodTracking() {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Macro Summary (Restored Original Sizing, Reduced Bottom Margin) */}
+          <div className="flex justify-between bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-2">
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalProtein)}g</div>
+              <div className="text-xs text-gray-500">Protein</div>
+            </div>
+            <div className="text-center w-1/3 border-r border-gray-100">
+              <div className="text-sm font-bold">{Math.round(totalFat)}g</div>
+              <div className="text-xs text-gray-500">Fat</div>
+            </div>
+            <div className="text-center w-1/3">
+              <div className="text-sm font-bold">{Math.round(totalCarbs)}g</div>
+              <div className="text-xs text-gray-500">Carbs</div>
+            </div>
           </div>
         </div>
 
