@@ -755,7 +755,7 @@ export default function FoodTracking() {
                   window.location.hash = '';
                 }
               }}
-              className={`fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 shadow-2xl transition-all duration-300 ease-in-out touch-action-none overscroll-none ${isSearchFocused ? 'h-[90vh]' : 'max-h-[85vh]'}`}
+              className={`fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 shadow-2xl touch-action-none overscroll-none ${isSearchFocused ? 'h-[90vh]' : 'max-h-[85vh]'}`}
             >
               {/* Handle bar */}
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0" />
@@ -943,12 +943,14 @@ export default function FoodTracking() {
         )}
       </AnimatePresence>
 
-      {showLiveScanner && (
-        <div className="fixed inset-0 z-[60] bg-black">
-          <LiveBarcodeScanner onScan={handleLiveScanResult} onClose={() => window.history.back()} />
-        </div>
-      )}
+      {
+        showLiveScanner && (
+          <div className="fixed inset-0 z-[60] bg-black">
+            <LiveBarcodeScanner onScan={handleLiveScanResult} onClose={() => window.history.back()} />
+          </div>
+        )
+      }
 
-    </div>
+    </div >
   );
 }
