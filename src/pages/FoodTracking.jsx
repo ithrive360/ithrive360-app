@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useUserProfile } from '../hooks/useUserProfile';
 import SidebarMenu from './SidebarMenu';
-import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, ChevronLeft, Calendar, ChevronUp, ChevronDown, X as XIcon, Coffee, Salad, Utensils, Apple } from 'lucide-react';
+import { Menu, X, ScanBarcode, Camera, Plus, ChevronRight, ChevronLeft, Calendar, ChevronUp, ChevronDown, X as XIcon, Coffee, Salad, Utensils, Apple, Search, Loader2 } from 'lucide-react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LiveBarcodeScanner from '../components/LiveBarcodeScanner';
@@ -12,6 +12,7 @@ import logo from '../assets/logo.png';
 import { lookupBarcodeProduct } from '../utils/barcodeLookup';
 import { analyzeMealImage } from '../utils/photoRecognizer';
 import { logMealToSupabase } from '../utils/logMeal';
+import { searchOpenFoodFacts } from '../utils/openFoodFactsSearch';
 
 const MEAL_TYPES = [
   { id: 'breakfast', label: 'Breakfast', icon: Coffee, colorClass: 'bg-orange-100 text-orange-600' },
@@ -81,6 +82,37 @@ export default function FoodTracking() {
   const [scannedProduct, setScannedProduct] = useState(null);
   const [editingLogId, setEditingLogId] = useState(null);
   const [deleteLogId, setDeleteLogId] = useState(null);
+
+  // Manual Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchingText, setIsSearchingText] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchDebounceRef = useRef(null);
+
+  // Trigger Debounced API lookup when typing
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearchingText(false);
+      return;
+    }
+
+    setIsSearchingText(true);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    searchDebounceRef.current = setTimeout(async () => {
+      const result = await searchOpenFoodFacts(searchQuery.trim());
+      if (result.success) {
+        setSearchResults(result.data);
+      } else {
+        setSearchResults([]);
+      }
+      setIsSearchingText(false);
+    }, 600); // 600ms debounce to prevent API spam
+
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [searchQuery]);
 
   // New State for customizing amount before saving
   const [inputQuantity, setInputQuantity] = useState(100);
@@ -723,14 +755,14 @@ export default function FoodTracking() {
                   window.location.hash = '';
                 }
               }}
-              className="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 shadow-2xl max-h-[85vh] overflow-y-auto touch-action-none overscroll-none"
+              className={`fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 p-6 flex flex-col pt-4 shadow-2xl transition-all duration-300 ease-in-out touch-action-none overscroll-none ${isSearchFocused ? 'h-[90vh]' : 'max-h-[85vh]'}`}
             >
               {/* Handle bar */}
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0" />
 
               <div className="flex justify-between items-center mb-6 shrink-0">
                 <h2 className="text-xl font-bold capitalize">Add to {selectedMealType}</h2>
-                <button onClick={() => window.location.hash = ''} className="bg-gray-100 p-2 rounded-full cursor-pointer border-none outline-none">
+                <button onClick={() => { window.location.hash = ''; setSearchQuery(''); setIsSearchFocused(false); }} className="bg-gray-100 p-2 rounded-full cursor-pointer border-none outline-none">
                   <XIcon size={20} className="text-gray-500" />
                 </button>
               </div>
@@ -813,7 +845,97 @@ export default function FoodTracking() {
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoFileChange} disabled={loadingType !== null} />
                   </label>
 
-                  {feedback && <p className="text-center text-sm font-medium text-emerald-600 mt-2">{feedback}</p>}
+                  {feedback && <p className="text-center text-sm font-medium text-emerald-600 mt-2 shrink-0">{feedback}</p>}
+
+                  {/* Manual Text Search Divider */}
+                  <div className="relative flex items-center py-2 shrink-0">
+                    <div className="flex-grow border-t border-gray-100"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-300 text-xs font-bold uppercase tracking-widest">or search manually</span>
+                    <div className="flex-grow border-t border-gray-100"></div>
+                  </div>
+
+                  {/* Debounced Search Input */}
+                  <div className="relative shrink-0 flex-none mb-1">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      {isSearchingText ? (
+                        <Loader2 size={20} className="text-emerald-500 animate-spin" />
+                      ) : (
+                        <Search size={20} className="text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search for a food..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => { if (!searchQuery) setIsSearchFocused(false); }}
+                      disabled={loadingType !== null}
+                      className="w-full bg-gray-50 border border-gray-100 placeholder-gray-400 text-gray-900 text-[15px] font-medium rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 block pl-12 p-4 outline-none transition-all duration-200"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setIsSearchFocused(false);
+                          setSearchResults([]);
+                        }}
+                        className="absolute inset-y-0 right-4 flex items-center cursor-pointer border-none bg-transparent outline-none"
+                      >
+                        <XIcon size={18} className="text-gray-400 hover:text-gray-600" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Dynamic Search Results Container (Expands into available space) */}
+                  {isSearchFocused && (
+                    <div className="flex-1 overflow-y-auto mt-2 -mx-2 px-2 min-h-0 relative h-full">
+                      {searchQuery.trim().length > 0 && searchResults.length === 0 && !isSearchingText ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-full">
+                          <Search size={32} className="mb-3 opacity-20" />
+                          <p className="text-sm font-medium">No foods found for "{searchQuery}"</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2 pb-10">
+                          {searchResults.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl hover:border-emerald-200 transition-colors group">
+                              <div className="flex items-center gap-3 overflow-hidden flex-1">
+                                {item.image_url ? (
+                                  <img src={item.image_url} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 bg-gray-50 border border-gray-100" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                                    <Utensils size={18} className="text-gray-300" />
+                                  </div>
+                                )}
+                                <div className="flex flex-col min-w-0 pr-2">
+                                  <span className="font-bold text-sm text-gray-900 truncate">{item.name}</span>
+                                  <span className="text-[11px] text-gray-500 truncate mt-0.5">
+                                    {Math.round(item.nutrients_json.energy_kcal)} kcal • {item.brand}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  // Re-use existing Confirm Overlay Logic
+                                  setScannedProduct(item);
+                                  setInputQuantity(100);
+                                  setInputUnit('g');
+                                  setEditingLogId(null);
+                                  // Clear search so it resets on next open
+                                  setSearchQuery('');
+                                  setIsSearchFocused(false);
+                                  setSearchResults([]);
+                                }}
+                                className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer border-none outline-none"
+                              >
+                                <Plus size={18} strokeWidth={2.5} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
